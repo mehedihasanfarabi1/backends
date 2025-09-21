@@ -1,0 +1,132 @@
+/* ===== Section background behind KPI cards ===== */
+.kpi-band {
+  background: radial-gradient(1200px 400px at -10% -20%, #f0e7ff 0, transparent 55%),
+    radial-gradient(900px 300px at 120% -10%, #e0f7ff 0, transparent 55%),
+    radial-gradient(700px 260px at 20% 120%, #e6fffa 0, transparent 50%),
+    #ffffff;
+  border: 1px solid rgba(0, 0, 0, .06);
+}
+
+/* ===== Shadows ===== */
+.shadow-soft {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .06);
+}
+
+.shadow-kpi {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .07);
+}
+
+/* ===== Dashboard Cards ===== */
+/* ===== Dashboard Container ===== */
+/* ===== Dashboard Container ===== */
+.dashboard-container {
+  padding: 20px;
+  background: #f5f7ff; /* soft light background */
+  min-height: 100vh;
+  font-family: "Poppins", "Tiro Bangla", sans-serif;
+}
+
+/* ===== Header Bar ===== */
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 15px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.left-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.btn-back {
+  background: #0d6efd; /* primary color */
+  color: #fff;
+}
+
+.btn-refresh {
+  background: #10b981; /* success color */
+  color: #fff;
+}
+
+.btn:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.right-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #6c757d;
+}
+
+/* ===== Dashboard Cards ===== */
+.dashboard-card-section {
+  padding: 10px 0;
+}
+
+.dashboard-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-card {
+  background: linear-gradient(135deg, #2a79ef, #772bf2); /* professional blue/purple gradient */
+  border-radius: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card i {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.dashboard-card:hover {
+  transform: scale(1.06);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Responsive Tweaks ===== */
+@media (max-width: 768px) {
+  .header-bar {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  .left-buttons {
+    justify-content: center;
+  }
+}

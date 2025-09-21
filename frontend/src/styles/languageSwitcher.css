@@ -1,0 +1,23 @@
+
+
+/* Language Switches CSS */
+
+
+.lang-option {
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.lang-option:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
+}
+
+.lang-option.active {
+  background-color: #007bff; /* selected color */
+  color: #fff;
+}
+
+/* Language Switches CSS End*/

@@ -1,0 +1,18 @@
+{
+  "create_department": "বিভাগ তৈরি করুন",
+  "search_placeholder": "খুঁজুন",
+  "export": "এক্সপোর্ট",
+  "print": "প্রিন্ট",
+  "department_list": "বিভাগের তালিকা",
+  "name": "নাম",
+  "description": "বিবরণ",
+  "action": "কর্ম",
+  "edit": "সম্পাদনা",
+  "delete": "মুছে",
+  "no_departments_found": "কোনো বিভাগ পাওয়া যায়নি",
+  "hr_dashboard": "এইচআর বিভাগ",
+  "it_officer": "আইটি অফিসার",
+  "ch_stuff": "সিএইচ স্টাফ",
+  "lh_stuff": "এলএইচ স্টাফ",
+  "head_office": "হেড অফিস"
+}

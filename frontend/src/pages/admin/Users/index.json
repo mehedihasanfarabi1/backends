@@ -1,0 +1,62 @@
+// product permission column
+{
+  "company_ids": [1, 2],
+  "business_type_ids": {
+    "1": [1, 2],
+    "2": [3]
+  },
+  "factory_ids": {
+    "1": [2, 3],
+    "2": [4]
+  },
+  "modules": {
+    "products": {
+      "productType": { "create": true, "edit": true, "delete": false, "view": true },
+      "category":   { "create": true, "edit": false, "delete": false, "view": true }
+    }
+ 
+  }
+},
+// company  permission column
+{
+  "company_ids": [1, 2],
+  "business_type_ids": {
+    "1": [1, 2],
+    "2": [3]
+  },
+  "factory_ids": {
+    "1": [2, 3],
+    "2": [4]
+  },
+  "modules": {
+    
+    "company": {
+      "companyInfo": { "create": true, "edit": false, "delete": false, "view": true },
+      "businessType": { "create": true, "edit": true, "delete": true, "view": true },
+      "factory": { "create": false, "edit": true, "delete": false, "view": true }
+    },
+   
+  }
+},
+
+// hr permission column
+{
+  "company_ids": [1, 2],
+  "business_type_ids": {
+    "1": [1, 2],
+    "2": [3]
+  },
+  "factory_ids": {
+    "1": [2, 3],
+    "2": [4]
+  },
+  "modules": {
+ 
+    "hr": {
+      "employee": { "create": true, "edit": true, "delete": false, "view": true }
+    }
+  }
+}
+
+
+// so-many permission column

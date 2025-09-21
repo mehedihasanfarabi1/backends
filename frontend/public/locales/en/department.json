@@ -1,0 +1,18 @@
+{
+  "create_department": "Create Department",
+  "search_placeholder": "Search",
+  "export": "Export",
+  "print": "Print",
+  "department_list": "Department List",
+  "name": "Name",
+  "description": "Description",
+  "action": "Action",
+  "edit": "Edit",
+  "delete": "Delete",
+  "no_departments_found": "No departments found",
+  "hr_dashboard": "HR Department",
+  "it_officer": "IT Officer",
+  "ch_stuff": "CH Stuff",
+  "lh_stuff": "LH Stuff",
+  "head_office": "Head Office"
+}

@@ -1,0 +1,232 @@
+/* src/styles/Table.css */
+
+/* Table Wrapper */
+.custom-table-wrapper {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 1rem;
+}
+
+/* Table */
+.custom-table {
+  width: 100%;
+  border-collapse: separate;   /* আলাদা cell border */
+  border-spacing: 0;
+  font-size: 14px;
+  border: 1px solid #dee2e6;   /* outer border */
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Header */
+.custom-table thead {
+  background: linear-gradient(90deg, #0dcaf0, #0aa2c0);
+  color: #fff;
+}
+
+.custom-table thead th {
+  padding: 12px 15px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #0aa2c0;
+  white-space: nowrap;
+}
+
+/* Body Rows */
+.custom-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.custom-table tbody tr:hover {
+  background-color: #eef9fc;
+}
+
+/* Cells */
+.custom-table td {
+  padding: 10px 15px;
+  text-align: center;
+  vertical-align: middle;
+  border-top: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
+/* Last column no border-right */
+.custom-table td:last-child,
+.custom-table th:last-child {
+  border-right: none;
+}
+
+/* Checkbox column */
+.custom-table td input[type="checkbox"],
+.custom-table th input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* Action buttons */
+.custom-actions button {
+  margin: 0 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.custom-actions .btn-outline-secondary:hover {
+  background: #6c757d;
+  color: #fff;
+}
+
+.custom-actions .btn-outline-danger:hover {
+  background: #dc3545;
+  color: #fff;
+}
+
+/* Empty State */
+.custom-table tbody tr td[colspan] {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 20px 0;
+}
+
+
+/* Wrapper */
+.custom-table-wrapper {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+/* Table */
+.custom-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Header */
+.custom-table thead {
+  background: linear-gradient(90deg, #0dcaf0, #0aa2c0);
+  color: #fff;
+}
+
+.custom-table thead th {
+  padding: 12px 15px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #0aa2c0;
+  white-space: nowrap;
+}
+
+/* Rows */
+.custom-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.custom-table tbody tr:hover {
+  background-color: #eef9fc;
+  transition: background 0.2s ease;
+}
+
+/* Cells */
+.custom-table td {
+  padding: 10px 15px;
+  text-align: center;
+  border-top: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+}
+
+.custom-table td:last-child,
+.custom-table th:last-child {
+  border-right: none;
+}
+
+/* Action buttons */
+.custom-actions button {
+  margin: 0 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.custom-actions .btn-outline-secondary:hover {
+  background: #6c757d;
+  color: #fff;
+}
+
+.custom-actions .btn-outline-danger:hover {
+  background: #dc3545;
+  color: #fff;
+}
+
+/* Empty State */
+.custom-table tbody tr td[colspan] {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 20px 0;
+}
+
+/* ----------------- */
+/* Form Styles       */
+/* ----------------- */
+.custom-form {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.custom-form h4 {
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.custom-form label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.custom-form input,
+.custom-form select,
+.custom-form textarea {
+  width: 100%;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 8px 10px;
+  transition: border-color 0.2s;
+}
+
+.custom-form input:focus,
+.custom-form select:focus,
+.custom-form textarea:focus {
+  border-color: #0dcaf0;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+}
+
+.custom-form .actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 10px;
+}
+
+.custom-form button {
+  padding: 8px 16px;
+  border-radius: 6px;
+}

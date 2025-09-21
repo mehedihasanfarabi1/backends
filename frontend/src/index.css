@@ -1,0 +1,16 @@
+/* Default English font */
+[lang="en"] {
+  font-family: 'Fira Code', monospace;
+}
+
+/* Bangla font */
+[lang="bn"] {
+  font-family: 'Tiro Bangla', serif;
+}
+
+/* src/index.css এ যোগ করো */
+.table-header-custom {
+  background-color: #0dcaf0 !important;
+  color: #fff !important;
+}
+

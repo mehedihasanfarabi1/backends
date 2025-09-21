@@ -1,0 +1,118 @@
+.user-company-selector .company-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.company-card {
+  flex: 1 1 45%;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+  padding: 15px;
+  transition: transform 0.3s;
+}
+
+.company-card:hover {
+  transform: translateY(-3px);
+}
+
+.company-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.company-label {
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.company-details {
+  margin-top: 10px;
+}
+
+.bt-tree {
+  margin-left: 15px;
+  margin-top: 8px;
+}
+
+.bt-row {
+  display: flex;
+  align-items: center;
+}
+
+.factory-list {
+  margin-left: 25px;
+  margin-top: 5px;
+}
+
+.factory-item {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+
+.company-card:hover {
+  transform: translateY(-3px);
+}
+
+.company-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.company-label {
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.company-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  margin-top: 10px;
+}
+
+.company-details.expanded {
+  max-height: 500px;
+  transition: max-height 0.5s ease;
+}
+
+/* Business type tree */
+.bt-tree {
+  margin-left: 15px;
+  margin-top: 8px;
+}
+
+.bt-row {
+  display: flex;
+  align-items: center;
+}
+
+/* Factory list tree */
+.factory-list {
+  max-height: 0;
+  overflow: hidden;
+  margin-left: 25px;
+  transition: max-height 0.3s ease;
+}
+
+.factory-list.expanded {
+  max-height: 300px;
+  transition: max-height 0.4s ease;
+}
+
+.factory-item {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.loading-text {
+  font-style: italic;
+  color: #555;
+  margin-bottom: 10px;
+}
