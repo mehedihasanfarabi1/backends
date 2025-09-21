@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ProductAPI, ProductTypeAPI, CategoryAPI } from "../../../api/products";

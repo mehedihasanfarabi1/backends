@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState, useRef } from "react";
 import { PermissionAPI, UserPermissionAPI, CompanyAPI } from "../../api/permissions";
 import { UserAPI } from "../../api/users";

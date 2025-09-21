@@ -1,6 +1,7 @@
 // ====================
 // PTList.jsx (Debug Final)
 // ====================
+import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductTypeAPI } from "../../../api/products";

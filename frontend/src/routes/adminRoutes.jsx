@@ -1,0 +1,32 @@
+import React from "react";
+import Dashboard from "../pages/admin/Dashboard";
+import Profile from "../pages/admin/Profile";
+import DepartmentPage from "../pages/admin/DepartmentDetails";
+import HomeSettings from "../pages/admin/HomeSettings";
+import PermissionPage from "../pages/admin/Permissions/PermissionPage";
+import UsersPage from "../pages/admin/UsersPage";
+import CreateUserPage from "../pages/admin/Users/CreateUserPage";
+import RolesPage from "../pages/admin/Users/RolesPages";
+import PermissionsPage from "../pages/admin/Users/PermissionsPages";
+import PermissionDesigner from "../components/common/DraggablePermissionGroup";
+
+// Import module-wise routes
+import { productRoutes } from "./productRoutes";
+import { companyRoutes } from "./companyRoutes";
+
+export const adminRoutes = [
+  { index: true, element: <Dashboard /> },
+  { path: "profile", element: <Profile /> },
+  { path: "department", element: <DepartmentPage /> },
+  { path: "home-settings", element: <HomeSettings /> },
+  { path: "permissions", element: <PermissionPage /> },
+  { path: "users", element: <UsersPage /> },
+  { path: "users/create", element: <CreateUserPage /> },
+  { path: "users/roles", element: <RolesPage /> },
+  { path: "users/permissions", element: <PermissionsPage /> },
+  { path: "permission-designer", element: <PermissionDesigner /> },
+
+  // Module-wise spread
+  ...productRoutes,
+  ...companyRoutes,
+];

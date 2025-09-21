@@ -1,4 +1,5 @@
 // src/pages/admin/category/CategoryList.jsx
+import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CategoryAPI, ProductTypeAPI } from "../../../api/products";
