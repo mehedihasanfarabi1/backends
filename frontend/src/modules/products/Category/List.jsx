@@ -162,6 +162,15 @@ export default function CategoryList() {
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
+
+              <th>SN</th>
+              {/* <th>Company</th>
+              <th>Business_Type</th>
+              <th>Factory</th> */}
+              <th>Product Type</th>
+              <th>Category_Name</th>
+              <th>Description</th>
+              <th>Actions</th>
               <th>
                 <input
                   type="checkbox"
@@ -171,30 +180,18 @@ export default function CategoryList() {
                   }
                 />
               </th>
-              <th>SN</th>
-              {/* <th>Company</th>
-              <th>Business_Type</th>
-              <th>Factory</th> */}
-              <th>Category_Name</th>
-              <th>Description</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredRows.length ? (
               filteredRows.map((r, i) => (
                 <tr key={r.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.includes(r.id)}
-                      onChange={() => toggleSelectRow(r.id)}
-                    />
-                  </td>
+
                   <td>{i + 1}</td>
                   {/* <td>{r.company?.name}</td>
                   <td>{r.business_type?.name || "-"}</td>
                   <td>{r.factory?.name || "-"}</td> */}
+                  <td>{r.product_type?.name || "-"}</td> 
                   <td>{r.name}</td>
                   <td>{r.description}</td>
                   <td>
@@ -215,6 +212,13 @@ export default function CategoryList() {
                     >
                       Delete
                     </button>
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.includes(r.id)}
+                      onChange={() => toggleSelectRow(r.id)}
+                    />
                   </td>
                 </tr>
               ))

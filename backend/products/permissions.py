@@ -43,6 +43,7 @@ class ModulePermission(BasePermission):
         "retrieve": "view",
         "create": "create",
         "update": "edit",
+        "bulk_create": "create",  # ✅ added for bulk create
         "partial_update": "edit",
         "destroy": "delete",
     }

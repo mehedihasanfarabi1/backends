@@ -20,7 +20,11 @@ class ProductTypeViewSet(viewsets.ModelViewSet):
         user = self.request.user
         qs = ProductType.objects.select_related("company", "business_type", "factory").all()
         # print("DEBUG: Base QS count:", qs.count())
-
+        # ✅ Filter by company query param if provided
+        company_id = self.request.query_params.get("company")
+        if company_id:
+            qs = qs.filter(company_id=company_id)
+            
         if user.is_superuser or user.is_staff:
             # print("DEBUG: Superuser/Staff detected, returning full QS")
             return qs

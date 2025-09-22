@@ -191,7 +191,7 @@ export default function UnitSizeList() {
               <th style={{ width: 60 }}>#</th>
               <th>Unit</th>
               <th>Size Name</th>
-              <th>Weight (UOM)</th>
+              <th>Value</th>
               <th style={{ width: 180 }}>Actions</th>
             </tr>
           </thead>

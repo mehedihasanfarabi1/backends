@@ -7,6 +7,7 @@ const crud = (resource) => ({
   create: (data) => api.post(`/products/${resource}/`, data).then(r => r.data),
   update: (id, data) => api.put(`/products/${resource}/${id}/`, data).then(r => r.data),
   remove: (id) => api.delete(`/products/${resource}/${id}/`).then(r => r.data),
+  bulkCreate:(data)=>api.post(`/products/${resource}/bulk-create/`,data).then(r=>r.data)
 });
 
 

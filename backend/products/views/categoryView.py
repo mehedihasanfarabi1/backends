@@ -1,12 +1,13 @@
-# products/views/categoryViews.py
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from products.models.category import Category
 from products.serializers.categorySerializer import CategorySerializer
 from users.models import UserPermissionSet
 from products.permissions import ModulePermission
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
@@ -15,7 +16,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        qs = Category.objects.select_related("company", "business_type", "factory").all()
+        qs = Category.objects.select_related("company", "business_type", "factory", "product_type").all()
+
+        # ✅ filter by product_type from query param
+        product_type_id = self.request.query_params.get("product_type")
+        if product_type_id:
+            qs = qs.filter(product_type_id=product_type_id)
 
         if user.is_superuser or user.is_staff:
             return qs
@@ -24,7 +30,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         query = Q()
 
         for p in perms:
-            category_perm = p.product_module or {}  # Product module structure used for category too
+            category_perm = p.product_module or {}
             module_perm = category_perm.get("category", {})
             if not module_perm.get("view", False):
                 continue
@@ -62,3 +68,47 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
         print("DEBUG: No matching permissions, returning empty QS")
         return Category.objects.none()
+
+    # ✅ Bulk create endpoint
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request):
+        """
+        Expected Payload:
+        {
+            "categories": [
+                {
+                    "name": "Fruit",
+                    "description": "Raw Fruit",
+                    "company_id": 1,
+                    "business_type_id": 2,
+                    "factory_id": 3,
+                    "product_type_id": 4
+                },
+                ...
+            ]
+        }
+        """
+        data = request.data
+        categories = data.get("categories", [])
+
+        if not categories:
+            return Response({"detail": "No categories provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        created = []
+        errors = []
+
+        for cat in categories:
+            serializer = self.get_serializer(data=cat)
+            if serializer.is_valid():
+                serializer.save()
+                created.append(serializer.data)
+            else:
+                errors.append(serializer.errors)
+
+        if errors:
+            return Response({"created": created, "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"detail": f"{len(created)} categories created successfully.", "data": created},
+            status=status.HTTP_201_CREATED,
+        )

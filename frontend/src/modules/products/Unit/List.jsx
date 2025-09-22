@@ -33,7 +33,7 @@ export default function UnitList() {
         factory: selectedFactory,
       };
 
-      console.log("🔎 Fetching units with params:", params);
+      // console.log("🔎 Fetching units with params:", params);
 
       const data = await UnitAPI.list(params);
       setUnits(data);
@@ -162,6 +162,9 @@ export default function UnitList() {
           setSelectedFactory={setSelectedFactory}
           setBusinessTypes={setBusinessTypes}
           setFactories={setFactories}
+          initialCompanyId={selectedCompany}        // ✅ preselect
+          initialBusinessId={selectedBusiness}      // ✅ preselect
+          initialFactoryId={selectedFactory}        // ✅ preselect
         />
       </div>
 

@@ -1,12 +1,13 @@
-# products/views/productViews.py
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.db.models import Q
-from products.models.product import Product
-from products.serializers.productSerializer import ProductSerializer
-from products.permissions import ModulePermission
-from users.models import UserPermissionSet
 
+from products.models.product import Product
+from products.serializers.productSerializer import ProductSerializer, BulkProductSerializer
+from users.models import UserPermissionSet
+from products.permissions import ModulePermission
 
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
@@ -35,42 +36,22 @@ class ProductViewSet(viewsets.ModelViewSet):
             for company_id in allowed_companies:
                 company_filter = Q(company_id=company_id)
 
-                # Business Types
-                allowed_bts = getattr(p, "business_types", {}).get(str(company_id), [])
+                allowed_bts = p.business_types.get(str(company_id), [])
                 if allowed_bts:
                     bt_filter = Q()
                     for bt_id in allowed_bts:
                         bt_filter |= Q(business_type_id=bt_id)
                     company_filter &= bt_filter
 
-                # Factories
-                allowed_factories = getattr(p, "factories", {}).get(str(company_id), [])
+                allowed_factories = p.factories.get(str(company_id), [])
                 if allowed_factories:
                     factory_filter = Q()
                     for f in allowed_factories:
-                        factory_id = f.get("factory_id")
-                        bt_id = f.get("business_type_id")
-                        if bt_id:
-                            factory_filter |= Q(factory_id=factory_id, business_type_id=bt_id)
-                        else:
-                            factory_filter |= Q(factory_id=factory_id)
+                        factory_filter |= Q(
+                            factory_id=f["factory_id"],
+                            business_type_id=f.get("business_type_id"),
+                        )
                     company_filter &= factory_filter
-
-                # Product Types (optional)
-                allowed_product_types = getattr(p, "product_types", {}).get(str(company_id), [])
-                if allowed_product_types:
-                    pt_filter = Q()
-                    for pt_id in allowed_product_types:
-                        pt_filter |= Q(product_type_id=pt_id)
-                    company_filter &= pt_filter
-
-                # Categories (optional)
-                allowed_categories = getattr(p, "categories", {}).get(str(company_id), [])
-                if allowed_categories:
-                    cat_filter = Q()
-                    for cat_id in allowed_categories:
-                        cat_filter |= Q(category_id=cat_id)
-                    company_filter &= cat_filter
 
                 query |= company_filter
 
@@ -79,14 +60,26 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return Product.objects.none()
 
-    def get_permissions(self):
-        action_perm_map = {
-            "list": "product_view",
-            "retrieve": "product_view",
-            "create": "product_create",
-            "update": "product_edit",
-            "partial_update": "product_edit",
-            "destroy": "product_delete",
-        }
-        self.permission_code = action_perm_map.get(self.action)
-        return super().get_permissions()
+    # ✅ Bulk Create endpoint
+    # ✅ Bulk create
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request):
+        data = request.data.get("products", [])
+        if not data:
+            return Response({"detail": "No products provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        created = []
+        errors = []
+
+        for item in data:
+            serializer = self.get_serializer(data=item)
+            if serializer.is_valid():
+                serializer.save()
+                created.append(serializer.data)
+            else:
+                errors.append(serializer.errors)
+
+        if errors:
+            return Response({"created": created, "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"detail": f"{len(created)} products created successfully.", "data": created}, status=status.HTTP_201_CREATED)
