@@ -197,11 +197,11 @@ export default function ProductList() {
               </th>
               <th>SN</th>
               <th>Company</th>
-              <th>Business Type</th>
+              <th>Business_Type</th>
               <th>Factory</th>
               <th>Category</th>
               <th>Name</th>
-              <th>Short Name</th>
+              <th>Short_Name</th>
               <th>Actions</th>
             </tr>
           </thead>

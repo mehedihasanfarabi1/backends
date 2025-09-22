@@ -172,10 +172,10 @@ export default function CategoryList() {
                 />
               </th>
               <th>SN</th>
-              <th>Company</th>
-              <th>Business Type</th>
-              <th>Factory</th>
-              <th>Category Name</th>
+              {/* <th>Company</th>
+              <th>Business_Type</th>
+              <th>Factory</th> */}
+              <th>Category_Name</th>
               <th>Description</th>
               <th>Actions</th>
             </tr>
@@ -192,9 +192,9 @@ export default function CategoryList() {
                     />
                   </td>
                   <td>{i + 1}</td>
-                  <td>{r.company?.name}</td>
+                  {/* <td>{r.company?.name}</td>
                   <td>{r.business_type?.name || "-"}</td>
-                  <td>{r.factory?.name || "-"}</td>
+                  <td>{r.factory?.name || "-"}</td> */}
                   <td>{r.name}</td>
                   <td>{r.description}</td>
                   <td>

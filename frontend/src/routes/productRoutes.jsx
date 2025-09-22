@@ -11,6 +11,8 @@ import UnitSizeList from "../modules/products/UnitSize/List";
 import UnitSizeForm from "../modules/products/UnitSize/Form";
 import UnitConversionList from "../modules/products/UnitConversion/List";
 import UnitConversionForm from "../modules/products/UnitConversion/Form";
+import ProductSizeSettingList from "../modules/products/ProductSizeSetting/List";
+import ProductSizeSettingForm from "../modules/products/ProductSizeSetting/Form";
 
 export const productRoutes = [
   // ProductType
@@ -42,4 +44,9 @@ export const productRoutes = [
   { path: "unit-conversions", element: <UnitConversionList /> },
   { path: "unit-conversions/new", element: <UnitConversionForm /> },
   { path: "unit-conversions/:id", element: <UnitConversionForm /> },
+
+  // Product Size Setting
+  { path: "product-size-settings", element: <ProductSizeSettingList /> },
+  { path: "product-size-settings/new", element: <ProductSizeSettingForm /> },
+  { path: "product-size-settings/:id", element: <ProductSizeSettingForm /> },
 ];

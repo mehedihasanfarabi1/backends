@@ -175,9 +175,9 @@ export default function UnitSizeList() {
       </div>
 
       {/* ✅ Table */}
-      <div className="custom-table-wrapper">
-        <table className="custom-table">
-          <thead>
+      <div className="table-responsive">
+        <table className="table table-bordered table-striped">
+          <thead className="table-primary">
             <tr>
               <th style={{ width: 50 }}>
                 <input

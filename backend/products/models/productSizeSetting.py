@@ -3,6 +3,7 @@ from backend.mixins import AuditMixin
 from .product import Product
 from .unit import Unit
 from .unitSize import UnitSize
+from .category import Category
 
 class ProductSizeSetting(AuditMixin):
     company = models.ForeignKey(
@@ -29,9 +30,11 @@ class ProductSizeSetting(AuditMixin):
         related_name="%(class)s_factory",
         default=""
     )
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="size_settings")
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    size = models.ForeignKey(UnitSize, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey(Category,on_delete=models.CASCADE,null=True,blank=True,default=None)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="size_settings",null=True,blank=True,default=None)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE,null=True,blank=True,default=None)
+    size = models.ForeignKey(UnitSize, on_delete=models.SET_NULL, null=True, blank=True,default=None)
+    code = models.BigIntegerField(max_length=100,blank=True,null=True,unique=True)
     customize_name = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):

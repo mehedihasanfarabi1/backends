@@ -2,13 +2,10 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from rest_framework.exceptions import PermissionDenied
-
 from products.models.productSizeSetting import ProductSizeSetting
 from products.serializers.productSizeSettingSerializer import ProductSizeSettingSerializer
 from products.permissions import ModulePermission
 from users.models import UserPermissionSet
-
 
 class ProductSizeSettingViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSizeSettingSerializer
@@ -17,7 +14,9 @@ class ProductSizeSettingViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        qs = ProductSizeSetting.objects.select_related("company", "business_type", "factory").all()
+        qs = ProductSizeSetting.objects.select_related(
+            "company", "business_type", "factory", "category", "product", "unit", "size"
+        ).all()
 
         if user.is_superuser or user.is_staff:
             return qs
