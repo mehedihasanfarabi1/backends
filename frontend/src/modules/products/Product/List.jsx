@@ -6,7 +6,7 @@ import ActionBar from "../../../components/common/ActionBar";
 import UserCompanySelector from "../../../components/UserCompanySelector";
 import Swal from "sweetalert2";
 import "../../../styles/Table.css";
-
+import { useTranslation } from "../../../contexts/TranslationContext";
 export default function ProductList() {
   const nav = useNavigate();
 
@@ -30,6 +30,8 @@ export default function ProductList() {
 
   const [selectedProductType, setSelectedProductType] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+
+    const { t } = useTranslation();
 
   // ✅ Load current user
   const loadCurrentUser = async () => {
@@ -267,12 +269,12 @@ export default function ProductList() {
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
-              <th>SN</th>
-              <th>Product Type</th>
-              <th>Category</th>
-              <th>Name</th>
-              <th>Short Name</th>
-              <th>Actions</th>
+              <th>{t("serial")}</th>
+              <th>{t("product_type")}</th>
+              <th>{t("category_name")}</th>
+              <th>{t("name")}</th>
+              <th>{t("short_name")}</th>
+              <th>{t("actions")}</th>
               <th>
                 <input
                   type="checkbox"

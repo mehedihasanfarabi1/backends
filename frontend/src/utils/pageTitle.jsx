@@ -9,6 +9,12 @@ const pageTitles = {
   "/admin/brands/new": "Add Brand",
   "/admin/orders": "Report Generate",
   "/admin/department": "Department List",
+
+  "/admin/translations": "Translations",
+  "/admin/translations/new": "Add Translations",
+  
+  "/admin/product-types": "Product Type",
+  "/admin/categories": "Categories",
 };
 
 export default pageTitles;

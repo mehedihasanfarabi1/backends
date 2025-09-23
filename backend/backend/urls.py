@@ -11,6 +11,6 @@ urlpatterns = [
     path("api/", include("alldepartments.urls")), # department routes
     path("api/products/", include("products.urls")), # products routes
     path("api/company/", include("company.urls")), # company routes
-    # path("api/", include("permissions.urls")), # permission routes
+    path("api/", include("language.urls")), 
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

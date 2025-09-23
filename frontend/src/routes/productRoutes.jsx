@@ -31,6 +31,8 @@ import UnitSizeEdit from "../modules/products/UnitSize/Edit";
 import UnitConversionEdit from "../modules/products/UnitConversion/Edit";
 
 
+import ListTranslations from "../pages/Translations/ListTranslations";
+import TranslationForm from "../pages/Translations/TranslationForm";
 
 export const productRoutes = [
   // ProductType
@@ -67,4 +69,10 @@ export const productRoutes = [
   { path: "product-size-settings", element: <ProductSizeSettingList /> },
   { path: "product-size-settings/new", element: <ProductSizeSettingForm /> },
   { path: "product-size-settings/:id", element: <ProductSizeSettingForm /> },
+
+
+// Language Settings routes
+  { path: "translations", element: <ListTranslations /> },
+  { path: "translations/new", element: <TranslationForm /> },
+  { path: "translations/:id/edit", element: <TranslationForm /> },
 ];

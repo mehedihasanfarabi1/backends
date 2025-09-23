@@ -223,9 +223,19 @@ export default function ProductForm() {
                 />
               </div>
 
-              <div className="col-md-3 col-sm-6 mt-2">
-                <button type="button" className="btn btn-success w-100" onClick={addItem}>Add</button>
+              <div className="row mt-2">
+                <div className="col-12 d-flex justify-content-center">
+                  <button
+                    type="button"
+                    className="btn btn-success"
+                    style={{ width: "25%" }}
+                    onClick={addItem}
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
+
             </div>
 
             {items.length > 0 && (

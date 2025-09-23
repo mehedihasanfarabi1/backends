@@ -8,7 +8,7 @@ import ActionBar from "../../../components/common/ActionBar";
 import UserCompanySelector from "../../../components/UserCompanySelector";
 import Swal from "sweetalert2";
 import "../../../styles/Table.css";
-
+import { useTranslation } from "../../../contexts/TranslationContext";
 export default function CategoryList() {
   const nav = useNavigate();
 
@@ -27,6 +27,7 @@ export default function CategoryList() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
 
+  const {t} = useTranslation()
   // -------------------
   // Load current user
   // -------------------
@@ -163,14 +164,14 @@ export default function CategoryList() {
           <thead className="table-primary">
             <tr>
 
-              <th>SN</th>
+              <th>{t("serial")}</th>
               {/* <th>Company</th>
               <th>Business_Type</th>
               <th>Factory</th> */}
-              <th>Product Type</th>
-              <th>Category_Name</th>
-              <th>Description</th>
-              <th>Actions</th>
+              <th>{t("product_type")}</th>
+              <th>{t("category_name")}</th>
+              <th>{t("description")}</th>
+              <th>{t("actions")}</th>
               <th>
                 <input
                   type="checkbox"

@@ -1,6 +1,4 @@
-// ====================
-// PTList.jsx (Debug Final)
-// ====================
+
 import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +8,8 @@ import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import "../../../styles/Table.css";
+
+import { useTranslation } from "../../../contexts/TranslationContext";
 
 export default function PTList() {
   const nav = useNavigate();
@@ -27,6 +27,9 @@ export default function PTList() {
   const [factories, setFactories] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
+
+
+  const { t } = useTranslation();
 
   // --------------------
   // Load current user
@@ -241,13 +244,13 @@ export default function PTList() {
           <thead className="table-primary">
             <tr>
 
-              <th>SN</th>
+              <th>{t("serial")}</th>
               {/* <th>Company</th>
               <th>Business Type</th>
               <th>Factory</th> */}
-              <th>Product Type</th>
-              <th>Description</th>
-              <th>Actions</th>
+              <th>{t("product_type")}</th>
+              <th>{t("description")}</th>
+              <th>{t("actions")}</th>
               <th>
                 <input
                   type="checkbox"

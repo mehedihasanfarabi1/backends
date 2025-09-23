@@ -8,7 +8,7 @@ import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Pagination from "../../components/common/Pagination"; // ✅ তোমার pagination import
-
+// import { useTranslation } from "../contexts/TranslationContext";
 export default function DepartmentPage() {
     const [departments, setDepartments] = useState([]);
     const [search, setSearch] = useState("");

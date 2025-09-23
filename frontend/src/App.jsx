@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { RouterProvider } from "react-router-dom";
 import axios from "axios";
 import { router } from "./routes/index";
-import "./i18n"; // ✅ Import i18n setup
+// import "./i18n"; // ✅ Import i18n setup
 import 'simplebar-react/dist/simplebar.min.css';
 import SimpleBar from 'simplebar-react';
 import './App.css'

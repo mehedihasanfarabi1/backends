@@ -10,7 +10,6 @@ import RolesPage from "../pages/admin/Users/RolesPages";
 import PermissionsPage from "../pages/admin/Users/PermissionsPages";
 import PermissionDesigner from "../components/common/DraggablePermissionGroup";
 
-// Import module-wise routes
 import { productRoutes } from "./productRoutes";
 import { companyRoutes } from "./companyRoutes";
 
@@ -25,6 +24,8 @@ export const adminRoutes = [
   { path: "users/roles", element: <RolesPage /> },
   { path: "users/permissions", element: <PermissionsPage /> },
   { path: "permission-designer", element: <PermissionDesigner /> },
+
+
 
   // Module-wise spread
   ...productRoutes,
