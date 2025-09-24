@@ -12,6 +12,7 @@ import PermissionDesigner from "../components/common/DraggablePermissionGroup";
 
 import { productRoutes } from "./productRoutes";
 import { companyRoutes } from "./companyRoutes";
+import { party_type } from "./party_type";
 
 export const adminRoutes = [
   { index: true, element: <Dashboard /> },
@@ -30,4 +31,5 @@ export const adminRoutes = [
   // Module-wise spread
   ...productRoutes,
   ...companyRoutes,
+  ...party_type,
 ];

@@ -34,7 +34,7 @@ class ProductSizeSetting(AuditMixin):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="size_settings",null=True,blank=True,default=None)
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE,null=True,blank=True,default=None)
     size = models.ForeignKey(UnitSize, on_delete=models.SET_NULL, null=True, blank=True,default=None)
-    code = models.BigIntegerField(max_length=100,blank=True,null=True,unique=True)
+    code = models.BigIntegerField(blank=True,null=True,unique=True)
     customize_name = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):

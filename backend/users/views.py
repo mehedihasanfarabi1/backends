@@ -12,7 +12,8 @@ from .models import (
 )
 from .serializers import (
     UserSerializer, RegisterSerializer, UserPermissionSerializer,
-    RoleSerializer, PermissionSerializer, RolePermissionSerializer, UserRoleSerializer
+    RoleSerializer, PermissionSerializer, RolePermissionSerializer, UserRoleSerializer,
+    UserRoleUpdateSerializer
 )
 
 # ------------------------------
@@ -83,7 +84,15 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         serializer = self.get_serializer(user)
         return Response(serializer.data)
-
+    
+    @action(detail=True, methods=["post"])
+    def update_role(self, request, pk=None):
+        user = self.get_object()
+        serializer = UserRoleUpdateSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": True, "role": RoleSerializer(user.role).data})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # ------------------------------
 # Role ViewSet
 # ------------------------------
@@ -206,7 +215,6 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'], url_path='update-or-create')
-    @action(detail=False, methods=['post'], url_path='update-or-create')
     def update_or_create_set(self, request):
         user_id = request.data.get("user")
         role = request.data.get("role")
@@ -240,6 +248,10 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
         accounts_module = request.data.get("accounts_module", {})
         inventory_module = request.data.get("inventory_module", {})
         settings_module = request.data.get("settings_module", {})
+        party_type_module = request.data.get("party_type_module", {})
+        sr_module = request.data.get("sr_module", {})
+        booking_module = request.data.get("booking_module", {})
+        loan_module = request.data.get("loan_module", {})
 
         obj, created = UserPermissionSet.objects.update_or_create(
             user_id=user_id,
@@ -254,6 +266,10 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
                 "accounts_module": accounts_module,
                 "inventory_module": inventory_module,
                 "settings_module": settings_module,
+                "party_type_module": party_type_module,
+                "sr_module": sr_module,
+                "booking_module": booking_module,
+                "loan_module": loan_module,
             }
         )
 

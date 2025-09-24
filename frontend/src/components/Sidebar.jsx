@@ -13,6 +13,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
   // Initialize open menus based on current path
   useEffect(() => {
     const paths = {
+      essential_settings: ["/admin/products", "/admin/product-types", "/admin/categories", "/admin/units", "/admin/unit-sizes", "/admin/unit-conversions", "/admin/product-size-settings"],
       products: ["/admin/products", "/admin/product-types", "/admin/categories", "/admin/units", "/admin/unit-sizes", "/admin/unit-conversions", "/admin/product-size-settings"],
       party_type: ["/admin/party-types", "/admin/party-list", "/admin/party-commission", "/admin/party-ledger", "/admin/party-report"],
       settings: ["/admin/projects", "/admin/translations"],
@@ -55,6 +56,107 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
             <i className="fa-solid fa-house me-2"></i> <span>{t("dashboard")}</span>
           </li>
 
+          {/* Essential Settings */}
+          <li
+            onClick={() => toggle("essential_settings")}
+            className={isSubmenuActive([
+              "/admin/products",
+              "/admin/product-types",
+              "/admin/categories",
+              "/admin/units",
+              "/admin/unit-sizes",
+              "/admin/unit-conversions",
+              "/admin/product-size-settings",
+            ]) ? "active-parent" : ""}
+          >
+            <i className="fa-solid fa-gear me-2"></i> {/* Main Icon */}
+            <span>{t("essential_settings")}</span>
+            <i className="fa-solid fa-chevron-down ms-auto"></i>
+          </li>
+
+          <ul className={`submenu ms-4 ${open.essential_settings ? "" : "d-none"}`}>
+            {/* Booking Type */}
+            <li
+              className={isActive("/admin/product-types") ? "active" : ""}
+              onClick={() => linkClicked("/admin/product-types")}
+            >
+              <i className="fa-solid fa-layer-group me-2"></i>
+              <span>{t("booking_type")}</span>
+            </li>
+
+            {/* Loan Type */}
+            <li
+              className={isActive("/admin/categories") ? "active" : ""}
+              onClick={() => linkClicked("/admin/categories")}
+            >
+              <i className="fa-solid fa-folder-tree me-2"></i>
+              <span>{t("loan_type")}</span>
+            </li>
+
+            {/* Product Type */}
+            <li
+              className={isActive("/admin/products") ? "active" : ""}
+              onClick={() => linkClicked("/admin/products")}
+            >
+              <i className="fa-solid fa-box-open me-2"></i>
+              <span>{t("product_type")}</span>
+            </li>
+
+            {/*Bag Type */}
+            <li
+              className={isActive("/admin/units") ? "active" : ""}
+              onClick={() => linkClicked("/admin/units")}
+            >
+              <i className="fa-solid fa-ruler-combined me-2"></i>
+              <span>{t("bag_type")}</span>
+            </li>
+
+            {/* Site Setting */}
+            <li
+              className={isActive("/admin/unit-sizes") ? "active" : ""}
+              onClick={() => linkClicked("/admin/unit-sizes")}
+            >
+              <i className="fa-solid fa-maximize me-2"></i>
+              <span>{t("site_setting")}</span>
+            </li>
+
+            {/*Basic Settings */}
+            <li
+              className={isActive("/admin/unit-conversions") ? "active" : ""}
+              onClick={() => linkClicked("/admin/unit-conversions")}
+            >
+              <i className="fa-solid fa-arrows-rotate me-2"></i>
+              <span>{t("basic_settings")}</span>
+            </li>
+          </ul>
+
+
+          {/* Party Type */}
+          <li onClick={() => toggle("party_type")} className={isSubmenuActive([
+            "/admin/party-types", "/admin/party-list", "/admin/party-commission", "/admin/party-ledger", "/admin/party-report"
+          ]) ? "active-parent" : ""}>
+            <i className="fa-solid fa-people-group me-2"></i> <span>{t("party_type")}</span>
+            <i className="fa-solid fa-chevron-down ms-auto"></i>
+          </li>
+          <ul className={`submenu ms-4 ${open.party_type ? "" : "d-none"}`}>
+            <li className={isActive("/admin/party-types") ? "active" : ""} onClick={() => linkClicked("/admin/party-types")}>
+              <i className="fa-solid fa-plus me-2"></i> <span>{t("party_type")}</span>
+            </li>
+            <li className={isActive("/admin/party-list") ? "active" : ""} onClick={() => linkClicked("/admin/party-list")}>
+              <i className="fa-solid fa-list me-2"></i> <span>{t("party_list")}</span>
+            </li>
+            <li className={isActive("/admin/party-commission") ? "active" : ""} onClick={() => linkClicked("/admin/party-commission")}>
+              <i className="fa-solid fa-percent me-2"></i> <span>{t("party_commission")}</span>
+            </li>
+            <li className={isActive("/admin/party-ledger") ? "active" : ""} onClick={() => linkClicked("/admin/party-ledger")}>
+              <i className="fa-solid fa-book me-2"></i> <span>{t("party_ledger")}</span>
+            </li>
+            <li className={isActive("/admin/party-report") ? "active" : ""} onClick={() => linkClicked("/admin/party-report")}>
+              <i className="fa-solid fa-chart-line me-2"></i> <span>{t("party_report")}</span>
+            </li>
+          </ul>
+
+
           {/* Products */}
           <li onClick={() => toggle("products")} className={isSubmenuActive([
             "/admin/products", "/admin/product-types", "/admin/categories", "/admin/units",
@@ -87,30 +189,6 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
             </li>
           </ul>
 
-          {/* Party Type */}
-          <li onClick={() => toggle("party_type")} className={isSubmenuActive([
-            "/admin/party-types", "/admin/party-list", "/admin/party-commission", "/admin/party-ledger", "/admin/party-report"
-          ]) ? "active-parent" : ""}>
-            <i className="fa-solid fa-people-group me-2"></i> <span>{t("party_type")}</span>
-            <i className="fa-solid fa-chevron-down ms-auto"></i>
-          </li>
-          <ul className={`submenu ms-4 ${open.party_type ? "" : "d-none"}`}>
-            <li className={isActive("/admin/party-types") ? "active" : ""} onClick={() => linkClicked("/admin/party-types")}>
-              <i className="fa-solid fa-plus me-2"></i> <span>{t("party_type")}</span>
-            </li>
-            <li className={isActive("/admin/party-list") ? "active" : ""} onClick={() => linkClicked("/admin/party-list")}>
-              <i className="fa-solid fa-list me-2"></i> <span>{t("party_list")}</span>
-            </li>
-            <li className={isActive("/admin/party-commission") ? "active" : ""} onClick={() => linkClicked("/admin/party-commission")}>
-              <i className="fa-solid fa-percent me-2"></i> <span>{t("party_commission")}</span>
-            </li>
-            <li className={isActive("/admin/party-ledger") ? "active" : ""} onClick={() => linkClicked("/admin/party-ledger")}>
-              <i className="fa-solid fa-book me-2"></i> <span>{t("party_ledger")}</span>
-            </li>
-            <li className={isActive("/admin/party-report") ? "active" : ""} onClick={() => linkClicked("/admin/party-report")}>
-              <i className="fa-solid fa-chart-line me-2"></i> <span>{t("party_report")}</span>
-            </li>
-          </ul>
 
           {/* Project Settings */}
           <li onClick={() => toggle("settings")} className={isSubmenuActive(["/admin/projects", "/admin/translations"]) ? "active-parent" : ""}>

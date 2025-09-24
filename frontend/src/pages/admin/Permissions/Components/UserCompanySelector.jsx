@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Select from "react-select";
 import { UserAPI } from "../../../../api/users";
 import { CompanyAPI } from "../../../../api/company";
 import "./styles/UserCompanySelector.css";
@@ -16,14 +17,13 @@ export default function UserCompanySelector({
   const [users, setUsers] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [companyDetails, setCompanyDetails] = useState({});
+  const [companyDropdownOpen, setCompanyDropdownOpen] = useState({});
 
-  // Load users and companies
   useEffect(() => {
     UserAPI.list().then((data) => setUsers(data || []));
     CompanyAPI.list().then((data) => setCompanies(data || []));
   }, []);
 
-  // Load company details
   const loadCompanyDetails = async (companyId) => {
     if (!companyId) return;
     try {
@@ -40,40 +40,38 @@ export default function UserCompanySelector({
     }
   };
 
-  // User selection
-  const handleUserChange = (e) => {
-    const userId = e.target.value;
-    if (!userId) setSelectedUser(null);
-    else {
-      const u = users.find((u) => String(u.id) === String(userId));
-      if (u) setSelectedUser({ value: u.id, label: `${u.name} (${u.email})` });
-    }
+  const handleUserChange = (option) => {
+    setSelectedUser(option);
     setSelectedCompanies([]);
     setSelectedBusinessTypes({});
     setSelectedFactories({});
     setCompanyDetails({});
+    setCompanyDropdownOpen({});
   };
 
-  // Toggle company (multi-select)
-  const toggleCompany = async (companyId) => {
+  const toggleCompanyDropdown = async (companyId) => {
+    const isOpen = companyDropdownOpen[companyId];
+    setCompanyDropdownOpen({ ...companyDropdownOpen, [companyId]: !isOpen });
+    if (!isOpen && !companyDetails[companyId]) {
+      await loadCompanyDetails(companyId);
+    }
+  };
+
+  const toggleCompanySelection = (companyId) => {
     const exists = selectedCompanies.includes(companyId);
     const updated = exists
       ? selectedCompanies.filter((id) => id !== companyId)
       : [...selectedCompanies, companyId];
     setSelectedCompanies(updated);
-
-    if (!exists) await loadCompanyDetails(companyId);
   };
 
-  // Toggle Business Type (multi-select per company)
   const toggleBusinessType = (companyId, btId) => {
     const currentBTs = selectedBusinessTypes[companyId] || [];
     const updatedBTs = currentBTs.includes(btId)
       ? currentBTs.filter((id) => id !== btId)
-      : [...currentBTs, btId]; // <-- fixed multi-select
+      : [...currentBTs, btId];
     setSelectedBusinessTypes({ ...selectedBusinessTypes, [companyId]: updatedBTs });
 
-    // Remove deselected BT's factories
     if (!updatedBTs.includes(btId)) {
       const newF = { ...selectedFactories };
       newF[companyId] = (newF[companyId] || []).filter(f => f.business_type_id !== btId);
@@ -81,7 +79,6 @@ export default function UserCompanySelector({
     }
   };
 
-  // Toggle Factory (multi-select per BT per company)
   const toggleFactory = (companyId, btId, fId) => {
     const currentF = selectedFactories[companyId] || [];
     const exists = currentF.find(f => f.business_type_id === btId && f.factory_id === fId);
@@ -92,58 +89,55 @@ export default function UserCompanySelector({
   };
 
   return (
-    <div className="user-company-selector mb-3">
-      {/* User select */}
-      <div className="mb-2" style={{ maxWidth: 300 }}>
-        <label className="fw-bold">Select User</label>
-        <select
-          className="form-select"
-          value={selectedUser?.value || ""}
+    <div className="user-company-selector">
+      {/* User Select */}
+      <div className="mb-3" style={{ maxWidth: 350 }}>
+        <label className="fw-bold mb-1">Select User</label>
+        <Select
+          options={users.map(u => ({ value: u.id, label: `${u.name} (${u.email})` }))}
+          value={selectedUser}
           onChange={handleUserChange}
-        >
-          <option value="">-- Select User --</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name} ({u.email})
-            </option>
-          ))}
-        </select>
+          isClearable
+          placeholder="-- Select User --"
+        />
       </div>
 
-      {/* Companies grid */}
+      {/* Companies Grid */}
       <div className="company-grid">
         {companies.map((c) => {
           const { businessTypes = [], factories = [] } = companyDetails[c.id] || {};
           const selectedBTs = selectedBusinessTypes[c.id] || [];
           const selectedF = selectedFactories[c.id] || [];
-          const isExpanded = selectedCompanies.includes(c.id);
+          const isDropdownOpen = companyDropdownOpen[c.id] || false;
+          const isSelected = selectedCompanies.includes(c.id);
 
           return (
-            
-            <div key={c.id} className="company-card">
-              {/* Company Header */}
+            <div key={c.id} className="company-card shadow-sm">
               <div className="company-header">
                 <input
                   type="checkbox"
-                  checked={isExpanded}
-                  onChange={() => toggleCompany(c.id)}
+                  checked={isSelected}
+                  onChange={() => toggleCompanySelection(c.id)}
                   id={`company-${c.id}`}
+                  onClick={(e) => e.stopPropagation()} // prevent toggle on label click
                 />
-                <label htmlFor={`company-${c.id}`} className="company-label">{c.name}</label>
+                <label
+                  htmlFor={`company-${c.id}`}
+                  className="ms-2 fw-semibold company-label"
+                  onClick={() => toggleCompanyDropdown(c.id)}
+                >
+                  {c.name}
+                  <span className="dropdown-arrow">{isDropdownOpen ? "▲" : "▼"}</span>
+                </label>
               </div>
 
-              {/* Business Types & Factories */}
-              {isExpanded && (
-                <div className="company-details expanded">
-                  <h4 style={{ fontSize: '15px', marginLeft: "13px", textDecoration: "underline" }}>
-                    Business Type
-                  </h4>
-
+              {isDropdownOpen && (
+                <div className="company-details">
+                  {businessTypes.length > 0 && <h6 className="mt-2 separator">Business Types</h6>}
                   {businessTypes.map((b) => {
                     const selectedFactoriesForBT = selectedF.filter(f => f.business_type_id === b.id);
-
                     return (
-                      <div key={b.id} className="bt-tree">
+                      <div key={b.id} className="bt-tree ms-3">
                         <div className="bt-row">
                           <input
                             type="checkbox"
@@ -155,12 +149,10 @@ export default function UserCompanySelector({
                         </div>
 
                         {selectedBTs.includes(b.id) && factories.length > 0 && (
-                          <div className="factory-list expanded">
-                            <h4 style={{ fontSize: '15px', marginLeft: "13px", textDecoration: "underline" }}>
-                              Factory List
-                            </h4>
+                          <div className="factory-list ms-4">
+                            <h6 className="separator">Factories</h6>
                             {factories.map(f => (
-                              <div key={f.id} className="factory-item">
+                              <div key={f.id} className="factory-item ms-2">
                                 <input
                                   type="checkbox"
                                   checked={selectedFactoriesForBT.some(sf => sf.factory_id === f.id)}

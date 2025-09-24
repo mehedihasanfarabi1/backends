@@ -11,7 +11,7 @@ export default function PermissionPage() {
   const [selectedModules, setSelectedModules] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const [selectedCompanies, setSelectedCompanies] = useState([]); 
+  const [selectedCompanies, setSelectedCompanies] = useState([]);
   const [selectedBusinessTypes, setSelectedBusinessTypes] = useState({});
   const [selectedFactories, setSelectedFactories] = useState({});
 
@@ -36,9 +36,12 @@ export default function PermissionPage() {
           "product_size_setting",
         ];
 
+        const party_type_module = ["party_type", "party"];
+
         let mainGroup = "other";
         if (companyModules.includes(p.module)) mainGroup = "company";
         else if (productModules.includes(p.module)) mainGroup = "products";
+        else if (party_type_module.includes(p.module)) mainGroup = "party_type";
 
         if (!groupedData[mainGroup]) groupedData[mainGroup] = {};
         if (!groupedData[mainGroup][p.module]) groupedData[mainGroup][p.module] = [];
@@ -84,6 +87,10 @@ export default function PermissionPage() {
         "accounts_module",
         "inventory_module",
         "settings_module",
+        "party_type_module",
+        "sr_module",
+        "loan_module",
+        "booking_module",
       ].forEach((mod) => {
         if (setData[mod]) {
           Object.entries(setData[mod]).forEach(([moduleKey, actions]) => {
@@ -140,6 +147,10 @@ export default function PermissionPage() {
         accounts_module: {},
         inventory_module: {},
         settings_module: {},
+        party_type_module: {},
+        sr_module: {},
+        loan_module: {},
+        booking_module: {},
       };
 
       selectedModules.forEach((modAction) => {
@@ -155,19 +166,28 @@ export default function PermissionPage() {
         ];
         const companyModules = ["company", "business_type", "factory"];
 
-        if (productModules.includes(module)) {
-          if (!payload.product_module[module])
-            payload.product_module[module] = { create: false, edit: false, delete: false, view: false };
-          if (action in payload.product_module[module]) payload.product_module[module][action] = true;
-        }
+        const party_type_module = ["party_type", "party"];
 
         if (companyModules.includes(module)) {
           if (!payload.company_module[module])
             payload.company_module[module] = { create: false, edit: false, delete: false, view: false };
           if (action in payload.company_module[module]) payload.company_module[module][action] = true;
         }
+        if (productModules.includes(module)) {
+          if (!payload.product_module[module])
+            payload.product_module[module] = { create: false, edit: false, delete: false, view: false };
+          if (action in payload.product_module[module]) payload.product_module[module][action] = true;
+        }
+
+        if (party_type_module.includes(module)) {
+          if (!payload.party_type_module[module])
+            payload.party_type_module[module] = { create: false, edit: false, delete: false, view: false };
+          if (action in payload.party_type_module[module]) payload.party_type_module[module][action] = true;
+        }
+
+
       });
-       console.log("🚀 Final Payload:", payload);
+      console.log("🚀 Final Payload:", payload);
       await UserPermissionAPI.updateOrCreate(selectedUser.value, payload);
       Swal.fire("✅ Saved", "Permissions updated successfully!", "success");
     } catch (err) {

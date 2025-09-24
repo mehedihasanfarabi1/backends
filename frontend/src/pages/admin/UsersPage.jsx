@@ -20,6 +20,29 @@ const UsersPage = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const usersPerPage = 5;
 
+
+  const [selectedUsers, setSelectedUsers] = useState([]); // store user ids that are checked
+  const [selectAll, setSelectAll] = useState(false); // header checkbox
+
+  const handleSelectAll = () => {
+    if (!selectAll) {
+      setSelectedUsers(currentUsers.map((u) => u.id)); // select all visible users
+    } else {
+      setSelectedUsers([]); // deselect all
+    }
+    setSelectAll(!selectAll);
+  };
+
+
+  const handleSelectOne = (userId) => {
+    if (selectedUsers.includes(userId)) {
+      setSelectedUsers(selectedUsers.filter((id) => id !== userId));
+    } else {
+      setSelectedUsers([...selectedUsers, userId]);
+    }
+  };
+
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -27,7 +50,7 @@ const UsersPage = () => {
   const fetchData = async () => {
     try {
       const resUsers = await api.get("users/");
-      console.log(resUsers)
+      // console.log(resUsers)
       const resRoles = await api.get("roles/");
       setUsers(resUsers.data);
       setRoles(resRoles.data);
@@ -38,19 +61,13 @@ const UsersPage = () => {
 
   const handleRoleChange = async (userId, newRoleId) => {
     try {
-      await api.post(`users/${userId}/update-role/`, { role_id: newRoleId });
+      await api.post(`users/${userId}/update_role/`, { role: newRoleId });
       toast.success("✅ Role updated successfully!", { autoClose: 2000 });
 
       setUsers((prev) =>
         prev.map((u) =>
           u.id === userId
-            ? {
-              ...u,
-              profile: {
-                ...u.profile,
-                role: roles.find((r) => r.id == newRoleId),
-              },
-            }
+            ? { ...u, role: roles.find((r) => r.id == newRoleId) }
             : u
         )
       );
@@ -59,6 +76,7 @@ const UsersPage = () => {
       console.error(err);
     }
   };
+
 
   const handleToggleStatus = async (userId) => {
     try {
@@ -72,7 +90,7 @@ const UsersPage = () => {
 
       if (is_active) {
         toast.success("✅ User activated!", { autoClose: 2000 });
-        
+
       } else {
         toast.info("⚠️ User deactivated!", { autoClose: 2000 });
 
@@ -206,7 +224,7 @@ const UsersPage = () => {
               <thead className="table-primary">
                 <tr>
                   <th>SL</th>
-                  
+
                   {/* <th>Avatar</th> */}
                   <th>Name</th>
                   <th>Email</th>
@@ -216,8 +234,13 @@ const UsersPage = () => {
                   <th>LoggedIn</th>
                   <th>Actions</th>
                   <th>
-                    <input type="checkbox" />
+                    <input
+                      type="checkbox"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                    />
                   </th>
+
                 </tr>
               </thead>
               <tbody>
@@ -225,7 +248,7 @@ const UsersPage = () => {
                   currentUsers.map((user, idx) => (
                     <tr key={user.id}>
                       <td>{indexOfFirstUser + idx + 1}</td>
-                     
+
                       {/* <td>
                         <img
                           src={user.profile?.avatar}
@@ -244,10 +267,8 @@ const UsersPage = () => {
                       <td>
                         <select
                           className="form-select form-select-sm"
-                          value={user.profile?.role?.id || ""}
-                          onChange={(e) =>
-                            handleRoleChange(user.id, e.target.value)
-                          }
+                          value={user.role?.id || ""}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
                         >
                           <option value="">Select Role</option>
                           {roles.map((role) => (
@@ -256,6 +277,7 @@ const UsersPage = () => {
                             </option>
                           ))}
                         </select>
+
                       </td>
                       {/* 🔹 Status Column (Custom Toggle Button instead of Switch) */}
                       <td>
@@ -285,9 +307,14 @@ const UsersPage = () => {
                           <i className="fa fa-trash"></i>
                         </button>
                       </td>
-                       <td>
-                        <input type="checkbox" />
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.includes(user.id)}
+                          onChange={() => handleSelectOne(user.id)}
+                        />
                       </td>
+
                     </tr>
                   ))
                 ) : (

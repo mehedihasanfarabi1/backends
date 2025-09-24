@@ -3,7 +3,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: url("../../assets/b10.jpg"),
+  /* background: url("https://www.transparenttextures.com/patterns/bright-squares.png"),
+    linear-gradient(135deg, #1e3dd9, #5fcf88); */
+  background: url("../../assets/b3.jpg"),
     linear-gradient(135deg, #d68b00, #000);
   background-size: cover;
 }
