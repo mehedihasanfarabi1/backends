@@ -64,7 +64,7 @@ class ProductTypeViewSet(viewsets.ModelViewSet):
                     company_filter &= factory_filter
                     # print("DEBUG: Company", company_id, "Allowed Factories:", allowed_factories)
 
-                query |= company_filter
+                query |= company_filter 
 
         if query:
             final_qs = qs.filter(query).distinct()

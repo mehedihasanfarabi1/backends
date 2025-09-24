@@ -43,6 +43,7 @@ class ProductTypeSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
+    
 
     class Meta:
         model = ProductType
@@ -57,3 +58,4 @@ class ProductTypeSerializer(serializers.ModelSerializer):
             "factory",
             "factory_id",
         ]
+

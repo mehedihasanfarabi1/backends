@@ -1,0 +1,8 @@
+Django>=5.0,<6.0
+djangorestframework>=3.15.0
+djangorestframework-simplejwt>=5.3.1
+django-cors-headers>=4.4.0
+django-parler>=2.3
+psycopg2-binary>=2.9.9   # PostgreSQL এর জন্য
+python-decouple>=3.8       # env file ব্যবহার করলে
+Pillow>=10.0.0             # যদি image upload করো
