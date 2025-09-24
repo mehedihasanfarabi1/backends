@@ -1,6 +1,4 @@
-// ====================
-// PTList.jsx (Debug Final)
-// ====================
+
 import React from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +8,8 @@ import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import "../../../styles/Table.css";
+
+import { useTranslation } from "../../../contexts/TranslationContext";
 
 export default function PTList() {
   const nav = useNavigate();
@@ -27,6 +27,9 @@ export default function PTList() {
   const [factories, setFactories] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
+
+
+  const { t } = useTranslation();
 
   // --------------------
   // Load current user
@@ -240,6 +243,14 @@ export default function PTList() {
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
+
+              <th>{t("serial")}</th>
+              {/* <th>Company</th>
+              <th>Business Type</th>
+              <th>Factory</th> */}
+              <th>{t("product_type")}</th>
+              <th>{t("description")}</th>
+              <th>{t("actions")}</th>
               <th>
                 <input
                   type="checkbox"
@@ -254,32 +265,20 @@ export default function PTList() {
                   }
                 />
               </th>
-              <th>SN</th>
-              <th>Company</th>
-              <th>Business Type</th>
-              <th>Factory</th>
-              <th>Product Type</th>
-              <th>Description</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredRows.length ? (
               filteredRows.map((r, i) => (
                 <tr key={r.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.includes(r.id)}
-                      onChange={() => toggleSelectRow(r.id)}
-                    />
-                  </td>
+
                   <td>{i + 1}</td>
-                  <td>{r.company?.name}</td>
+                  {/* <td>{r.company?.name}</td>
                   <td>{r.business_type?.name || "-"}</td>
-                  <td>{r.factory?.name || "-"}</td>
+                  <td>{r.factory?.name || "-"}</td> */}
                   <td>{r.name}</td>
                   <td>{r.desc}</td>
+
                   <td>
                     <button
                       className="btn btn-sm btn-outline-secondary me-1"
@@ -298,6 +297,13 @@ export default function PTList() {
                     >
                       Delete
                     </button>
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.includes(r.id)}
+                      onChange={() => toggleSelectRow(r.id)}
+                    />
                   </td>
                 </tr>
               ))

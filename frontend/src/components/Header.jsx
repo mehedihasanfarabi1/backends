@@ -4,11 +4,11 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "../contexts/TranslationContext";
 
 export default function Header({ onHamburgerClick }) {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(); // default translation.json use করবে
+  const { t } = useTranslation(); // default translation.json use করবে
 
   // state
   const [showNotifications, setShowNotifications] = useState(false);
@@ -17,7 +17,6 @@ export default function Header({ onHamburgerClick }) {
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showLangOptions, setShowLangOptions] = useState(false);
-  const [lang, setLang] = useState("en"); // current language
   const [products, setProducts] = useState([]); // dynamic backend data
 
   const notifPanelRef = useRef(null);
@@ -95,33 +94,6 @@ export default function Header({ onHamburgerClick }) {
   };
 
 
-
-
-  // const handleLogout = async () => {
-  //   try {
-  //     const token = localStorage.getItem("token");
-
-  //     if (token) {
-  //       await fetch("http://127.0.0.1:8001/api/logout/", {
-  //         method: "POST",
-  //         headers: {
-  //           "Authorization": `Bearer ${token}`,
-  //           "Content-Type": "application/json",
-  //         },
-  //       });
-  //     }
-
-  //     localStorage.removeItem("token");
-  //     toast.success("Logout successful!", { position: "top-right", autoClose: 3000 });
-  //     setTimeout(() => navigate("/login"), 1000);
-
-  //   } catch (err) {
-  //     console.error("Logout failed:", err);
-  //     toast.error("Logout failed!");
-  //   }
-  // };
-
-
   // Search Submit (Dummy API)
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
@@ -134,27 +106,6 @@ export default function Header({ onHamburgerClick }) {
       console.error(err);
     }
   };
-
-  // Language Change
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    setLang(lng);
-  };
-
-  // Fetch backend products when language changes
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(`http://127.0.0.1:8001/api/products/by_lang/?lang=${lang}`);
-        const data = await res.json();
-        // console.log("API Response:", data); // এখন এটা array হবে
-        setProducts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchProducts();
-  }, [lang]);
 
 
 
@@ -196,7 +147,7 @@ export default function Header({ onHamburgerClick }) {
 
         {/* Language Switch */}
         {/* Language Switch */}
-        <div className="position-relative me-3" ref={langRef}>
+        {/* <div className="position-relative me-3" ref={langRef}>
           <i
             className="fa-solid fa-globe fs-5"
 
@@ -222,7 +173,7 @@ export default function Header({ onHamburgerClick }) {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
 
         {/* Messages */}

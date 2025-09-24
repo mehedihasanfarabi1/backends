@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
-import {  UserPermissionAPI, UserAPI } from "../api/permissions";
-import {  CompanyAPI, } from "../api/company";
+import { UserPermissionAPI, UserAPI } from "../api/permissions";
+import { CompanyAPI } from "../api/company";
 
 export default function UserCompanySelector({
   selectedUser,
@@ -14,12 +14,16 @@ export default function UserCompanySelector({
   setSelectedFactory,
   setBusinessTypes,
   setFactories,
+  initialCompanyId = null, // ✅ Edit mode support
+  initialBusinessId = null,
+  initialFactoryId = null,
 }) {
   const [users, setUsers] = useState([]);
-  const [allCompanies, setAllCompanies] = useState([]); // keep full list
+  const [allCompanies, setAllCompanies] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [companyDetails, setCompanyDetails] = useState({ business_types: [], factories: [] });
 
+  // Load users and companies once
   useEffect(() => {
     const loadUsers = async () => {
       const data = await UserAPI.list();
@@ -35,6 +39,19 @@ export default function UserCompanySelector({
     loadCompanies();
   }, []);
 
+  // ✅ Handle initial selection for edit mode
+  useEffect(() => {
+    if (initialCompanyId) handleCompanyChange({ value: initialCompanyId });
+  }, [initialCompanyId]);
+
+  useEffect(() => {
+    if (initialBusinessId) setSelectedBusiness(initialBusinessId);
+  }, [initialBusinessId]);
+
+  useEffect(() => {
+    if (initialFactoryId) setSelectedFactory(initialFactoryId);
+  }, [initialFactoryId]);
+
   const handleUserChange = async (opt) => {
     const userId = opt ? opt.value : null;
     setSelectedUser(userId);
@@ -46,7 +63,7 @@ export default function UserCompanySelector({
     setCompanyDetails({ business_types: [], factories: [] });
 
     if (!userId) {
-      setCompanies(allCompanies); // restore full list
+      setCompanies(allCompanies);
       return;
     }
 
@@ -71,6 +88,10 @@ export default function UserCompanySelector({
     setCompanyDetails(details);
     setBusinessTypes(details.business_types || []);
     setFactories(details.factories || []);
+
+    // ✅ Preselect edit mode business/factory if provided
+    if (initialBusinessId) setSelectedBusiness(initialBusinessId);
+    if (initialFactoryId) setSelectedFactory(initialFactoryId);
   };
 
   return (

@@ -152,6 +152,17 @@ export default function ProductSizeSettingList() {
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
+
+              <th style={{ width: 60 }}>#</th>
+              {/* <th>Company</th>
+              <th>Business Type</th>
+              <th>Factory</th> */}
+              <th>Category</th>
+              <th>Product</th>
+              <th>Unit</th>
+              <th>Size</th>
+              <th>Custom Name</th>
+              <th style={{ width: 180 }}>Actions</th>
               <th style={{ width: 50 }}>
                 <input
                   type="checkbox"
@@ -161,33 +172,17 @@ export default function ProductSizeSettingList() {
                   }
                 />
               </th>
-              <th style={{ width: 60 }}>#</th>
-              <th>Company</th>
-              <th>Business Type</th>
-              <th>Factory</th>
-              <th>Category</th>
-              <th>Product</th>
-              <th>Unit</th>
-              <th>Size</th>
-              <th>Custom Name</th>
-              <th style={{ width: 180 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length ? (
               filtered.map((i, idx) => (
                 <tr key={i.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(i.id)}
-                      onChange={() => toggleSelect(i.id)}
-                    />
-                  </td>
+
                   <td>{idx + 1}</td>
-                  <td>{i.company?.name || "-"}</td>
+                  {/* <td>{i.company?.name || "-"}</td>
                   <td>{i.business_type?.name || "-"}</td>
-                  <td>{i.factory?.name || "-"}</td>
+                  <td>{i.factory?.name || "-"}</td> */}
                   <td>{i.category?.name || "-"}</td>
                   <td>{i.product?.name || "-"}</td>
                   <td>{i.unit?.name} ({i.unit?.short_name})</td>
@@ -227,6 +222,13 @@ export default function ProductSizeSettingList() {
                         Delete
                       </button>
                     )}
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(i.id)}
+                      onChange={() => toggleSelect(i.id)}
+                    />
                   </td>
                 </tr>
               ))

@@ -1,5 +1,4 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { CategoryAPI, ProductTypeAPI } from "../../../api/products";
 import { CompanyAPI } from "../../../api/company";
@@ -11,16 +10,6 @@ export default function CategoryForm() {
   const { id } = useParams();
   const nav = useNavigate();
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    company_id: "",
-    business_type_id: "",
-    factory_id: "",
-    product_type_id: "",
-  });
-
-  const [companies, setCompanies] = useState([]);
   const [businessTypes, setBusinessTypes] = useState([]);
   const [factories, setFactories] = useState([]);
   const [types, setTypes] = useState([]);
@@ -30,80 +19,112 @@ export default function CategoryForm() {
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [selectedFactory, setSelectedFactory] = useState(null);
 
-  // Load companies initially
-  useEffect(() => {
-    CompanyAPI.list()
-      .then(setCompanies)
-      .catch((err) => console.error("Error loading companies:", err));
-  }, []);
+  const [currentInput, setCurrentInput] = useState({
+    name: "",
+    description: "",
+    product_type_id: "",
+  });
 
-  // Load business types + factories + product types when company changes
-  useEffect(() => {
-    if (selectedCompany) {
-      CompanyAPI.details(selectedCompany)
-        .then((details) => {
-          setBusinessTypes(details.business_types || []);
-          setFactories(details.factories || []);
-        })
-        .catch((err) => console.error("Error loading company details:", err));
+  const [items, setItems] = useState([]);
 
-      ProductTypeAPI.list({ company: selectedCompany })
-        .then(setTypes)
-        .catch((err) => console.error("Error loading product types:", err));
-    } else {
+  // Company dependent data load
+  useEffect(() => {
+    if (!selectedCompany) {
       setBusinessTypes([]);
       setFactories([]);
       setTypes([]);
-      setForm((prev) => ({
-        ...prev,
-        business_type_id: "",
-        factory_id: "",
-        product_type_id: "",
-      }));
       setSelectedBusiness(null);
       setSelectedFactory(null);
+      setCurrentInput((prev) => ({ ...prev, product_type_id: "" }));
+      return;
     }
+
+    CompanyAPI.details(selectedCompany)
+      .then((details) => {
+        setBusinessTypes(details.business_types || []);
+        setFactories(details.factories || []);
+      })
+      .catch(console.error);
+
+    ProductTypeAPI.list({ company: selectedCompany }).then(setTypes).catch(console.error);
   }, [selectedCompany]);
 
-  // Load category if editing
+  // Edit mode
   useEffect(() => {
     if (id) {
       CategoryAPI.retrieve(id).then((data) => {
-        setForm({
-          name: data.name,
-          description: data.description || "",
-          company_id: data.company?.id || "",
-          business_type_id: data.business_type?.id || "",
-          factory_id: data.factory?.id || "",
-          product_type_id: data.product_type?.id || "",
-        });
-
         setSelectedCompany(data.company?.id || null);
         setSelectedBusiness(data.business_type?.id || null);
         setSelectedFactory(data.factory?.id || null);
+
+        setCurrentInput({
+          name: data.name,
+          description: data.description || "",
+          product_type_id: data.product_type?.id || "",
+        });
+
+        setItems([
+          {
+            ...data,
+            product_type_id: data.product_type?.id || "",
+            company_id: data.company?.id || null,
+            business_type_id: data.business_type?.id || null,
+            factory_id: data.factory?.id || null,
+          },
+        ]);
       });
     }
   }, [id]);
 
-  // Sync form when select changes
-  useEffect(() => setForm((f) => ({ ...f, company_id: selectedCompany })), [selectedCompany]);
-  useEffect(() => setForm((f) => ({ ...f, business_type_id: selectedBusiness })), [selectedBusiness]);
-  useEffect(() => setForm((f) => ({ ...f, factory_id: selectedFactory })), [selectedFactory]);
+  // Add item to table (multiple support)
+  const addItem = () => {
+    if (!selectedCompany) return Swal.fire("Error", "Company select করুন", "error");
+    if (!currentInput.product_type_id) return Swal.fire("Error", "Product Type select করুন", "error");
+    if (!currentInput.name) return Swal.fire("Error", "Category নাম দিতে হবে", "error");
 
+    const newItem = {
+      ...currentInput,
+      company_id: selectedCompany,
+      business_type_id: selectedBusiness,
+      factory_id: selectedFactory,
+    };
+
+    setItems([...items, newItem]);
+    setCurrentInput({ name: "", description: "", product_type_id: "" });
+  };
+
+  const removeItem = (index) => setItems(items.filter((_, i) => i !== index));
+
+  // Submit → single or multiple
   const onSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.company_id) return Swal.fire("Error", "Select a company", "error");
-    if (!form.product_type_id) return Swal.fire("Error", "Select a product type", "error");
+    let payloadItems = items.length > 0 ? items : [];
+
+    if (!id && payloadItems.length === 0) {
+      if (!currentInput.name) return Swal.fire("Error", "Category নাম দিতে হবে", "error");
+      if (!currentInput.product_type_id) return Swal.fire("Error", "Product Type select করুন", "error");
+
+      payloadItems.push({
+        ...currentInput,
+        company_id: selectedCompany,
+        business_type_id: selectedBusiness,
+        factory_id: selectedFactory,
+      });
+    }
 
     try {
-      if (id) await CategoryAPI.update(id, form);
-      else await CategoryAPI.create(form);
-      Swal.fire("Success!", "Category saved.", "success");
+      if (id) {
+        await CategoryAPI.update(id, payloadItems[0]); // edit
+      } else {
+        await CategoryAPI.bulkCreate({ categories: payloadItems }); // multiple save
+      }
+
+      Swal.fire("Success!", "Category save হয়েছে", "success");
       nav("/admin/categories");
     } catch (err) {
-      console.error(err.response?.data || err);
-      Swal.fire("Error", "Failed to save category", "error");
+      console.error("Save error:", err.response?.data || err);
+      Swal.fire("Error", "Save করতে ব্যর্থ হয়েছে", "error");
     }
   };
 
@@ -111,66 +132,115 @@ export default function CategoryForm() {
     <div className="container mt-3">
       <div className="card shadow-sm">
         <div className="card-header bg-info text-white">
-          <h5>{id ? "Edit Category" : "Create Category"}</h5>
+          <h5>{id ? "Edit Category" : "Multiple Category Create"}</h5>
         </div>
         <div className="card-body">
-          <form className="row g-3" onSubmit={onSubmit}>
-
-            {/* Company / Business Type / Factory Selector */}
+          <form onSubmit={onSubmit}>
             <UserCompanySelector
-              selectedUser={selectedUser} setSelectedUser={setSelectedUser}
-              selectedCompany={selectedCompany} setSelectedCompany={setSelectedCompany}
-              selectedBusiness={selectedBusiness} setSelectedBusiness={setSelectedBusiness}
-              selectedFactory={selectedFactory} setSelectedFactory={setSelectedFactory}
-              setBusinessTypes={setBusinessTypes} setFactories={setFactories}
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+              selectedCompany={selectedCompany}
+              setSelectedCompany={setSelectedCompany}
+              selectedBusiness={selectedBusiness}
+              setSelectedBusiness={setSelectedBusiness}
+              selectedFactory={selectedFactory}
+              setSelectedFactory={setSelectedFactory}
+              setBusinessTypes={setBusinessTypes}
+              setFactories={setFactories}
             />
 
-            {/* Product Type */}
-            <div className="col-md-6">
-              <label className="form-label">Product Type *</label>
-              <select
-                className="form-select"
-                value={form.product_type_id}
-                onChange={(e) => setForm({ ...form, product_type_id: e.target.value ? parseInt(e.target.value) : "" })}
-                disabled={!selectedCompany}
-                required
-              >
-                <option value="">-- Select Product Type --</option>
-                {types.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
+            {/* Add Category Row */}
+            <div className="row g-2 align-items-end mt-3">
+              <div className="col-md-3 col-sm-6">
+                <label className="form-label">Product Type *</label>
+                <select
+                  className="form-select"
+                  value={currentInput.product_type_id}
+                  onChange={(e) =>
+                    setCurrentInput({ ...currentInput, product_type_id: parseInt(e.target.value) })
+                  }
+                  disabled={!selectedCompany}
+                >
+                  <option value="">-- Select Product Type --</option>
+                  {types.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-3 col-sm-6">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Category Name *"
+                  value={currentInput.name}
+                  onChange={(e) => setCurrentInput({ ...currentInput, name: e.target.value })}
+                />
+              </div>
+
+              <div className="col-md-3 col-sm-6">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Description"
+                  value={currentInput.description}
+                  onChange={(e) =>
+                    setCurrentInput({ ...currentInput, description: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="col-md-3 col-sm-6">
+                <button type="button" className="btn btn-success w-100" onClick={addItem}>
+                  Add
+                </button>
+              </div>
             </div>
 
-            {/* Category Name */}
-            <div className="col-md-6">
-              <label className="form-label">Category Name *</label>
-              <input
-                type="text"
-                className="form-control"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-              />
-            </div>
+            {/* Table */}
+            {items.length > 0 && (
+              <div className="table-responsive mt-3">
+                <table className="table table-bordered align-middle">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Product Type</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th className="text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, idx) => (
+                      <tr key={idx}>
+                        <td>{types.find((t) => t.id === item.product_type_id)?.name || ""}</td>
+                        <td>{item.name}</td>
+                        <td>{item.description}</td>
+                        <td className="text-center">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-danger"
+                            onClick={() => removeItem(idx)}
+                          >
+                            🗑
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-            {/* Description */}
-            <div className="col-12">
-              <label className="form-label">Description</label>
-              <textarea
-                rows={3}
-                className="form-control"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-              />
+            <div className="d-flex justify-content-end gap-2 mt-3">
+              <button type="submit" className="btn btn-primary">
+                Save
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={() => nav(-1)}>
+                Cancel
+              </button>
             </div>
-
-            {/* Actions */}
-            <div className="col-12 d-flex justify-content-end gap-2">
-              <button type="submit" className="btn btn-primary">Save</button>
-              <button type="button" className="btn btn-secondary" onClick={() => nav(-1)}>Cancel</button>
-            </div>
-
           </form>
         </div>
       </div>

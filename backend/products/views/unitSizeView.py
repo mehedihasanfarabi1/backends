@@ -1,4 +1,7 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from products.models.unitSize import UnitSize
@@ -94,3 +97,31 @@ class UnitSizeViewSet(viewsets.ModelViewSet):
         }
         self.permission_code = action_perm_map.get(self.action)
         return super().get_permissions()
+    # ✅ Bulk create endpoint
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request):
+
+        data = request.data
+        unit_sizes = data.get("unit_sizes", [])
+
+        if not unit_sizes:
+            return Response({"detail": "No unit sizes provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        created = []
+        errors = []
+
+        for u in unit_sizes:
+            serializer = self.get_serializer(data=u)
+            if serializer.is_valid():
+                serializer.save()
+                created.append(serializer.data)
+            else:
+                errors.append(serializer.errors)
+
+        if errors:
+            return Response({"created": created, "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"detail": f"{len(created)} unit sizes created successfully.", "data": created},
+            status=status.HTTP_201_CREATED
+        )

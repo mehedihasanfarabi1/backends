@@ -1,4 +1,3 @@
-# products/serializers/unitSizeSerializer.py
 from rest_framework import serializers
 from products.models.unitSize import UnitSize
 from products.models.unit import Unit
@@ -16,7 +15,6 @@ class UnitSizeSerializer(serializers.ModelSerializer):
     unit_id = serializers.PrimaryKeyRelatedField(
         queryset=Unit.objects.all(), source="unit", write_only=True
     )
-
     company_id = serializers.PrimaryKeyRelatedField(
         queryset=Company.objects.all(), source="company", write_only=True, required=False
     )

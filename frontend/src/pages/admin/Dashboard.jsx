@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "../../contexts/TranslationContext";
 import "../../styles/dashboard.css";
 
 export default function Dashboard() {

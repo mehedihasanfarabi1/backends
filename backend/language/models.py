@@ -1,12 +1,13 @@
 from django.db import models
-from parler.models import TranslatableModel, TranslatedFields
+from backend.mixins import AuditMixin
 
-class Product(TranslatableModel):
-    translations = TranslatedFields(
-        name=models.CharField(max_length=200),
-        description=models.TextField()
-    )
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+class Translation(AuditMixin):
+
+    key = models.CharField(max_length=255, unique=True)   # unique identifier
+    english = models.CharField(max_length=255,blank=True, null=True)            # English text
+    bangla = models.CharField(max_length=255,blank=True, null=True)             # Bangla text
+    arabian = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return self.safe_translation_getter('name', any_language=True)
+        return f"{self.key} ({self.english} / {self.bangla})"
