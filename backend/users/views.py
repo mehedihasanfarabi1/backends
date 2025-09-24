@@ -29,7 +29,9 @@ class CustomLoginView(APIView):
         user = authenticate(request, email=email, password=password)
         if user is None:
             return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
-
+        
+        user.is_logged_in = True
+        user.save()
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
@@ -59,14 +61,28 @@ class UserListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class UserView(generics.RetrieveAPIView):
+# ------------------------------
+# User ViewSet for toggle & me
+# ------------------------------
+class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user
+    # Toggle active status
+    @action(detail=True, methods=["post"])
+    def toggle_active(self, request, pk=None):
+        user = self.get_object()
+        user.is_active = not user.is_active
+        user.save()
+        return Response({"id": user.id, "is_active": user.is_active})
 
+    # Me endpoint
+    @action(detail=False, methods=["get"])
+    def me(self, request):
+        user = request.user
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
 # ------------------------------
 # Role ViewSet
@@ -150,7 +166,9 @@ class LogoutView(APIView):
             refresh_token = request.data.get("refresh")
             if not refresh_token:
                 return Response({"error": "Refresh token required"}, status=status.HTTP_400_BAD_REQUEST)
-
+            user = request.user
+            user.is_logged_in = False  # ✅ Mark logged out
+            user.save()
             token = RefreshToken(refresh_token)
             token.blacklist()
             return Response({"detail": "Logged out successfully"}, status=status.HTTP_200_OK)
@@ -229,7 +247,7 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
                 "role_id": role,
                 "companies": companies,
                 "business_types": business_types,
-                "factories": clean_factories,  # ✅ sanitized & duplicates removed
+                "factories": clean_factories, 
                 "product_module": product_module,
                 "company_module": company_module,
                 "hr_module": hr_module,
@@ -241,55 +259,6 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-    
-    
-    
-# class UserPermissionSetViewSet(viewsets.ModelViewSet):
-#     queryset = UserPermissionSet.objects.all()
-#     serializer_class = UserPermissionSetSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     @action(detail=False, methods=['get'], url_path='user/(?P<user_id>[^/.]+)')
-#     def by_user(self, request, user_id=None):
-#         sets = UserPermissionSet.objects.filter(user_id=user_id)
-#         serializer = self.get_serializer(sets, many=True)
-#         return Response(serializer.data)
-
-#     @action(detail=False, methods=['post'], url_path='update-or-create')
-#     def update_or_create_set(self, request):
-#         user_id = request.data.get("user")
-#         role = request.data.get("role")
-#         companies = request.data.get("companies", [])
-#         business_types = request.data.get("business_types", {})
-#         factories = request.data.get("factories", {})
-
-#         # frontend theke nested structure direct receive
-#         product_module = request.data.get("product_module", {})
-#         company_module = request.data.get("company_module", {})
-#         hr_module = request.data.get("hr_module", {})
-#         accounts_module = request.data.get("accounts_module", {})
-#         inventory_module = request.data.get("inventory_module", {})
-#         settings_module = request.data.get("settings_module", {})
-
-#         obj, created = UserPermissionSet.objects.update_or_create(
-#         user_id=user_id,
-#         defaults={
-#             "role_id": role,
-#             "companies": companies,
-#             "business_types": business_types,
-#             "factories": factories,
-#             "product_module": product_module,
-#             "company_module": company_module,
-#             "hr_module": hr_module,
-#             "accounts_module": accounts_module,
-#             "inventory_module": inventory_module,
-#             "settings_module": settings_module,
-#         }
-#     )
-#         serializer = self.get_serializer(obj)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

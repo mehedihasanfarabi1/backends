@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/Admin/Header/header.css"
 import { useTranslation } from "../contexts/TranslationContext";
 
 export default function Header({ onHamburgerClick }) {
@@ -240,17 +241,9 @@ export default function Header({ onHamburgerClick }) {
         ))}
       </ul> */}
 
-
-      {/* Panel Animation */}
-      <style jsx>{`
-        .side-panel {
-          transform: translateX(100%);
-          transition: transform 0.3s ease-in-out;
-        }
-        .side-panel.show {
-          transform: translateX(0);
-        }
-      `}</style>
+      {/* <style jsx>{`
+  
+      `}</style> */}
     </div>
   );
 }

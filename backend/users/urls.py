@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .views import (
-    RegisterView, UserView, UserListView,
+    RegisterView, UserViewSet, UserListView,
     CustomLoginView, LogoutView,
     UserPermissionViewSet, RoleViewSet, PermissionViewSet,
     RolePermissionViewSet, UserRoleViewSet,
@@ -12,8 +12,7 @@ from .views import (
 
 # users/urls.py
 router = DefaultRouter()
-# router.register(r'user-permissions', UserPermissionSetViewSet, basename='user-permissions')  # ✅ User → Permission
-# router.register(r'permissions', PermissionViewSet, basename='permissions')              # ✅ Master Permission
+
 router.register(r'roles', RoleViewSet, basename='roles')
 router.register(r'role-permissions', RolePermissionViewSet, basename='role-permissions')
 router.register(r'user-roles', UserRoleViewSet, basename='user-roles')
@@ -21,12 +20,12 @@ router.register(r'user-roles', UserRoleViewSet, basename='user-roles')
 # Hybrid permission routes
 # ------------------------------
 router.register(r'permission-sets', UserPermissionSetViewSet, basename='permission-sets')
-# router.register(r'module-permissions', UserModulePermissionViewSet, basename='module-permissions')
+router.register(r'users', UserViewSet, basename='user')
 
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
-    path("me/", UserView.as_view(), name="me"),
+    path("me/", UserViewSet.as_view({"get": "me"}), name="me"),  
     path("users/", UserListView.as_view(), name="user-list"),
     path("login/", CustomLoginView.as_view(), name="custom_login"),
     path("logout/", LogoutView.as_view(), name="logout"),

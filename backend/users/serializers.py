@@ -9,7 +9,7 @@ from company.models.factory import Factory
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["id", "email", "name", "phone", "address"]
+        fields = ["id", "email", "name", "phone", "address","is_active","is_logged_in"]
 
 
 class RegisterSerializer(serializers.ModelSerializer):

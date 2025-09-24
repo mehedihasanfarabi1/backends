@@ -1,0 +1,18 @@
+.auth-bg {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url("../../assets/b10.jpg"),
+    linear-gradient(135deg, #d68b00, #000);
+  background-size: cover;
+}
+
+.auth-card {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

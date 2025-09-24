@@ -5,6 +5,14 @@ export const UserAPI = {
     const res = await api.get("users/");
     return res.data;
   },
+  toggleActive: async (id) => {
+    const res = await api.post(`/users/${id}/toggle_active/`);
+    return res.data;
+  },
+    me: async () => {
+    const res = await api.get("/me/");
+    return res.data;
+  }
 };
 
 export const UserPermissionAPI = {

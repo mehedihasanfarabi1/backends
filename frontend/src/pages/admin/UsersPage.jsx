@@ -27,6 +27,7 @@ const UsersPage = () => {
   const fetchData = async () => {
     try {
       const resUsers = await api.get("users/");
+      console.log(resUsers)
       const resRoles = await api.get("roles/");
       setUsers(resUsers.data);
       setRoles(resRoles.data);
@@ -61,7 +62,7 @@ const UsersPage = () => {
 
   const handleToggleStatus = async (userId) => {
     try {
-      const res = await api.post(`users/${userId}/toggle-active/`);
+      const res = await api.post(`users/${userId}/toggle_active/`);
       const { is_active } = res.data;
 
       // 🔹 Force update state
@@ -71,8 +72,10 @@ const UsersPage = () => {
 
       if (is_active) {
         toast.success("✅ User activated!", { autoClose: 2000 });
+        
       } else {
         toast.info("⚠️ User deactivated!", { autoClose: 2000 });
+
       }
     } catch (err) {
       toast.error("❌ Failed to update status!", { autoClose: 2000 });
