@@ -4,8 +4,10 @@ from products.models.unit import Unit
 from company.models.company import Company
 from company.models.business_type import BusinessType
 from company.models.factory import Factory
+from backend.AuditSerializerMixin import AuditSerializerMixin
 
-class UnitSerializer(serializers.ModelSerializer):
+
+class UnitSerializer(AuditSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Unit
         fields = ["id", "name", "short_name"]

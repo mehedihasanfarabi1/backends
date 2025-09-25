@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from products.models.unit import Unit
+from backend.AuditSerializerMixin import AuditSerializerMixin
 
-class UnitSerializer(serializers.ModelSerializer):
+
+class UnitSerializer(AuditSerializerMixin, serializers.ModelSerializer):
     company_id = serializers.IntegerField(required=False, allow_null=True)
     business_type_id = serializers.IntegerField(required=False, allow_null=True)
     factory_id = serializers.IntegerField(required=False, allow_null=True)

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PartyAPI, PartyTypeAPI } from "../../../api/partyType";
-import {  UserPermissionAPI } from "../../../api/permissions";
-import {   CompanyAPI } from "../../../api/company";
+import { UserPermissionAPI } from "../../../api/permissions";
+import { CompanyAPI } from "../../../api/company";
+import api from "../../../api/axios"; // ✅ তোমার axios instance import
 import Swal from "sweetalert2";
 
 export default function PartyForm() {
@@ -42,6 +43,53 @@ export default function PartyForm() {
     const [permissions, setPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // 🔹 Auto load next code when company changes (only for create mode)
+    // Next code load (correct axios response)
+    useEffect(() => {
+        if (!id) { // শুধু create mode এ
+            api.get(`party_type/next-code/`)
+                .then(res => {
+                    if (res?.data?.next_code) {
+                        setForm(prev => ({ ...prev, code: res.data.next_code }));
+                    }
+                })
+                .catch(err => console.error("Next code load failed", err));
+        }
+    }, [id]);
+
+
+    // Company wise PartyType load
+    useEffect(() => {
+        if (form.company_id) {
+            PartyTypeAPI.list({ company_id: form.company_id }).then(data => {
+                setPartyTypes(data);
+            });
+        } else {
+            setPartyTypes([]);
+        }
+    }, [form.company_id]);
+
+
+    // 🔹 Auto calculations
+    useEffect(() => {
+        const booking_bag = parseFloat(form.booking_bag) || 0;
+        const bag_weight = parseFloat(form.bag_weight) || 0;
+        const per_bag_rent = parseFloat(form.per_bag_rent) || 0;
+        const per_kg_rent = parseFloat(form.per_kg_rent) || 0;
+
+        const total_weight = booking_bag * bag_weight;
+        const total_rent = booking_bag * per_bag_rent;
+        const total_kg_rent = total_weight * per_kg_rent;
+
+        setForm(prev => ({
+            ...prev,
+            total_weight,
+            total_rent,
+            total_kg_rent
+        }));
+    }, [form.booking_bag, form.bag_weight, form.per_bag_rent, form.per_kg_rent]);
+
+
     useEffect(() => {
         const loadData = async () => {
             try {
@@ -55,7 +103,6 @@ export default function PartyForm() {
                 if (id) {
                     const data = await PartyAPI.retrieve(id);
                     setForm({
-                        ...form,
                         company_id: data.company?.id || null,
                         party_type_id: data.party_type?.id || null,
                         code: data.code || "",
@@ -121,24 +168,44 @@ export default function PartyForm() {
                 await PartyAPI.create(form);
             }
             Swal.fire("Success", "Saved successfully!", "success");
-            nav("/admin/parties");
+            nav("/admin/party-list");
         } catch (err) {
             console.error(err);
             Swal.fire("Error", "Save failed", "error");
         }
     };
 
+    const fieldStyle = {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: "6px"
+    };
+
+    const labelStyle = {
+        flex: "0 0 40%",
+        fontSize: "0.85rem",
+        fontWeight: "500",
+        marginRight: "8px"
+    };
+
+    const inputStyle = {
+        flex: "0 0 58%",
+        height: "29px",
+        fontSize: "0.85rem"
+    };
+
     if (loading) return <div className="text-center mt-5">Loading...</div>;
 
     return (
-        <div className="container my-4 d-flex justify-content-center">
-            <div className="card shadow-sm w-100" style={{ maxWidth: "950px" }}>
-                <div className="card-header bg-primary text-white">
-                    <h5 className="mb-0">{id ? "Edit Party" : "Create Party"}</h5>
+        <div className="container my-3 d-flex justify-content-center">
+            <div className="card shadow-sm w-100" style={{ maxWidth: "800px" }}>
+                <div className="card-header bg-primary text-white py-2">
+                    <h6 className="mb-0">{id ? "Edit Party" : "Create Party"}</h6>
                 </div>
-                <div className="card-body">
+                <div className="card-body" style={{ fontSize: "0.85rem" }}>
                     <form onSubmit={onSubmit}>
-                        <div className="row gx-3 gy-2">
+                        <div className="row gx-5 gy-1">
                             {/* Left Column */}
                             <div className="col-lg-6 col-md-12">
                                 {[
@@ -156,42 +223,35 @@ export default function PartyForm() {
                                     { label: "Session", name: "session" },
                                     { label: "Is Default", name: "is_default", type: "checkbox" },
                                 ].map((f) => (
-                                    <div className="mb-2" key={f.name}>
-                                        <label className="form-label">{f.label}</label>
+                                    <div style={fieldStyle} key={f.name}>
+                                        <label style={labelStyle}>{f.label}</label>
                                         {f.type === "select" ? (
                                             <select
-                                                className="form-select"
+                                                style={inputStyle}
+                                                className="form-select form-select-sm"
                                                 value={form[f.name] || ""}
-                                                onChange={(e) =>
-                                                    setForm({ ...form, [f.name]: e.target.value })
-                                                }
+                                                onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
                                                 required={f.required}
                                             >
                                                 <option value="">-- Select --</option>
-                                                {f.options &&
-                                                    f.options.map((o) => (
-                                                        <option key={o.id} value={o.id}>
-                                                            {o.name}
-                                                        </option>
-                                                    ))}
+                                                {f.options?.map((o) => (
+                                                    <option key={o.id} value={o.id}>{o.name}</option>
+                                                ))}
                                             </select>
                                         ) : f.type === "checkbox" ? (
                                             <input
                                                 type="checkbox"
-                                                className="form-check-input"
-                                                checked={form[f.name]}
-                                                onChange={(e) =>
-                                                    setForm({ ...form, [f.name]: e.target.checked })
-                                                }
+                                                style={{ marginLeft: "5px" }}
+                                                checked={form[f.name] || false}
+                                                onChange={(e) => setForm({ ...form, [f.name]: e.target.checked })}
                                             />
                                         ) : (
                                             <input
+                                                style={inputStyle}
                                                 type={f.type || "text"}
-                                                className="form-control"
-                                                value={form[f.name]}
-                                                onChange={(e) =>
-                                                    setForm({ ...form, [f.name]: e.target.value })
-                                                }
+                                                className="form-control form-control-sm"
+                                                value={form[f.name] || ""}
+                                                onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
                                             />
                                         )}
                                     </div>
@@ -214,30 +274,33 @@ export default function PartyForm() {
                                     { label: "Interest Start Date", name: "interest_start_date", type: "date" },
                                     { label: "Interest Rate (%)", name: "interest_rate", type: "number" },
                                 ].map((f) => (
-                                    <div className="mb-2" key={f.name}>
-                                        <label className="form-label">{f.label}</label>
+                                    <div style={fieldStyle} key={f.name}>
+                                        <label style={labelStyle}>{f.label}</label>
                                         {f.type === "select" ? (
                                             <select
-                                                className="form-select"
-                                                value={f.name === "status" ? form.status : form[f.name]}
-                                                onChange={(e) =>
-                                                    setForm({ ...form, [f.name]: e.target.value === "true" })
-                                                }
+                                                style={inputStyle}
+                                                className="form-select form-select-sm"
+                                                value={form[f.name]}
+                                                onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
                                             >
                                                 {f.options.map((o) => (
-                                                    <option key={o.id} value={o.id}>
-                                                        {o.name}
-                                                    </option>
+                                                    <option key={o.id} value={o.id}>{o.name}</option>
                                                 ))}
                                             </select>
                                         ) : (
                                             <input
-                                                type={f.type || "text"}
-                                                className="form-control"
-                                                value={form[f.name]}
-                                                onChange={(e) =>
-                                                    setForm({ ...form, [f.name]: e.target.value })
-                                                }
+                                                style={inputStyle}
+                                                type={f.type}
+                                                className="form-control form-control-sm"
+                                                value={form[f.name] || ""}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setForm(prev => ({
+                                                        ...prev,
+                                                        [f.name]: f.type === "number" ? parseFloat(val) || 0 : val
+                                                    }));
+                                                }}
+                                                // readOnly={f.readOnly || false}
                                             />
                                         )}
                                     </div>
@@ -246,7 +309,7 @@ export default function PartyForm() {
                         </div>
 
                         <div className="text-center mt-3">
-                            <button className="btn btn-success btn-lg" type="submit">
+                            <button className="btn btn-success btn-sm px-4" type="submit">
                                 Save
                             </button>
                         </div>

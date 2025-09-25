@@ -5,13 +5,13 @@ from products.models.unit import Unit
 from company.models.company import Company
 from company.models.business_type import BusinessType
 from company.models.factory import Factory
-
+from backend.AuditSerializerMixin import AuditSerializerMixin
 class UnitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Unit
         fields = ["id", "name", "short_name"]
 
-class UnitConversionSerializer(serializers.ModelSerializer):
+class UnitConversionSerializer(AuditSerializerMixin, serializers.ModelSerializer):
     parent_unit_id = serializers.PrimaryKeyRelatedField(
         queryset=Unit.objects.all(), source="parent_unit", write_only=True
     )

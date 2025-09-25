@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import {  PartyAPI, } from "../../../api/partyType";
+import { PartyAPI, } from "../../../api/partyType";
 import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
+import { FaEdit, FaTrash } from "react-icons/fa";
 // import { useTranslation } from "../../../contexts/TranslationContext";
 
 export default function PartyList() {
@@ -118,7 +119,7 @@ export default function PartyList() {
         <div className="container mt-3">
             <ActionBar
                 title="Parties"
-                onCreate={() => nav("/admin/parties/new")}
+                onCreate={() => nav("/admin/party-list/new")}
                 showCreate={permissions.includes("party_create")}
                 onDelete={handleDelete}
                 showDelete={permissions.includes("party_delete")}
@@ -128,12 +129,12 @@ export default function PartyList() {
                 showExport={permissions.includes("party_view")}
             />
 
-            <UserCompanySelector
+            {/* <UserCompanySelector
                 selectedUser={selectedUser}
                 setSelectedUser={setSelectedUser}
                 selectedCompany={selectedCompany}
                 setSelectedCompany={setSelectedCompany}
-            />
+            /> */}
 
             <div className="d-flex gap-2 mb-3 flex-wrap">
                 <input
@@ -148,7 +149,10 @@ export default function PartyList() {
                 </button>
             </div>
 
-            <div className="table-responsive" style={{ overflowX: "auto", fontSize: "0.85rem" }}>
+            <div className="table-responsive" style={{
+                // overflowX: "auto",
+                fontSize: "0.65rem"
+            }}>
                 <table className="table table-bordered table-hover table-striped mb-0">
                     <thead className="table-primary">
                         <tr>
@@ -213,24 +217,27 @@ export default function PartyList() {
                                     <td>{r.interest_start_date || "-"}</td>
                                     <td>{r.interest_rate}</td>
                                     <td>{r.status ? "Active" : "Inactive"}</td>
-                                    <td className="text-nowrap">
-                                        <button
-                                            className="btn btn-sm btn-outline-secondary me-1 mb-1"
-                                            onClick={() => nav(`/admin/parties/${r.id}`)}
-                                            disabled={!permissions.includes("party_edit")}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            className="btn btn-sm btn-outline-danger mb-1"
+                                    <td>
+                                        <FaEdit
+                                            className="text-secondary me-3 cursor-pointer"
+                                            size={24}
+                                            title="Edit"
+                                            onClick={() => nav(`/admin/party-list/${r.id}`)}
+                                            style={{ cursor: permissions.includes("party_edit") ? "pointer" : "not-allowed", opacity: permissions.includes("party_edit") ? 1 : 0.5 }}
+                                        />
+
+                                        <FaTrash
+                                            className="text-danger cursor-pointer mt-2"
+                                            size={24}
+                                            title="Delete"
                                             onClick={() => {
-                                                setSelectedRows([r.id]);
-                                                handleDelete();
+                                                if (permissions.includes("party_delete")) {
+                                                    setSelectedRows([r.id]);
+                                                    handleDelete();
+                                                }
                                             }}
-                                            disabled={!permissions.includes("party_delete")}
-                                        >
-                                            Delete
-                                        </button>
+                                            style={{ cursor: permissions.includes("party_delete") ? "pointer" : "not-allowed", opacity: permissions.includes("party_delete") ? 1 : 0.5 }}
+                                        />
                                     </td>
                                     <td>
                                         <input

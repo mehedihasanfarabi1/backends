@@ -14,20 +14,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 # ----------------- Business Type -----------------
+# ----------------- Business Type -----------------
 class BusinessTypeViewSet(viewsets.ModelViewSet):
-    queryset = BusinessType.objects.all()   # ✅ Add this line
+    queryset = BusinessType.objects.select_related("company").all().order_by("name")
     serializer_class = BusinessTypeSerializer
     permission_classes = [IsAuthenticated, CompanyModulePermission]
     module_name = "business_type"
 
     def get_queryset(self):
         user = self.request.user
-        qs = BusinessType.objects.select_related("company").all()
+        qs = BusinessType.objects.select_related("company").all().order_by("name")
+
         if user.is_superuser or user.is_staff:
             return qs
 
         perms = UserPermissionSet.objects.filter(user=user)
-        query = Q()
+        allowed_bt_ids = []
         for p in perms:
             company_perm = p.company_module or {}
             module_perm = company_perm.get("business_type", {})
@@ -35,12 +37,9 @@ class BusinessTypeViewSet(viewsets.ModelViewSet):
                 continue
 
             for company_id in p.companies or []:
-                allowed_bts = p.business_types.get(str(company_id), [])
-                if allowed_bts:
-                    query |= Q(company_id=company_id, id__in=allowed_bts)
+                if p.business_types and str(company_id) in p.business_types:
+                    allowed_bt_ids.extend(p.business_types[str(company_id)])
                 else:
-                    query |= Q(company_id=company_id)
+                    allowed_bt_ids.extend(BusinessType.objects.filter(company_id=company_id).values_list("id", flat=True))
 
-        if query:
-            return qs.filter(query).distinct()
-        return BusinessType.objects.none()
+        return qs.filter(id__in=allowed_bt_ids).distinct()

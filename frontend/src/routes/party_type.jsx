@@ -3,8 +3,11 @@ import React from "react";
 import PartyTypeList from "../modules/party_type/PartyType/List";
 import PartyTypeForm from "../modules/party_type/PartyType/Form";
 import PartyTypeEditForm from "../modules/party_type/PartyType/Edit";
+
+
 import PartyList from "../modules/party_type/Party/List";
 import PartyForm from "../modules/party_type/Party/Form";
+import PartyEditForm from "../modules/party_type/Party/Edit";
 
 
 export const party_type = [
@@ -15,7 +18,7 @@ export const party_type = [
 
   // Party
   { path: "party-list", element: <PartyList /> },
-  { path: "parties/new", element: <PartyForm /> },
-  { path: "parties/:id", element: <PartyTypeEditForm /> },
+  { path: "party-list/new", element: <PartyForm /> },
+  { path: "party-list/:id", element: <PartyEditForm /> },
 
 ];

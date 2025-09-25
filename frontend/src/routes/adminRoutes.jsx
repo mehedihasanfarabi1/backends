@@ -13,6 +13,8 @@ import PermissionDesigner from "../components/common/DraggablePermissionGroup";
 import { productRoutes } from "./productRoutes";
 import { companyRoutes } from "./companyRoutes";
 import { party_type } from "./party_type";
+import { booking_routes } from "./bookingRoutes";
+import { sr_routes } from "./srRoutes";
 
 export const adminRoutes = [
   { index: true, element: <Dashboard /> },
@@ -32,4 +34,6 @@ export const adminRoutes = [
   ...productRoutes,
   ...companyRoutes,
   ...party_type,
+  ...booking_routes,
+  ...sr_routes
 ];

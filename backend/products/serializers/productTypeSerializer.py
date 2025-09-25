@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from products.models import ProductType
 from company.models import Company, BusinessType, Factory
-
+from backend.AuditSerializerMixin import AuditSerializerMixin
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
@@ -17,7 +17,7 @@ class FactorySerializer(serializers.ModelSerializer):
         model = Factory
         fields = ["id", "name"]
 
-class ProductTypeSerializer(serializers.ModelSerializer):
+class ProductTypeSerializer(AuditSerializerMixin, serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     business_type = BusinessTypeSerializer(read_only=True)
     factory = FactorySerializer(read_only=True)

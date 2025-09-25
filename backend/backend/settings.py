@@ -36,7 +36,9 @@ INSTALLED_APPS = [
     "products.apps.ProductsConfig",  # ✅ এটা যোগ করতে হবে
     "company",  # ✅ এটা যোগ করতে হবে
     "rest_framework_simplejwt.token_blacklist",
-    "party_type"
+    "party_type",
+    "booking",
+    "sr",
     
 ]
 
@@ -94,7 +96,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'software_project4',       # তোমার DB নাম
         'USER': 'postgres',   # DB ইউজার
-        'PASSWORD': '1234', # পাসওয়ার্ড
+        'PASSWORD': '5843', # পাসওয়ার্ড
         'HOST': 'localhost',
         'PORT': '5432',
     }

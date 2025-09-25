@@ -17,7 +17,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
       products: ["/admin/products", "/admin/product-types", "/admin/categories", "/admin/units", "/admin/unit-sizes", "/admin/unit-conversions", "/admin/product-size-settings"],
       party_type: ["/admin/party-types", "/admin/party-list", "/admin/party-commission", "/admin/party-ledger", "/admin/party-report"],
       settings: ["/admin/projects", "/admin/translations"],
-      booking: ["/admin/bookings", "/admin/add-booking"],
+      booking: ["/admin/bookings", "/admin/bookings/new"],
       sr: ["/admin/sr", "/admin/add-sr"],
       pallet: ["/admin/pallet", "/admin/add-pallet"],
       loan: ["/admin/loan", "/admin/add-loan"],
@@ -77,8 +77,8 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           <ul className={`submenu ms-4 ${open.essential_settings ? "" : "d-none"}`}>
             {/* Booking Type */}
             <li
-              className={isActive("/admin/product-types") ? "active" : ""}
-              onClick={() => linkClicked("/admin/product-types")}
+              className={isActive("/admin/bookings") ? "active" : ""}
+              onClick={() => linkClicked("/admin/bookings")}
             >
               <i className="fa-solid fa-layer-group me-2"></i>
               <span>{t("booking_type")}</span>
@@ -208,17 +208,17 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           </ul>
 
           {/* Booking */}
-          <li onClick={() => toggle("booking")} className={isSubmenuActive(["/admin/bookings", "/admin/add-booking"]) ? "active-parent" : ""}>
+          <li onClick={() => toggle("booking")} className={isSubmenuActive(["/admin/bookings", "/admin/bookings/new"]) ? "active-parent" : ""}>
             <i className="fa-solid fa-calendar-check me-2"></i> <span>{t("booking")}</span>
             <i className="fa-solid fa-chevron-down ms-auto"></i>
           </li>
           <ul className={`submenu ms-4 ${open.booking ? "" : "d-none"}`}>
-            <li className={isActive("/admin/add-booking") ? "active" : ""} onClick={() => linkClicked("/admin/add-booking")}>
+            <li className={isActive("/admin/bookings") ? "active" : ""} onClick={() => linkClicked("/admin/bookings")}>
               <i className="fa-solid fa-plus me-2"></i> <span>{t("add_booking")}</span>
             </li>
-            <li className={isActive("/admin/bookings") ? "active" : ""} onClick={() => linkClicked("/admin/bookings")}>
+            {/* <li className={isActive("/admin/bookings") ? "active" : ""} onClick={() => linkClicked("/admin/bookings")}>
               <i className="fa-solid fa-list me-2"></i> <span>{t("booking_list")}</span>
-            </li>
+            </li> */}
           </ul>
 
           {/* SR */}
@@ -227,12 +227,13 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
             <i className="fa-solid fa-chevron-down ms-auto"></i>
           </li>
           <ul className={`submenu ms-4 ${open.sr ? "" : "d-none"}`}>
-            <li className={isActive("/admin/add-sr") ? "active" : ""} onClick={() => linkClicked("/admin/add-sr")}>
-              <i className="fa-solid fa-plus me-2"></i> <span>{t("add_sr")}</span>
-            </li>
+
             <li className={isActive("/admin/sr") ? "active" : ""} onClick={() => linkClicked("/admin/sr")}>
               <i className="fa-solid fa-list me-2"></i> <span>{t("sr_list")}</span>
             </li>
+            {/* <li className={isActive("/admin/add-sr") ? "active" : ""} onClick={() => linkClicked("/admin/add-sr")}>
+              <i className="fa-solid fa-plus me-2"></i> <span>{t("add_sr")}</span>
+            </li> */}
           </ul>
 
           {/* Pallet */}
@@ -323,12 +324,12 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
             <li className={isActive("/admin/users/roles") ? "active" : ""} onClick={() => linkClicked("/admin/users/roles")}>
               <i className="fa-brands fa-slack me-2"></i> <span>{t("roles")}</span>
             </li>
-            <li className={isActive("/admin/users/permissions") ? "active" : ""} onClick={() => linkClicked("/admin/users/permissions")}>
+            {/* <li className={isActive("/admin/users/permissions") ? "active" : ""} onClick={() => linkClicked("/admin/users/permissions")}>
               <i className="fa-brands fa-gg-circle me-2"></i> <span>{t("permissions")}</span>
             </li>
             <li className={isActive("/admin/permission-designer") ? "active" : ""} onClick={() => linkClicked("/admin/permission-designer")}>
               <i className="fa-brands fa-gg-circle me-2"></i> <span>{t("permissions_designer")}</span>
-            </li>
+            </li> */}
           </ul>
 
           {/* Profile */}

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from products.models.category import Category
 from products.models.productType import ProductType
 from company.models import Company, BusinessType, Factory
-
+from backend.AuditSerializerMixin import AuditSerializerMixin
 class ProductTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductType
@@ -23,7 +23,7 @@ class FactorySerializer(serializers.ModelSerializer):
         model = Factory
         fields = ["id", "name"]
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(AuditSerializerMixin, serializers.ModelSerializer):
     product_type = ProductTypeSerializer(read_only=True)
     product_type_id = serializers.PrimaryKeyRelatedField(
         queryset=ProductType.objects.all(),

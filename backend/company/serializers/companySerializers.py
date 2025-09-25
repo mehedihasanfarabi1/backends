@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from company.models import Company
 
+from backend.AuditSerializerMixin import AuditSerializerMixin
 
-class CompanySerializer(serializers.ModelSerializer):
+
+class CompanySerializer(AuditSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = "__all__"

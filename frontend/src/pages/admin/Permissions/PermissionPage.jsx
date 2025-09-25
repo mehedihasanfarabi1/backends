@@ -37,11 +37,15 @@ export default function PermissionPage() {
         ];
 
         const party_type_module = ["party_type", "party"];
+        const booking_module = ["booking"];
+        const sr_module = ["sr"];
 
         let mainGroup = "other";
         if (companyModules.includes(p.module)) mainGroup = "company";
         else if (productModules.includes(p.module)) mainGroup = "products";
         else if (party_type_module.includes(p.module)) mainGroup = "party_type";
+        else if (booking_module.includes(p.module)) mainGroup = "booking";
+        else if (sr_module.includes(p.module)) mainGroup = "sr";
 
         if (!groupedData[mainGroup]) groupedData[mainGroup] = {};
         if (!groupedData[mainGroup][p.module]) groupedData[mainGroup][p.module] = [];
@@ -167,6 +171,8 @@ export default function PermissionPage() {
         const companyModules = ["company", "business_type", "factory"];
 
         const party_type_module = ["party_type", "party"];
+        const booking_module = ["booking"];
+        const sr_module = ["sr"];
 
         if (companyModules.includes(module)) {
           if (!payload.company_module[module])
@@ -184,7 +190,16 @@ export default function PermissionPage() {
             payload.party_type_module[module] = { create: false, edit: false, delete: false, view: false };
           if (action in payload.party_type_module[module]) payload.party_type_module[module][action] = true;
         }
-
+        if (booking_module.includes(module)) {
+          if (!payload.booking_module[module])
+            payload.booking_module[module] = { create: false, edit: false, delete: false, view: false };
+          if (action in payload.booking_module[module]) payload.booking_module[module][action] = true;
+        }
+        if (sr_module.includes(module)) {
+          if (!payload.sr_module[module])
+            payload.sr_module[module] = { create: false, edit: false, delete: false, view: false };
+          if (action in payload.sr_module[module]) payload.sr_module[module][action] = true;
+        }
 
       });
       console.log("🚀 Final Payload:", payload);

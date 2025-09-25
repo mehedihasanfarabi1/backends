@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from company.models import Factory, Company, BusinessType
-
+from backend.AuditSerializerMixin import AuditSerializerMixin
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,7 +16,7 @@ class BusinessTypeSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "short_name", "company"]
 
 
-class FactorySerializer(serializers.ModelSerializer):
+class FactorySerializer(AuditSerializerMixin, serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
     company_id = serializers.PrimaryKeyRelatedField(
         queryset=Company.objects.all(),

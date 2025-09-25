@@ -5,6 +5,7 @@ from django.conf import settings
 class AuditMixin(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -20,8 +21,8 @@ class AuditMixin(models.Model):
         related_name="%(class)s_modified"
     )
 
-   
-
+    ip_address = models.GenericIPAddressField(null=True, blank=True)  # user IP
+    browser_info = models.CharField(max_length=255, null=True, blank=True)  # user browser
 
     class Meta:
         abstract = True
