@@ -52,16 +52,16 @@ class SRModulePermission(BasePermission):
 
         perms = UserPermissionSet.objects.filter(user=user)
         for p in perms:
-            company_module = p.company_module
-            if isinstance(company_module, str):
+            sr_module = p.sr_module
+            if isinstance(sr_module, str):
                 try:
-                    company_module = json.loads(company_module)
+                    sr_module = json.loads(sr_module)
                 except:
-                    company_module = {}
-            elif company_module is None:
-                company_module = {}
+                    sr_module = {}
+            elif sr_module is None:
+                sr_module = {}
 
-            module_perms = company_module.get(module_name, {})
+            module_perms = sr_module.get(module_name, {})
             if module_perms.get(action_perm, False):
                 return True
 
