@@ -15,6 +15,7 @@ import { companyRoutes } from "./companyRoutes";
 import { party_type } from "./party_type";
 import { booking_routes } from "./bookingRoutes";
 import { sr_routes } from "./srRoutes";
+import { pallet_routes } from "./pallotRoutes";
 
 export const adminRoutes = [
   { index: true, element: <Dashboard /> },
@@ -35,5 +36,6 @@ export const adminRoutes = [
   ...companyRoutes,
   ...party_type,
   ...booking_routes,
-  ...sr_routes
+  ...sr_routes,
+  ...pallet_routes
 ];

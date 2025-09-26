@@ -3,18 +3,17 @@ from rest_framework.exceptions import PermissionDenied
 from users.models import UserPermissionSet
 
 # কোন কোন module-এর কি কি permission থাকবে
-PARTY_TYPE_PERMISSIONS = {
-    "party_type": ["create", "view", "edit", "delete"],
-    "party": ["create", "view", "edit", "delete"],
+PALLOT_PERMISSIONS = {
+    "pallot_type": ["create", "view", "edit", "delete"],
 }
 
 
-def get_all_party_type_permissions():
+def get_all_pallot_permissions():
     """
-    PartyType & Party মডিউলের সব permissions list করে return করবে
+    PallotType & Pallot মডিউলের সব permissions list করে return করবে
     """
     permissions = []
-    for module, actions in PARTY_TYPE_PERMISSIONS.items():
+    for module, actions in PALLOT_PERMISSIONS.items():
         for action in actions:
             permissions.append({
                 "module": module,
@@ -25,7 +24,7 @@ def get_all_party_type_permissions():
 
 
 
-class PartyTypeModulePermission(BasePermission):
+class PallotModulePermission(BasePermission):
     ACTION_MAP = {
         "list": "view",
         "retrieve": "view",
@@ -59,18 +58,18 @@ class PartyTypeModulePermission(BasePermission):
 
         perms = UserPermissionSet.objects.filter(user=user)
         for p in perms:
-            party_type_module = p.party_type_module
-            if isinstance(party_type_module, str):
+            pallot_module = p.pallot_module
+            if isinstance(pallot_module, str):
                 import json
                 try:
-                    party_type_module = json.loads(party_type_module)
+                    pallot_module = json.loads(pallot_module)
                 except json.JSONDecodeError:
-                    party_type_module = {}
-            elif party_type_module is None:
-                party_type_module = {}
+                    pallot_module = {}
+            elif pallot_module is None:
+                pallot_module = {}
 
             # Ensure module_name exists
-            module_perms = party_type_module.get(module_name, {})
+            module_perms = pallot_module.get(module_name, {})
             if module_perms.get(action_perm, False):
                 return True
 

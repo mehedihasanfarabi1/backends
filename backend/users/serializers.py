@@ -50,6 +50,7 @@ class PermissionSerializer(AuditSerializerMixin, serializers.ModelSerializer):
 from .models import UserPermissionSet
 
 class UserPermissionSetSerializer(AuditSerializerMixin, serializers.ModelSerializer):
+    pallot_module = serializers.JSONField(required=False)
     class Meta:
         model = UserPermissionSet
         fields = "__all__"

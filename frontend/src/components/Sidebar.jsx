@@ -316,6 +316,8 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           )}
 
           {/* Pallet */}
+          {hasPermission("pallot_module") && (
+            <>
           <li onClick={() => toggle("pallet")} className={isSubmenuActive(["/admin/pallet", "/admin/add-pallet"]) ? "active-parent" : ""}>
             <i className="fa-solid fa-box me-2"></i> <span>{t("pallet")}</span>
             <i className="fa-solid fa-chevron-down ms-auto"></i>
@@ -328,6 +330,8 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
               <i className="fa-solid fa-list me-2"></i> <span>{t("pallet_list")}</span>
             </li>
           </ul>
+            </>
+          )}
 
           {/* Loan */}
           <li onClick={() => toggle("loan")} className={isSubmenuActive(["/admin/loan", "/admin/add-loan"]) ? "active-parent" : ""}>

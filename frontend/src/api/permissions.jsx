@@ -6,15 +6,16 @@ import api from "./axios";
 export const PermissionAPI = {
   list: async () => {
     try {
-      const [prod, comp,party,booking,sr] = await Promise.all([
+      const [prod, comp,party,booking,sr,pallot] = await Promise.all([
 
         api.get("/company/permissions/"),
         api.get("/products/permissions/"),
         api.get("/party_type/permissions/"),
         api.get("/booking_list/permissions/"),
         api.get("/sr/permissions/"),
+        api.get("/pallot/permissions/"),
       ]);
-      return [...prod.data, ...comp.data,...party.data,...booking.data,...sr.data];
+      return [...prod.data, ...comp.data,...party.data,...booking.data,...sr.data,...pallot.data];
     } catch (err) {
       console.error("PermissionAPI.list error", err);
       return [];
@@ -63,6 +64,9 @@ export const UserPermissionAPI = {
       loan_module: payload.loan_module,
       sr_module: payload.sr_module,
       booking_module: payload.booking_module,
+      pallot_module: payload.pallot_module,
+      delivery_module: payload.delivery_module,
+      ledger_module: payload.ledger_module
     });
     return res.data;
   }

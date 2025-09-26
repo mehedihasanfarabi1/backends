@@ -16,7 +16,8 @@ urlpatterns = [
     path("api/party_type/", include("party_type.urls")), # party_type routes
     path("api/booking_list/", include("booking.urls")), # booking routes
     path("api/sr/", include("sr.urls")), # sr routes
-    
+    path("api/sr/", include("sr.urls")), # sr routes
+    path("api/pallot/", include("pallot.urls")), # pallot routes
     
     path("api/", include("language.urls")), 
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
