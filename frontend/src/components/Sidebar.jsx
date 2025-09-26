@@ -220,8 +220,6 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
             </>
           )}
 
-
-          {/* Products */}
           {/* Products */}
           {hasPermission("product_module") && (
             <>

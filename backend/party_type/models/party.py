@@ -1,11 +1,15 @@
 from django.db import models
 from backend.mixins import AuditMixin
 from company.models import Company
+from booking.models.booking import Booking
 from .party_type import PartyType
 
 class Party(AuditMixin):
+    
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="parties",default=None)
     party_type = models.ForeignKey(PartyType, on_delete=models.SET_NULL, null=True, blank=True, related_name="parties",default=None)
+    booking = models.ForeignKey(Booking, on_delete=models.SET_NULL, null=True, blank=True, related_name="parties",default=None)
+    
     code = models.PositiveIntegerField(unique=True, editable=True)  # auto increment, handled in save()
     name = models.CharField(max_length=255)
     father_name = models.CharField(max_length=255, blank=True, null=True)

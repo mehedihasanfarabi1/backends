@@ -7,12 +7,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
 from .models import (
-    CustomUser, UserPermission,
-    Role, Permission, RolePermission, UserRole,UserPermissionSet
+    CustomUser, 
+    Role, Permission,UserPermissionSet
 )
 from .serializers import (
-    UserSerializer, RegisterSerializer, UserPermissionSerializer,
-    RoleSerializer, PermissionSerializer, RolePermissionSerializer, UserRoleSerializer,
+    UserSerializer, RegisterSerializer, 
+    RoleSerializer, PermissionSerializer, 
     UserRoleUpdateSerializer
 )
 
@@ -111,57 +111,9 @@ class PermissionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-# ------------------------------
-# RolePermission ViewSet
-# ------------------------------
-class RolePermissionViewSet(viewsets.ModelViewSet):
-    queryset = RolePermission.objects.all()
-    serializer_class = RolePermissionSerializer
-    permission_classes = [IsAuthenticated]
 
 
-# ------------------------------
-# UserRole ViewSet
-# ------------------------------
-class UserRoleViewSet(viewsets.ModelViewSet):
-    queryset = UserRole.objects.all()
-    serializer_class = UserRoleSerializer
-    permission_classes = [IsAuthenticated]
 
-
-# ------------------------------
-# UserPermission ViewSet
-# ------------------------------
-class UserPermissionViewSet(viewsets.ModelViewSet):
-    queryset = UserPermissionSet.objects.all()
-    serializer_class = UserPermissionSerializer
-    permission_classes = [IsAuthenticated]
-
-    # 1️⃣ Get all permissions for a user
-    @action(detail=False, methods=['get'], url_path='users/(?P<user_id>[^/.]+)')
-    def get_by_user(self, request, user_id=None):
-        perms = UserPermissionSet.objects.filter(user_id=user_id)
-        serializer = self.get_serializer(perms, many=True)
-        return Response(serializer.data)
-
-    # 2️⃣ Filter by user + company + business_type + factory
-    @action(detail=False, methods=['get'], url_path='by-user-company')
-    def by_user_company(self, request):
-        user_id = request.query_params.get("user")
-        company_id = request.query_params.get("company")
-        business_type_id = request.query_params.get("business_type")
-        factory_id = request.query_params.get("factory")
-
-        qs = UserPermissionSet.objects.filter(user_id=user_id)
-        if company_id:
-            qs = qs.filter(company_id=company_id)
-        if business_type_id:
-            qs = qs.filter(business_type_id=business_type_id)
-        if factory_id:
-            qs = qs.filter(factory_id=factory_id)
-
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
 
 
 # ------------------------------
@@ -200,13 +152,19 @@ def logout_view(request):
 # ------------------------------
 # Hybrid Permission ViewSets
 # ------------------------------
-from .models import UserPermissionSet, UserModulePermission
-from .serializers import UserPermissionSetSerializer, UserModulePermissionSerializer
+from .models import UserPermissionSet
+from .serializers import UserPermissionSetSerializer
 
 class UserPermissionSetViewSet(viewsets.ModelViewSet):
     queryset = UserPermissionSet.objects.all()
     serializer_class = UserPermissionSetSerializer
     permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        
+        user = self.request.user
+        if user.is_superuser:
+            return UserPermissionSet.objects.all()
+        return UserPermissionSet.objects.filter(user=user)   
 
     @action(detail=False, methods=['get'], url_path='user/(?P<user_id>[^/.]+)')
     def by_user(self, request, user_id=None):
@@ -252,7 +210,10 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
         sr_module = request.data.get("sr_module", {})
         booking_module = request.data.get("booking_module", {})
         loan_module = request.data.get("loan_module", {})
-
+        # ✅ Superuser হলে যেকোনো user-এর permission তৈরি/আপডেট করতে পারবে
+        if not request.user.is_superuser and str(request.user.id) != str(user_id):
+            return Response({"detail": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
+        
         obj, created = UserPermissionSet.objects.update_or_create(
             user_id=user_id,
             defaults={
@@ -277,33 +238,4 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
-class UserModulePermissionViewSet(viewsets.ModelViewSet):
-    queryset = UserModulePermission.objects.all()
-    serializer_class = UserModulePermissionSerializer
-    permission_classes = [IsAuthenticated]
-
-    @action(detail=False, methods=['get'], url_path='set/(?P<set_id>[^/.]+)')
-    def by_set(self, request, set_id=None):
-        modules = UserModulePermission.objects.filter(permission_set_id=set_id)
-        serializer = self.get_serializer(modules, many=True)
-        return Response(serializer.data)
-
-    # ✅ এখানে method ViewSet এর ভিতরে লিখতে হবে
-    @action(detail=False, methods=['post'], url_path='update-or-create')
-    def update_or_create_module(self, request):
-        set_id = request.data.get("permission_set")
-        module_name = request.data.get("module_name")
-        permissions = request.data.get("permissions", {})
-
-        if not set_id or not module_name:
-            return Response({"error": "permission_set and module_name required"}, status=400)
-
-        obj, created = UserModulePermission.objects.update_or_create(
-            permission_set_id=set_id,
-            module_name=module_name,
-            defaults={"permissions": permissions}
-        )
-        serializer = self.get_serializer(obj)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 

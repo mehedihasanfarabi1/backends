@@ -5,17 +5,14 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     RegisterView, UserViewSet, UserListView,
     CustomLoginView, LogoutView,
-    UserPermissionViewSet, RoleViewSet, PermissionViewSet,
-    RolePermissionViewSet, UserRoleViewSet,
-    UserModulePermissionViewSet,UserPermissionSetViewSet
+     RoleViewSet, PermissionViewSet,UserPermissionSetViewSet
 )
 
 # users/urls.py
 router = DefaultRouter()
 
 router.register(r'roles', RoleViewSet, basename='roles')
-router.register(r'role-permissions', RolePermissionViewSet, basename='role-permissions')
-router.register(r'user-roles', UserRoleViewSet, basename='user-roles')
+
 # ------------------------------
 # Hybrid permission routes
 # ------------------------------

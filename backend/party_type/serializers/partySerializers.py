@@ -3,6 +3,7 @@ from backend.AuditSerializerMixin import AuditSerializerMixin
 from party_type.models.party_type import PartyType
 from party_type.models.party import Party
 from company.models import Company
+from booking.models.booking import Booking
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +14,11 @@ class PartyTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PartyType
         fields = ['id', 'name', 'description']
+        
+class BookingTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = ['id', 'name']
 class PartySerializer(AuditSerializerMixin, serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)  # nested company object
     company_id = serializers.PrimaryKeyRelatedField(
@@ -24,6 +30,14 @@ class PartySerializer(AuditSerializerMixin, serializers.ModelSerializer):
     party_type_id = serializers.PrimaryKeyRelatedField(
         queryset=PartyType.objects.all(),
         source="party_type",
+        write_only=True,
+        allow_null=True,
+        required=False
+    )
+    booking = BookingTypeSerializer(read_only=True)  # nested party_type object
+    booking_id = serializers.PrimaryKeyRelatedField(
+        queryset=Booking.objects.all(),
+        source="booking",
         write_only=True,
         allow_null=True,
         required=False

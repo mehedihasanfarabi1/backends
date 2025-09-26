@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PartyAPI, PartyTypeAPI } from "../../../api/partyType";
 import { UserPermissionAPI } from "../../../api/permissions";
 import { CompanyAPI } from "../../../api/company";
+import { BookingAPI } from "../../../api/booking";
 import Swal from "sweetalert2";
 
 export default function PartyEditForm() {
@@ -12,6 +13,7 @@ export default function PartyEditForm() {
   const [form, setForm] = useState({
     company_id: "",
     party_type_id: "",
+    booking_id: "",
     code: "",
     name: "",
     father_name: "",
@@ -39,25 +41,29 @@ export default function PartyEditForm() {
 
   const [companies, setCompanies] = useState([]);
   const [partyTypes, setPartyTypes] = useState([]);
+  const [booking, setBooking] = useState([]);
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load companies, party types, and party data if editing
+  // Load companies, party types, bookings & party data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [companyData, allPartyTypes] = await Promise.all([
+        const [companyData, allPartyTypes, allBookings] = await Promise.all([
           CompanyAPI.list(),
           PartyTypeAPI.list(),
+          BookingAPI.list(),
         ]);
         setCompanies(companyData);
         setPartyTypes(allPartyTypes);
+        setBooking(allBookings);
 
         if (id) {
           const data = await PartyAPI.retrieve(id);
           setForm({
-            company_id: data.company?.id || "",
-            party_type_id: data.party_type?.id || "",
+            company_id: data.company?.id ? String(data.company.id) : "",
+            party_type_id: data.party_type?.id ? String(data.party_type.id) : "",
+            booking_id: data.booking?.id ? String(data.booking.id) : "",
             code: data.code || "",
             name: data.name || "",
             father_name: data.father_name || "",
@@ -84,18 +90,22 @@ export default function PartyEditForm() {
           });
         }
 
+        // Load permissions
         const userId = localStorage.getItem("userId");
         if (userId) {
           const perms = await UserPermissionAPI.getByUser(userId);
           const allowed = [];
+
           perms.forEach((p) => {
-            const partyPerm = p.party_type_module || {};
-            Object.entries(partyPerm).forEach(([module, actions]) => {
-              Object.entries(actions).forEach(([action, allowedFlag]) => {
-                if (allowedFlag) allowed.push(`${module}_${action}`);
+            if (p.party_type_module) {
+              Object.entries(p.party_type_module).forEach(([module, actions]) => {
+                Object.entries(actions).forEach(([action, allowedFlag]) => {
+                  if (allowedFlag) allowed.push(`${module}_${action}`);
+                });
               });
-            });
+            }
           });
+
           setPermissions(allowed);
         }
       } catch (err) {
@@ -135,14 +145,20 @@ export default function PartyEditForm() {
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...form,
+        company_id: form.company_id ? parseInt(form.company_id, 10) : null,
+        party_type_id: form.party_type_id ? parseInt(form.party_type_id, 10) : null,
+        booking_id: form.booking_id ? parseInt(form.booking_id, 10) : null,
+      };
+
       if (id) {
-        if (!permissions.includes("party_edit"))
-          return Swal.fire("Access Denied", "Cannot edit", "error");
-        await PartyAPI.update(id, form);
+        await PartyAPI.update(id, payload);
       } else {
-        if (!permissions.includes("party_create") && permissions.length > 0)
+        if (!permissions.includes("party_create")) {
           return Swal.fire("Access Denied", "Cannot create", "error");
-        await PartyAPI.create(form);
+        }
+        await PartyAPI.create(payload);
       }
       Swal.fire("Success", "Saved successfully!", "success");
       nav("/admin/party-list");
@@ -188,6 +204,7 @@ export default function PartyEditForm() {
                 {[
                   { label: "Company *", name: "company_id", type: "select", options: companies, required: true },
                   { label: "Party Type", name: "party_type_id", type: "select", options: partyTypes },
+                  { label: "Booking", name: "booking_id", type: "select", options: booking },
                   { label: "Code", name: "code", type: "number" },
                   { label: "Name *", name: "name", type: "text", required: true },
                   { label: "Father Name", name: "father_name" },
@@ -212,7 +229,9 @@ export default function PartyEditForm() {
                       >
                         <option value="">-- Select --</option>
                         {f.options?.map((o) => (
-                          <option key={o.id} value={o.id}>{o.name}</option>
+                          <option key={o.id} value={String(o.id)}>
+                            {o.name}
+                          </option>
                         ))}
                       </select>
                     ) : f.type === "checkbox" ? (
@@ -257,11 +276,13 @@ export default function PartyEditForm() {
                       <select
                         style={inputStyle}
                         className="form-select form-select-sm"
-                        value={form[f.name]}
+                        value={form[f.name] || ""}
                         onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
                       >
                         {f.options.map((o) => (
-                          <option key={o.id} value={o.id}>{o.name}</option>
+                          <option key={o.id} value={String(o.id)}>
+                            {o.name}
+                          </option>
                         ))}
                       </select>
                     ) : (

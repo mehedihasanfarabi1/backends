@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PartyAPI, PartyTypeAPI } from "../../../api/partyType";
 import { UserPermissionAPI } from "../../../api/permissions";
 import { CompanyAPI } from "../../../api/company";
+import { BookingAPI } from "../../../api/booking";
 import api from "../../../api/axios"; // ✅ তোমার axios instance import
 import Swal from "sweetalert2";
 
@@ -13,6 +14,7 @@ export default function PartyForm() {
     const [form, setForm] = useState({
         company_id: null,
         party_type_id: null,
+        booking_id: null,
         code: "",
         name: "",
         father_name: "",
@@ -40,6 +42,7 @@ export default function PartyForm() {
 
     const [companies, setCompanies] = useState([]);
     const [partyTypes, setPartyTypes] = useState([]);
+    const [booking, setBooking] = useState([]);
     const [permissions, setPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -69,6 +72,17 @@ export default function PartyForm() {
         }
     }, [form.company_id]);
 
+    // Booking load
+    // useEffect(() => {
+    //     if (form.booking_id) {
+    //         BookingAPI.list({ booking_id: form.booking_id }).then(data => {
+    //             setPartyTypes(data);
+    //         });
+    //     } else {
+    //         setPartyTypes([]);
+    //     }
+    // }, [form.company_id]);
+
 
     // 🔹 Auto calculations
     useEffect(() => {
@@ -93,18 +107,21 @@ export default function PartyForm() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [companyData, partyTypeData] = await Promise.all([
+                const [companyData, partyTypeData,bookingData] = await Promise.all([
                     CompanyAPI.list(),
                     PartyTypeAPI.list(),
+                    BookingAPI.list()
                 ]);
                 setCompanies(companyData);
                 setPartyTypes(partyTypeData);
+                setBooking(bookingData);
 
                 if (id) {
                     const data = await PartyAPI.retrieve(id);
                     setForm({
                         company_id: data.company?.id || null,
                         party_type_id: data.party_type?.id || null,
+                        booking_id: data.booking?.id || null,
                         code: data.code || "",
                         name: data.name || "",
                         father_name: data.father_name || "",
@@ -211,6 +228,7 @@ export default function PartyForm() {
                                 {[
                                     { label: "Company *", name: "company_id", type: "select", options: companies, required: true },
                                     { label: "Party Type", name: "party_type_id", type: "select", options: partyTypes },
+                                    { label: "Booking Type", name: "booking_id", type: "select", options: booking },
                                     { label: "Code", name: "code", type: "number" },
                                     { label: "Name *", name: "name", type: "text", required: true },
                                     { label: "Father Name", name: "father_name" },

@@ -150,7 +150,7 @@ export default function PartyList() {
             </div>
 
             <div className="table-responsive" style={{
-                // overflowX: "auto",
+                overflowX: "auto",
                 fontSize: "0.65rem"
             }}>
                 <table className="table table-bordered table-hover table-striped mb-0">
@@ -159,6 +159,7 @@ export default function PartyList() {
                             <th>#</th>
                             <th>Company</th>
                             <th>Party Type</th>
+                            <th>Booking Type</th>
                             <th>Code</th>
                             <th>Name</th>
                             <th>Father Name</th>
@@ -200,6 +201,7 @@ export default function PartyList() {
                                     <td>{i + 1}</td>
                                     <td>{r.company?.name}</td>
                                     <td>{r.party_type?.name}</td>
+                                    <td>{r.booking?.name}</td>
                                     <td>{r.code}</td>
                                     <td>{r.name}</td>
                                     <td>{r.father_name || "-"}</td>
