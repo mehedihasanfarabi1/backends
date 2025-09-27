@@ -159,6 +159,7 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
     queryset = UserPermissionSet.objects.all()
     serializer_class = UserPermissionSetSerializer
     permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         
         user = self.request.user
@@ -210,6 +211,9 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
         sr_module = request.data.get("sr_module", {})
         booking_module = request.data.get("booking_module", {})
         loan_module = request.data.get("loan_module", {})
+        pallot_module = request.data.get("pallot_module", {})
+        delivery_module = request.data.get("delivery_module", {})
+        ledger_module = request.data.get("ledger_module", {})
         # ✅ Superuser হলে যেকোনো user-এর permission তৈরি/আপডেট করতে পারবে
         if not request.user.is_superuser and str(request.user.id) != str(user_id):
             return Response({"detail": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
@@ -231,6 +235,9 @@ class UserPermissionSetViewSet(viewsets.ModelViewSet):
                 "sr_module": sr_module,
                 "booking_module": booking_module,
                 "loan_module": loan_module,
+                "pallot_module": pallot_module,
+                "delivery_module": delivery_module,
+                "ledger_module": ledger_module,
             }
         )
 

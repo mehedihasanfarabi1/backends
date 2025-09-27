@@ -61,7 +61,7 @@ export default function PallotTypeList() {
     <div className="container mt-3">
       <ActionBar
         title="Pallot Types"
-        onCreate={() => nav("/admin/pallot_types/new")}
+        onCreate={() => nav("/admin/pallet/new")}
         onDelete={handleDelete}
         selectedCount={selectedRows.length}
       />
@@ -90,7 +90,6 @@ export default function PallotTypeList() {
               <th>#</th>
               <th>Company</th>
               <th>Name</th>
-              <th>Description</th>
               <th>Actions</th>
               <th>
                 <input
@@ -110,9 +109,8 @@ export default function PallotTypeList() {
                   <td>{i + 1}</td>
                   <td>{r.company?.name}</td>
                   <td>{r.name}</td>
-                  <td>{r.description || "-"}</td>
                   <td>
-                    <button className="btn btn-sm btn-outline-secondary me-1" onClick={() => nav(`/admin/pallot-types/${r.id}`)}>Edit</button>
+                    <button className="btn btn-sm btn-outline-secondary me-1" onClick={() => nav(`/admin/pallet/${r.id}`)}>Edit</button>
                     <button className="btn btn-sm btn-outline-danger" onClick={() => { setSelectedRows([r.id]); handleDelete(); }}>Delete</button>
                   </td>
                   <td>

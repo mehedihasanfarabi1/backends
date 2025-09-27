@@ -12,3 +12,6 @@ const crud = (resource) => ({
 
 
 export const PallotAPI = crud("pallot_types");
+export const ChamberAPI = crud("chambers");
+export const FloorAPI = crud("floors");
+export const PocketAPI = crud("pockets");

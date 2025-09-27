@@ -13,8 +13,4 @@ const crud = (resource) => ({
 
 export const PartyTypeAPI        = crud("party-types");
 export const PartyAPI           = crud("parties");
-// export const ProductAPI            = crud("products");
-// export const UnitAPI               = crud("units");
-// export const UnitSizeAPI           = crud("unit-sizes");
-// export const UnitConversionAPI     = crud("unit-conversions");
-// export const ProductSizeSettingAPI = crud("product-size-settings");
+

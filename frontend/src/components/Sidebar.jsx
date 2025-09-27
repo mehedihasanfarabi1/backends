@@ -43,7 +43,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
       settings: ["/admin/projects", "/admin/translations"],
       booking: ["/admin/bookings", "/admin/bookings/new"],
       sr: ["/admin/sr", "/admin/add-sr"],
-      pallet: ["/admin/pallet", "/admin/add-pallet"],
+      pallet: ["/admin/pallet", "/admin/pallet_location"],
       loan: ["/admin/loan", "/admin/add-loan"],
       delivery: ["/admin/delivery", "/admin/add-delivery"],
       bank: ["/admin/bank", "/admin/add-bank"],
@@ -318,16 +318,17 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           {/* Pallet */}
           {hasPermission("pallot_module") && (
             <>
-          <li onClick={() => toggle("pallet")} className={isSubmenuActive(["/admin/pallet", "/admin/add-pallet"]) ? "active-parent" : ""}>
+          <li onClick={() => toggle("pallet")} className={isSubmenuActive(["/admin/pallet", "/admin/pallet_location"]) ? "active-parent" : ""}>
             <i className="fa-solid fa-box me-2"></i> <span>{t("pallet")}</span>
             <i className="fa-solid fa-chevron-down ms-auto"></i>
           </li>
           <ul className={`submenu ms-4 ${open.pallet ? "" : "d-none"}`}>
-            <li className={isActive("/admin/add-pallet") ? "active" : ""} onClick={() => linkClicked("/admin/add-pallet")}>
-              <i className="fa-solid fa-plus me-2"></i> <span>{t("add_pallet")}</span>
-            </li>
+            
             <li className={isActive("/admin/pallet") ? "active" : ""} onClick={() => linkClicked("/admin/pallet")}>
               <i className="fa-solid fa-list me-2"></i> <span>{t("pallet_list")}</span>
+            </li>
+            <li className={isActive("/admin/pallet_location") ? "active" : ""} onClick={() => linkClicked("/admin/pallet_location")}>
+              <i className="fa-solid fa-plus me-2"></i> <span>{t("pallot_locations")}</span>
             </li>
           </ul>
             </>

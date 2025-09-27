@@ -2,10 +2,13 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from pallot.views.pallotTypeView import PallotTypeViewSet
 from pallot.views.permissionView import PallotPermissionListView
+from pallot.views.pallotLocationView import ChamberViewSet, FloorViewSet, PocketViewSet
 router = DefaultRouter()
 
 router.register(r'pallot_types', PallotTypeViewSet, basename='pallot-type')
-
+router.register(r"chambers", ChamberViewSet, basename="chamber")
+router.register(r"floors", FloorViewSet, basename="floor")
+router.register(r"pockets", PocketViewSet, basename="pocket")
 
 urlpatterns = [
     path("", include(router.urls)),
