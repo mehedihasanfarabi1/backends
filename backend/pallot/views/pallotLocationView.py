@@ -86,3 +86,23 @@ class PocketViewSet(viewsets.ModelViewSet):
             created.append(pocket)
         serializer = self.get_serializer(created, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # --- Add this update method ---
+    def update(self, request, *args, **kwargs):
+        pocket = self.get_object()
+        chamber_id = request.data.get("chamber_id")
+        floor_id = request.data.get("floor_id")
+        name = request.data.get("name")
+        capacity = request.data.get("capacity", 0)
+
+        if not chamber_id or not floor_id or not name:
+            return Response({"error": "chamber_id, floor_id, and name are required"}, status=400)
+
+        pocket.chamber_id = chamber_id
+        pocket.floor_id = floor_id
+        pocket.name = name
+        pocket.capacity = capacity
+        pocket.save()
+
+        serializer = self.get_serializer(pocket)
+        return Response(serializer.data, status=200)

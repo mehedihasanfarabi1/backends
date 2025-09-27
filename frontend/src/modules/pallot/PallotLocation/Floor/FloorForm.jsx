@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { ChamberAPI, FloorAPI } from "../../../api/pallotApi";
-import { CompanyAPI } from "../../../api/company";
+import { ChamberAPI, FloorAPI } from "../../../../api/pallotApi";
+import { CompanyAPI } from "../../../../api/company";
 
 export default function FloorForm() {
   const nav = useNavigate();
