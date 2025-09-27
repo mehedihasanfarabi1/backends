@@ -7,7 +7,7 @@ const crud = (resource) => ({
     create: (data) => api.post(`/pallot/${resource}/`, data).then(r => r.data),
     update: (id, data) => api.put(`/pallot/${resource}/${id}/`, data).then(r => r.data),
     remove: (id) => api.delete(`/pallot/${resource}/${id}/`).then(r => r.data),
-
+    get_sr_quantity: (params = {}) => api.get(`/pallot/get_sr_quantity/`, { params }).then(r => r.data),
 });
 
 
@@ -15,3 +15,4 @@ export const PallotAPI = crud("pallot_types");
 export const ChamberAPI = crud("chambers");
 export const FloorAPI = crud("floors");
 export const PocketAPI = crud("pockets");
+export const PallotListAPI = crud("pallots");

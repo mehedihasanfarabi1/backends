@@ -6,6 +6,7 @@ import json
 # কোন কোন module-এর কি কি permission থাকবে
 PALLOT_PERMISSIONS = {
     "pallot_type": ["create", "view", "edit", "delete"],
+    "pallot": ["create", "view", "edit", "delete"],
     "chamber": ["create", "view", "edit", "delete"],
     "floor": ["create", "view", "edit", "delete"],
     "pocket": ["create", "view", "edit", "delete"],

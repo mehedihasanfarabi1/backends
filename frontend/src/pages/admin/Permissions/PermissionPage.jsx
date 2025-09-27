@@ -39,7 +39,7 @@ export default function PermissionPage() {
         const party_type_module = ["party_type", "party"];
         const booking_module = ["booking"];
         const sr_module = ["sr"];
-        const pallot_module = ["pallot_type","chamber","floor","pocket"];
+        const pallot_module = ["pallot_type","pallot","chamber","floor","pocket"];
 
         let mainGroup = "other";
         if (companyModules.includes(p.module)) mainGroup = "company";
@@ -181,7 +181,7 @@ export default function PermissionPage() {
         const party_type_module = ["party_type", "party"];
         const booking_module = ["booking"];
         const sr_module = ["sr"];
-        const pallot_module = ["pallot_type","chamber","floor","pocket"];
+        const pallot_module = ["pallot_type","pallot","chamber","floor","pocket"];
 
         if (companyModules.includes(module)) {
           if (!payload.company_module[module])
