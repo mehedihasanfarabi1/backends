@@ -13,4 +13,5 @@ const crud = (resource) => ({
 
 export const PartyTypeAPI        = crud("party-types");
 export const PartyAPI           = crud("parties");
+export const PartyCommissionAPI = crud("party-commissions");
 

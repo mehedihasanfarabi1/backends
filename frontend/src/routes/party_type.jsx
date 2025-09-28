@@ -10,6 +10,11 @@ import PartyForm from "../modules/party_type/Party/Form";
 import PartyEditForm from "../modules/party_type/Party/Edit";
 
 
+import PartyCommissionList from "../modules/party_type/PartyCommission/List";
+import PartyCommissionCreate from "../modules/party_type/PartyCommission/Form";
+import PartyCommissionEdit from "../modules/party_type/PartyCommission/Edit";
+
+
 export const party_type = [
   // PartyType
   { path: "party-types", element: <PartyTypeList /> },
@@ -20,5 +25,10 @@ export const party_type = [
   { path: "party-list", element: <PartyList /> },
   { path: "party-list/new", element: <PartyForm /> },
   { path: "party-list/:id", element: <PartyEditForm /> },
+
+  // Party Commission
+  { path: "party-commission", element: <PartyCommissionList /> },
+  { path: "party-commissions/new", element: <PartyCommissionCreate /> },
+  { path: "party-commissions/:id", element: <PartyCommissionEdit /> },
 
 ];

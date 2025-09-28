@@ -63,7 +63,9 @@ export default function PallotList() {
         title="Pallots"
         onCreate={() => nav("/admin/pallet_list/new")}
         onDelete={handleDelete}
+        data={filteredRows}
         selectedCount={selectedRows.length}
+        columns = {["pallot_number", "chamber","floor", "quantity","date", "created_at"]} // শুধু এই columns যাবে
       />
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
@@ -87,8 +89,8 @@ export default function PallotList() {
               <th>SR Quantity</th>
               <th>Date</th>
               <th>Chamber</th>
-              {/* <th>Floor</th>
-              <th>Pocket</th> */}
+              <th>Floor</th>
+              <th>Pocket</th>
               <th>Quantity</th>
               <th>Comment</th>
               <th>Actions</th>
@@ -114,8 +116,8 @@ export default function PallotList() {
                   <td>{r.sr_quantity}</td>
                   <td>{r.date}</td>
                   <td>{r.chamber?.name}</td>
-                  {/* <td>{r.floor?.name}</td>
-                  <td>{r.pocket?.name}</td> */}
+                  <td>{r.floor?.name}</td>
+                  <td>{r.pocket?.name}</td>
                   <td>{r.quantity}</td>
                   <td>{r.comment}</td>
                   <td>

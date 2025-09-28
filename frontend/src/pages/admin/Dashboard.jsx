@@ -81,10 +81,10 @@ export default function Dashboard() {
           ))}
         </div>
       </section>
-
+        
       {/* ==== Traffic & Overview Chart ==== */}
       <div className="row g-3 g-lg-4 mb-3">
-        <div className="col-12 col-lg-8">
+        {/* <div className="col-12 col-lg-8">
           <div className="card border-0 rounded-4 shadow-soft">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3">
@@ -136,10 +136,10 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Traffic Sources */}
-        <div className="col-12 col-lg-4">
+        {/* <div className="col-12 col-lg-4">
           <div className="card border-0 rounded-4 shadow-soft h-100">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-3">
@@ -169,13 +169,13 @@ export default function Dashboard() {
 
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Recent Orders + Actions + Activity */}
       <div className="row g-3 g-lg-4">
         <div className="col-12 col-xl-8">
-          <div className="card border-0 rounded-4 shadow-soft">
+          {/* <div className="card border-0 rounded-4 shadow-soft">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <h5 className="m-0">{t("recent_orders")}</h5>
@@ -206,10 +206,10 @@ export default function Dashboard() {
                 </table>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Dummy Reports */}
-          <div className="card border-0 rounded-4 shadow-soft mt-4">
+          {/* <div className="card border-0 rounded-4 shadow-soft mt-4">
             <div className="card-body">
               <h5 className="m-0 mb-3">{t("hr_reports")}</h5>
               <div className="row row-cols-1 row-cols-md-3 g-3">
@@ -226,11 +226,11 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Actions + Activity */}
-        <div className="col-12 col-xl-4">
+        {/* <div className="col-12 col-xl-4">
           <div className="card border-0 rounded-4 shadow-soft mb-3">
             <div className="card-body">
               <h5 className="m-0 mb-3">{t("quick_actions")}</h5>
@@ -261,7 +261,7 @@ export default function Dashboard() {
               </ul>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

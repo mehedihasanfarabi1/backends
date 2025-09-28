@@ -36,7 +36,7 @@ export default function PermissionPage() {
           "product_size_setting",
         ];
 
-        const party_type_module = ["party_type", "party"];
+        const party_type_module = ["party_type", "party","party_commission"];
         const booking_module = ["booking"];
         const sr_module = ["sr"];
         const pallot_module = ["pallot_type","pallot","chamber","floor","pocket"];
@@ -178,7 +178,7 @@ export default function PermissionPage() {
         ];
         const companyModules = ["company", "business_type", "factory"];
 
-        const party_type_module = ["party_type", "party"];
+        const party_type_module = ["party_type", "party" ,"party_commission"];
         const booking_module = ["booking"];
         const sr_module = ["sr"];
         const pallot_module = ["pallot_type","pallot","chamber","floor","pocket"];

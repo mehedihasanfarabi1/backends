@@ -44,3 +44,13 @@ class PallotViewSet(viewsets.ModelViewSet):
             return Response({"error": "floor_id required"}, status=status.HTTP_400_BAD_REQUEST)
         pockets = Pocket.objects.filter(floor_id=floor_id).values("id", "name")
         return Response(list(pockets), status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request, *args, **kwargs):
+        data = request.data
+        many = isinstance(data, list)  # list এলে many=True
+        serializer = self.get_serializer(data=data, many=many)
+        serializer.is_valid(raise_exception=True)
+        instances = serializer.save()
+        read_serializer = PallotSerializer(instances, many=many, context={"request": request})
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED)

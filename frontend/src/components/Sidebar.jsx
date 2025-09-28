@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "../contexts/TranslationContext";
-import { UserAPI, UserPermissionAPI } from "../api/permissions"; // তোমার উপরের কোড
+import { UserAPI, UserPermissionAPI } from "../api/permissions";
 import "../styles/main.css";
 
 export default function Sidebar({ collapsed, showMobile, closeMobile }) {
@@ -9,16 +9,16 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const [permissions, setPermissions] = useState([]); // এখানে user permissions থাকবে
+  const [permissions, setPermissions] = useState([]); 
   const [loading, setLoading] = useState(true);
 
-  // ইউজারের permission load করা
+
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
         const user = await UserAPI.me();
         const userPerms = await UserPermissionAPI.getByUser(user.id);
-        console.log("✅ User Permissions:", userPerms);
+        // console.log("✅ User Permissions:", userPerms);
         setPermissions(userPerms || []);
 
       } catch (err) {
@@ -319,7 +319,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           {hasPermission("pallot_module") && (
             <>
           <li onClick={() => toggle("pallet")} className={isSubmenuActive(["/admin/pallet", "/admin/pallet_location","/admin/pallet_list"]) ? "active-parent" : ""}>
-            <i className="fa-solid fa-box me-2"></i> <span>{t("pallet")}</span>
+            <i className="fa-brands fa-product-hunt me-2"></i> <span>{t("pallet")}</span>
             <i className="fa-solid fa-chevron-down ms-auto"></i>
           </li>
           <ul className={`submenu ms-4 ${open.pallet ? "" : "d-none"}`}>
@@ -328,10 +328,10 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
               <i className="fa-solid fa-list me-2"></i> <span>{t("pallet_list")}</span>
             </li>
             <li className={isActive("/admin/pallet_location") ? "active" : ""} onClick={() => linkClicked("/admin/pallet_location")}>
-              <i className="fa-solid fa-plus me-2"></i> <span>{t("pallot_locations")}</span>
+              <i className="fa-solid fa-location-dot me-2"></i> <span>{t("pallet_location")}</span>
             </li>
             <li className={isActive("/admin/pallet_list") ? "active" : ""} onClick={() => linkClicked("/admin/pallet_list")}>
-              <i className="fa-solid fa-list me-2"></i> <span>{t("pallot_list")}</span>
+              <i className="fa-brands fa-product-hunt me-2"></i> <span>{t("pallet")}</span>
             </li>
           </ul>
             </>

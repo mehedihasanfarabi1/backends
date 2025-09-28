@@ -144,20 +144,20 @@ export default function CreatePallotForm() {
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!form.pallot_type) return Swal.fire("Warning", "Pallot Type দিন", "warning");
-    
+
     try {
       for (let it of form.items) {
         if (!(it.chamber && it.floor && it.pocket && it.quantity)) continue;
         const payload = {
-          pallot_type: form.pallot_type,
+          pallot_type_id: form.pallot_type,
           date: form.date,
           pallot_number: form.pallot_number,
-          sr: form.sr_id,
+          sr_id: form.sr_id,
           sr_quantity: form.sr_quantity,
           comment: form.comment,
-          chamber: it.chamber,  // এখন integer
-          floor: it.floor,      // এখন integer
-          pocket: it.pocket,    // এখন integer
+          chamber_id: it.chamber,
+          floor_id: it.floor,
+          pocket_id: it.pocket,
           quantity: it.quantity,
         };
 
@@ -177,7 +177,7 @@ export default function CreatePallotForm() {
 
   return (
     <div className="container mt-3">
-      <h3 className="text-center mb-4">{id ? "Edit Pallot" : "Create Pallot"}</h3>
+      <h3 className="text-center mb-4 bg-primary text-white border rounded">{id ? "Edit Pallot" : "Create Pallot"}</h3>
       <form onSubmit={onSubmit}>
         <div className="row g-3">
           {/* Left Side: 2 per row */}
@@ -312,7 +312,7 @@ export default function CreatePallotForm() {
                   </div>
                 </div>
               ))}
-              <div className="col-12 mt-2">
+              {/* <div className="col-12 mt-2">
                 <button
                   type="button"
                   className="btn btn-outline-success btn-sm"
@@ -320,7 +320,7 @@ export default function CreatePallotForm() {
                 >
                   + Add Item
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

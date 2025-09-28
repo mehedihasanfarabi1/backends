@@ -6,6 +6,7 @@ from users.models import UserPermissionSet
 PARTY_TYPE_PERMISSIONS = {
     "party_type": ["create", "view", "edit", "delete"],
     "party": ["create", "view", "edit", "delete"],
+    "party_commission": ["create", "view", "edit", "delete"],
 }
 
 
