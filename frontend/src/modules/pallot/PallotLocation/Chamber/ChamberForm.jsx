@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import { ChamberAPI } from "../../../../api/pallotApi";
 import { CompanyAPI } from "../../../../api/company";
 
-export default function ChamberEditForm() {
+export default function ChamberForm() {
   const nav = useNavigate();
   const { id } = useParams(); // chamber id for edit
   const [companies, setCompanies] = useState([]);
@@ -81,7 +81,7 @@ export default function ChamberEditForm() {
     }
   };
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  // if (loading) return <div className="text-center mt-5">Loading...</div>;
 
   return (
     <div className="container mt-4" style={{ maxWidth: 600 }}>

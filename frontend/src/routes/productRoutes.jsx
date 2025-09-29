@@ -1,78 +1,88 @@
-import React from "react";
-
+import { generateCrudRoutes } from "../utils/routeGenerator";
+import ProtectedRoute from "../contexts/ProtectedRoute";
+// ProductType
 import PTList from "../modules/products/ProductType/List";
 import PTForm from "../modules/products/ProductType/Form";
-import ProductTypeEdit from "../modules/products/ProductType/Edit"; // ✅ Alada Edit page
+import ProductTypeEdit from "../modules/products/ProductType/Edit";
 
+// Category
 import CategoryList from "../modules/products/Category/List";
 import CategoryForm from "../modules/products/Category/Form";
 import CategoryEdit from "../modules/products/Category/Edit";
 
+// Product
 import ProductList from "../modules/products/Product/List";
 import ProductForm from "../modules/products/Product/Form";
 import ProductEdit from "../modules/products/Product/Edit";
 
+// Unit
 import UnitList from "../modules/products/Unit/List";
 import UnitForm from "../modules/products/Unit/Form";
+import UnitEdit from "../modules/products/Unit/Edit";
 
-
+// UnitSize
 import UnitSizeList from "../modules/products/UnitSize/List";
 import UnitSizeForm from "../modules/products/UnitSize/Form";
+import UnitSizeEdit from "../modules/products/UnitSize/Edit";
 
-
+// UnitConversion
 import UnitConversionList from "../modules/products/UnitConversion/List";
 import UnitConversionForm from "../modules/products/UnitConversion/Form";
-
-
-import ProductSizeSettingList from "../modules/products/ProductSizeSetting/List";
-import ProductSizeSettingForm from "../modules/products/ProductSizeSetting/Form";
-import UnitEdit from "../modules/products/Unit/Edit";
-import UnitSizeEdit from "../modules/products/UnitSize/Edit";
 import UnitConversionEdit from "../modules/products/UnitConversion/Edit";
 
+// ProductSizeSetting
+import ProductSizeSettingList from "../modules/products/ProductSizeSetting/List";
+import ProductSizeSettingForm from "../modules/products/ProductSizeSetting/Form";
 
+// Translations
 import ListTranslations from "../pages/Translations/ListTranslations";
 import TranslationForm from "../pages/Translations/TranslationForm";
 
 export const productRoutes = [
-  // ProductType
-  { path: "product-types", element: <PTList /> },
-  { path: "product-types/new", element: <PTForm /> },
-  { path: "product-types/:id", element: <ProductTypeEdit /> },
+  ...generateCrudRoutes("product-types", { List: PTList, Create: PTForm, Edit: ProductTypeEdit }, {
+    listPerm: "product_type_view",
+    createPerm: "product_type_create",
+    editPerm: "product_type_edit"
+  }),
 
-  // Category
-  { path: "categories", element: <CategoryList /> },
-  { path: "categories/new", element: <CategoryForm /> },
-  { path: "categories/:id", element: <CategoryEdit /> },
+  ...generateCrudRoutes("categories", { List: CategoryList, Create: CategoryForm, Edit: CategoryEdit }, {
+    listPerm: "category_view",
+    createPerm: "category_create",
+    editPerm: "category_edit"
+  }),
 
-  // Products
-  { path: "products", element: <ProductList /> },
-  { path: "products/new", element: <ProductForm /> },
-  { path: "products/:id", element: <ProductEdit /> },
+  ...generateCrudRoutes("products", { List: ProductList, Create: ProductForm, Edit: ProductEdit }, {
+    listPerm: "product_view",
+    createPerm: "product_create",
+    editPerm: "product_edit"
+  }),
 
-  // Unit
-  { path: "units", element: <UnitList /> },
-  { path: "units/new", element: <UnitForm /> },
-  { path: "units/:id", element: <UnitEdit /> },
+  ...generateCrudRoutes("units", { List: UnitList, Create: UnitForm, Edit: UnitEdit }, {
+    listPerm: "unit_view",
+    createPerm: "unit_create",
+    editPerm: "unit_edit"
+  }),
 
-  // UnitSize
-  { path: "unit-sizes", element: <UnitSizeList /> },
-  { path: "unit-sizes/new", element: <UnitSizeForm /> },
-  { path: "unit-sizes/:id", element: <UnitSizeEdit /> },
+  ...generateCrudRoutes("unit-sizes", { List: UnitSizeList, Create: UnitSizeForm, Edit: UnitSizeEdit }, {
+    listPerm: "unit_size_view",
+    createPerm: "unit_size_create",
+    editPerm: "unit_size_edit"
+  }),
 
-  // UnitConversion
-  { path: "unit-conversions", element: <UnitConversionList /> },
-  { path: "unit-conversions/new", element: <UnitConversionForm /> },
-  { path: "unit-conversions/:id", element: <UnitConversionEdit /> },
+  ...generateCrudRoutes("unit-conversions", { List: UnitConversionList, Create: UnitConversionForm, Edit: UnitConversionEdit }, {
+    listPerm: "unit_conversion_view",
+    createPerm: "unit_conversion_create",
+    editPerm: "unit_conversion_edit"
+  }),
 
-  // Product Size Setting
-  { path: "product-size-settings", element: <ProductSizeSettingList /> },
-  { path: "product-size-settings/new", element: <ProductSizeSettingForm /> },
-  { path: "product-size-settings/:id", element: <ProductSizeSettingForm /> },
+  ...generateCrudRoutes("product-size-settings", { List: ProductSizeSettingList, Create: ProductSizeSettingForm, Edit: ProductSizeSettingForm }, {
+    listPerm: "product_size_setting_view",
+    createPerm: "product_size_setting_create",
+    editPerm: "product_size_setting_edit"
+  }),
 
-
-// Language Settings routes
-  { path: "translations", element: <ListTranslations /> },
-  { path: "translations/new", element: <TranslationForm /> },
-  { path: "translations/:id/edit", element: <TranslationForm /> },
+  // Translations manual
+  { path: "translations", element: <ProtectedRoute requiredPermissions={["translation_view"]}>{<ListTranslations />}</ProtectedRoute> },
+  { path: "translations/new", element: <ProtectedRoute requiredPermissions={["translation_create"]}>{<TranslationForm />}</ProtectedRoute> },
+  { path: "translations/:id/edit", element: <ProtectedRoute requiredPermissions={["translation_edit"]}>{<TranslationForm />}</ProtectedRoute> },
 ];

@@ -142,7 +142,7 @@ export default function PartyCommissionCreate() {
 
             Swal.fire("Success", "Party commissions saved!", "success");
             setItems([]);
-            nav("/admin/party-commission");
+            nav("/admin/party-commissions");
         } catch (err) {
             console.error(err);
             Swal.fire("Error", "Failed to save commissions", "error");
