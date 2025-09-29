@@ -17,6 +17,7 @@ import PocketForm from "../modules/pallot/PallotLocation/PocketForm";
 import FloorEditForm from "../modules/pallot/PallotLocation/Floor/FloorEdit";
 import CreatePallotForm from "../modules/pallot/Pallot/Form";
 import PallotList from "../modules/pallot/Pallot/List";
+import PallotEditForm from "../modules/pallot/Pallot/Edit";
 
 
 export const pallet_routes = [
@@ -42,6 +43,7 @@ export const pallet_routes = [
 
   { path: "pallet_list/", element: <PallotList /> },
   { path: "pallet_list/new", element: <CreatePallotForm /> },
+  { path: "pallet_list/:id", element: <PallotEditForm /> },
 
 
 ];

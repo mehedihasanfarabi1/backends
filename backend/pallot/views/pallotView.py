@@ -45,7 +45,7 @@ class PallotViewSet(viewsets.ModelViewSet):
         pockets = Pocket.objects.filter(floor_id=floor_id).values("id", "name")
         return Response(list(pockets), status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=["post"], url_path="bulk-create")
+    @action(detail=False, methods=["post"], url_path="bulk_create")
     def bulk_create(self, request, *args, **kwargs):
         data = request.data
         many = isinstance(data, list)  # list এলে many=True

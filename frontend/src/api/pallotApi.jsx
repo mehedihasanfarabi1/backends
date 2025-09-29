@@ -7,6 +7,7 @@ const crud = (resource) => ({
     create: (data) => api.post(`/pallot/${resource}/`, data).then(r => r.data),
     update: (id, data) => api.put(`/pallot/${resource}/${id}/`, data).then(r => r.data),
     remove: (id) => api.delete(`/pallot/${resource}/${id}/`).then(r => r.data),
+    bulk_create: (data) => api.post(`/pallot/${resource}/bulk_create/`, data).then(r => r.data),
     get_sr_quantity: (params = {}) => api.get(`/pallot/get_sr_quantity/`, { params }).then(r => r.data),
 });
 

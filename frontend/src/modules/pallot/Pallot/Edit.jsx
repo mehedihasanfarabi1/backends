@@ -7,18 +7,17 @@ import {
   PocketAPI,
   PallotListAPI,
 } from "../../../api/pallotApi";
-import {SRAPI} from "../../../api/srApi";
 import Swal from "sweetalert2";
 
-export default function CreatePallotForm() {
+export default function PallotEditForm() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const emptyItem = {pallot_type: "", chamber: "", floor: "", pocket: "", quantity: "" };
+  const emptyItem = { chamber: "", floor: "", pocket: "", quantity: "" };
 
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    
+    pallot_type: "",
     date: new Date().toISOString().slice(0, 10),
     pallot_number: "",
     sr_number: "",
@@ -27,26 +26,26 @@ export default function CreatePallotForm() {
     comment: "",
     item: { ...emptyItem },
   });
+
   const [items, setItems] = useState([]);
   const [pallotTypes, setPallotTypes] = useState([]);
   const [chambers, setChambers] = useState([]);
   const [floors, setFloors] = useState([]);
   const [pockets, setPockets] = useState([]);
 
+  // Load initial data
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [types, ch] = await Promise.all([
-          PallotAPI.list(),
-          ChamberAPI.list(),
-        ]);
+        const [types, ch] = await Promise.all([PallotAPI.list(), ChamberAPI.list()]);
         setPallotTypes(types || []);
         setChambers(ch || []);
 
         if (id) {
           const data = await PallotListAPI.retrieve(id);
+
           setForm({
-            // pallot_type: data.pallot_type?.id || "",
+            pallot_type: data.pallot_type?.id || "",
             date: data.date,
             pallot_number: data.pallot_number,
             sr_number: data.sr?.sr_no || "",
@@ -55,19 +54,33 @@ export default function CreatePallotForm() {
             comment: data.comment || "",
             item: { ...emptyItem },
           });
-          if (data.items.length) setItems(data.items.map(it => ({
-            // pallot_type: data.pallot_type?.id,
-            date: data.date,
-            pallot_number: data.pallot_number,
-            sr_id: data.sr?.id,
-            sr_number: data.sr?.sr_no,
-            sr_quantity: data.sr_quantity,
-            comment: data.comment,
-            chamber: it.chamber?.id || "",
-            floor: it.floor?.id || "",
-            pocket: it.pocket?.id || "",
-            quantity: it.quantity || "",
-          })));
+
+          // Map items with floors & pockets preloaded
+          const mappedItems = await Promise.all(data.items.map(async (it) => {
+            const fls = await FloorAPI.list({ chamber_id: it.chamber?.id });
+            const pcks = await PocketAPI.list({ floor_id: it.floor?.id });
+            return {
+              id: it.id,
+              pallot_type: data.pallot_type?.id,
+              pallot_type_name: data.pallot_type?.name,
+              date: data.date,
+              pallot_number: data.pallot_number,
+              sr_id: data.sr?.id,
+              sr_number: data.sr?.sr_no,
+              sr_quantity: data.sr_quantity,
+              comment: data.comment,
+              chamber: it.chamber?.id || "",
+              chamber_name: it.chamber?.name || "",
+              floor: it.floor?.id || "",
+              floor_name: it.floor?.name || "",
+              pocket: it.pocket?.id || "",
+              pocket_name: it.pocket?.name || "",
+              quantity: it.quantity,
+              floors: fls || [],
+              pockets: pcks || [],
+            };
+          }));
+          setItems(mappedItems);
         }
       } catch (err) {
         console.error(err);
@@ -79,19 +92,7 @@ export default function CreatePallotForm() {
     loadData();
   }, [id]);
 
-  const onSRSearch = async () => {
-    if (!form.sr_number)
-      return Swal.fire("Warning", "SR Number লিখুন", "warning");
-    try {
-      const res = await PallotListAPI.get_sr_quantity({ sr_no: form.sr_number });
-      setForm(prev => ({ ...prev, sr_id: res.sr_id, sr_quantity: res.sr_quantity }));
-      Swal.fire("Found", `SR পাওয়া গেছে — Qty: ${res.sr_quantity}`, "success");
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Not found", "SR পাওয়া যায়নি", "error");
-    }
-  };
-
+  // Fetch floors when chamber changes
   const fetchFloors = async (chamberId) => {
     if (!chamberId) return;
     try {
@@ -100,6 +101,7 @@ export default function CreatePallotForm() {
     } catch (err) { console.error(err); }
   };
 
+  // Fetch pockets when floor changes
   const fetchPockets = async (floorId) => {
     if (!floorId) return;
     try {
@@ -152,7 +154,6 @@ export default function CreatePallotForm() {
     setPockets([]);
   };
 
-
   const removeItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx));
 
   const onSubmit = async (e) => {
@@ -160,6 +161,7 @@ export default function CreatePallotForm() {
     if (!form.pallot_type) return Swal.fire("Warning", "Pallot Type দিন", "warning");
 
     const payloads = items.map(it => ({
+      id: it.id,
       pallot_type_id: it.pallot_type,
       date: it.date,
       pallot_number: it.pallot_number,
@@ -218,7 +220,14 @@ export default function CreatePallotForm() {
               <label>SR Number</label>
               <div className="input-group">
                 <input type="text" className="form-control" value={form.sr_number} onChange={e => setForm({ ...form, sr_number: e.target.value })} />
-                <button type="button" className="btn btn-primary" onClick={onSRSearch}>Search</button>
+                <button type="button" className="btn btn-primary" onClick={async () => {
+                  if (!form.sr_number) return Swal.fire("Warning", "SR Number লিখুন", "warning");
+                  try {
+                    const res = await PallotListAPI.get_sr_quantity({ sr_no: form.sr_number });
+                    setForm(prev => ({ ...prev, sr_id: res.sr_id, sr_quantity: res.sr_quantity }));
+                    Swal.fire("Found", `SR পাওয়া গেছে — Qty: ${res.sr_quantity}`, "success");
+                  } catch (err) { Swal.fire("Not found", "SR পাওয়া যায়নি", "error"); }
+                }}>Search</button>
               </div>
             </div>
             <div className="col-6 mb-2">

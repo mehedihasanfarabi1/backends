@@ -1,7 +1,7 @@
 // src/pages/pallot/PallotList.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PallotListAPI } from "../../../api/pallotApi";
+import {  PallotListAPI } from "../../../api/pallotApi";
 import Swal from "sweetalert2";
 import ActionBar from "../../../components/common/ActionBar";
 
@@ -40,14 +40,16 @@ export default function PallotList() {
     if (!confirm.isConfirmed) return;
 
     try {
-      for (let id of selectedRows) await PallotAPI.remove(id);
+      for (let id of selectedRows) await PallotListAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
       loadData();
     } catch (err) {
+      console.error(err);
       Swal.fire("Error", "Delete failed", "error");
     }
   };
+
 
   // Search filter (pallot number / comment / sr no)
   const filteredRows = rows.filter(
@@ -65,7 +67,7 @@ export default function PallotList() {
         onDelete={handleDelete}
         data={filteredRows}
         selectedCount={selectedRows.length}
-        columns = {["pallot_number", "chamber","floor", "quantity","date", "created_at"]} // শুধু এই columns যাবে
+        columns={["pallot_number", "chamber", "floor", "quantity", "date", "created_at"]} // শুধু এই columns যাবে
       />
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
@@ -123,7 +125,7 @@ export default function PallotList() {
                   <td>
                     <button
                       className="btn btn-sm btn-outline-secondary me-1"
-                      onClick={() => nav(`/admin/pallot/${r.id}`)}
+                      onClick={() => nav(`/admin/pallet_list/${r.id}`)}
                     >
                       Edit
                     </button>
