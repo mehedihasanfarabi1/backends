@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/sr/", include("sr.urls")), # sr routes
     path("api/sr/", include("sr.urls")), # sr routes
     path("api/pallot/", include("pallot.urls")), # pallot routes
+    path("api/loan/", include("loan.urls")), # loan routes
     
     path("api/", include("language.urls")), 
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

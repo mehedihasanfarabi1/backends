@@ -111,7 +111,7 @@ export default function Header({ onHamburgerClick }) {
 
 
   return (
-    <div className="header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light position-relative">
+    <div style={{position:"fixed"}} className="header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light position-relative">
       {/* Left: Logo & Hamburger */}
       <div className="d-flex align-items-center">
         <div className="logo fw-bold fs-4 me-4">Legend IT</div>

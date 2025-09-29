@@ -31,11 +31,12 @@ body {
   background: #fff;
   border-bottom: 1px solid #ddd;
   display: flex;
+  position: absolute;
   align-items: center;
   justify-content: space-between;
   padding: 0 1rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
+  /* position: sticky; */
   top: 0;
   z-index: 1060;
 }

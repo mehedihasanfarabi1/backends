@@ -36,10 +36,11 @@ export default function PermissionPage() {
           "product_size_setting",
         ];
 
-        const party_type_module = ["party_type", "party","party_commission"];
+        const party_type_module = ["party_type", "party", "party_commission"];
         const booking_module = ["booking"];
         const sr_module = ["sr"];
-        const pallot_module = ["pallot_type","pallot","chamber","floor","pocket"];
+        const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
+        const loan_module = ["loan_type", "loan"];
 
         let mainGroup = "other";
         if (companyModules.includes(p.module)) mainGroup = "company";
@@ -48,6 +49,7 @@ export default function PermissionPage() {
         else if (booking_module.includes(p.module)) mainGroup = "booking";
         else if (sr_module.includes(p.module)) mainGroup = "sr";
         else if (pallot_module.includes(p.module)) mainGroup = "pallot";
+        else if (loan_module.includes(p.module)) mainGroup = "loan";
 
         if (!groupedData[mainGroup]) groupedData[mainGroup] = {};
         if (!groupedData[mainGroup][p.module]) groupedData[mainGroup][p.module] = [];
@@ -178,10 +180,11 @@ export default function PermissionPage() {
         ];
         const companyModules = ["company", "business_type", "factory"];
 
-        const party_type_module = ["party_type", "party" ,"party_commission"];
+        const party_type_module = ["party_type", "party", "party_commission"];
         const booking_module = ["booking"];
         const sr_module = ["sr"];
-        const pallot_module = ["pallot_type","pallot","chamber","floor","pocket"];
+        const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
+        const loan_module = ["loan_type", "loan"];
 
         if (companyModules.includes(module)) {
           if (!payload.company_module[module])
@@ -213,6 +216,11 @@ export default function PermissionPage() {
           if (!payload.pallot_module[module])
             payload.pallot_module[module] = { create: false, edit: false, delete: false, view: false };
           if (action in payload.pallot_module[module]) payload.pallot_module[module][action] = true;
+        }
+        if (loan_module.includes(module)) {
+          if (!payload.loan_module[module])
+            payload.loan_module[module] = { create: false, edit: false, delete: false, view: false };
+          if (action in payload.loan_module[module]) payload.loan_module[module][action] = true;
         }
 
       });

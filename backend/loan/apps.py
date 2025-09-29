@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
-class ProductsConfig(AppConfig):
+class LoanConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "party_type"
+    name = "loan"
+    verbose_name = "Loan Management"

@@ -3,18 +3,18 @@ from rest_framework.exceptions import PermissionDenied
 from users.models import UserPermissionSet
 
 # কোন কোন module-এর কি কি permission থাকবে
-PARTY_TYPE_PERMISSIONS = {
-    "party_type": ["create", "view", "edit", "delete"],
-    "party": ["create", "view", "edit", "delete"],
+LOAN_PERMISSIONS = {
+    "loan_type": ["create", "view", "edit", "delete"],
+    "loan": ["create", "view", "edit", "delete"],
 }
 
 
-def get_all_party_type_permissions():
+def get_all_loan_module_permissions():
     """
-    PartyType & Party মডিউলের সব permissions list করে return করবে
+    LoanType & Loan মডিউলের সব permissions list করে return করবে
     """
     permissions = []
-    for module, actions in PARTY_TYPE_PERMISSIONS.items():
+    for module, actions in LOAN_PERMISSIONS.items():
         for action in actions:
             permissions.append({
                 "module": module,
@@ -25,7 +25,7 @@ def get_all_party_type_permissions():
 
 
 
-class PartyTypeModulePermission(BasePermission):
+class LoanModulePermission(BasePermission):
     ACTION_MAP = {
         "list": "view",
         "retrieve": "view",
@@ -33,11 +33,11 @@ class PartyTypeModulePermission(BasePermission):
         "update": "edit",
         "partial_update": "edit",
         "destroy": "delete",
-        "GET": "view",
-        "POST": "create",
-        "PUT": "edit",
-        "PATCH": "edit",
-        "DELETE": "delete",
+        "get": "view",
+        "post": "create",
+        "put": "edit",
+        "patch": "edit",
+        "delete": "delete",
     }
 
     def has_permission(self, request, view):
@@ -46,32 +46,31 @@ class PartyTypeModulePermission(BasePermission):
             return False
 
         if user.is_superuser or user.is_staff:
-            return True  # bypass for admins
+            return True
 
         module_name = getattr(view, "module_name", None)
         if not module_name:
             return True
 
-        action = getattr(view, "action", None) or request.method
+        action = (getattr(view, "action", None) or request.method).lower()
         action_perm = self.ACTION_MAP.get(action)
         if not action_perm:
             return True
 
         perms = UserPermissionSet.objects.filter(user=user)
         for p in perms:
-            party_type_module = p.party_type_module
-            if isinstance(party_type_module, str):
-                import json
-                try:
-                    party_type_module = json.loads(party_type_module)
-                except json.JSONDecodeError:
-                    party_type_module = {}
-            elif party_type_module is None:
-                party_type_module = {}
-
-            # Ensure module_name exists
-            module_perms = party_type_module.get(module_name, {})
+            loan_module = self._parse_permissions(p.loan_module)
+            module_perms = loan_module.get(module_name, {})
             if module_perms.get(action_perm, False):
                 return True
 
         raise PermissionDenied(f"You cannot perform {action_perm} on {module_name}")
+
+    def _parse_permissions(self, raw_perm):
+        import json
+        if isinstance(raw_perm, str):
+            try:
+                return json.loads(raw_perm)
+            except json.JSONDecodeError:
+                return {}
+        return raw_perm or {}

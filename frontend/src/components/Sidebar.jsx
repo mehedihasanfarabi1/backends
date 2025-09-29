@@ -44,7 +44,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
       booking: ["/admin/bookings", "/admin/bookings/new"],
       sr: ["/admin/sr", "/admin/add-sr"],
       pallet: ["/admin/pallet", "/admin/pallet_location","/admin/pallet_list"],
-      loan: ["/admin/loan", "/admin/add-loan"],
+      loan: ["/admin/loan", "/admin/loan-types"],
       delivery: ["/admin/delivery", "/admin/add-delivery"],
       bank: ["/admin/bank", "/admin/add-bank"],
       company_info: ["/admin/companies", "/admin/business-types", "/admin/factories"],
@@ -338,15 +338,15 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           )}
 
           {/* Loan */}
-          <li onClick={() => toggle("loan")} className={isSubmenuActive(["/admin/loan", "/admin/add-loan"]) ? "active-parent" : ""}>
+          <li onClick={() => toggle("loan")} className={isSubmenuActive(["/admin/loan", "/admin/loan-types"]) ? "active-parent" : ""}>
             <i className="fa-solid fa-hand-holding-dollar me-2"></i> <span>{t("loan")}</span>
             <i className="fa-solid fa-chevron-down ms-auto"></i>
           </li>
           <ul className={`submenu ms-4 ${open.loan ? "" : "d-none"}`}>
-            <li className={isActive("/admin/add-loan") ? "active" : ""} onClick={() => linkClicked("/admin/add-loan")}>
+            {/* <li className={isActive("/admin/add-loan") ? "active" : ""} onClick={() => linkClicked("/admin/add-loan")}>
               <i className="fa-solid fa-plus me-2"></i> <span>{t("add_loan")}</span>
-            </li>
-            <li className={isActive("/admin/loan") ? "active" : ""} onClick={() => linkClicked("/admin/loan")}>
+            </li> */}
+            <li className={isActive("/admin/loan-types") ? "active" : ""} onClick={() => linkClicked("/admin/loan-types")}>
               <i className="fa-solid fa-list me-2"></i> <span>{t("loan_list")}</span>
             </li>
           </ul>
