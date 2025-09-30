@@ -41,6 +41,7 @@ export default function PermissionPage() {
         const sr_module = ["sr"];
         const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
         const loan_module = ["loan_type", "loan"];
+        const settings_module = ["bag_type"];
 
         let mainGroup = "other";
         if (companyModules.includes(p.module)) mainGroup = "company";
@@ -50,6 +51,7 @@ export default function PermissionPage() {
         else if (sr_module.includes(p.module)) mainGroup = "sr";
         else if (pallot_module.includes(p.module)) mainGroup = "pallot";
         else if (loan_module.includes(p.module)) mainGroup = "loan";
+        else if (settings_module.includes(p.module)) mainGroup = "essential settings";
 
         if (!groupedData[mainGroup]) groupedData[mainGroup] = {};
         if (!groupedData[mainGroup][p.module]) groupedData[mainGroup][p.module] = [];
@@ -185,6 +187,7 @@ export default function PermissionPage() {
         const sr_module = ["sr"];
         const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
         const loan_module = ["loan_type", "loan"];
+        const settings_module = ["bag_type"];
 
         if (companyModules.includes(module)) {
           if (!payload.company_module[module])
@@ -221,6 +224,11 @@ export default function PermissionPage() {
           if (!payload.loan_module[module])
             payload.loan_module[module] = { create: false, edit: false, delete: false, view: false };
           if (action in payload.loan_module[module]) payload.loan_module[module][action] = true;
+        }
+        if (settings_module.includes(module)) {
+          if (!payload.settings_module[module])
+            payload.settings_module[module] = { create: false, edit: false, delete: false, view: false };
+          if (action in payload.settings_module[module]) payload.settings_module[module][action] = true;
         }
 
       });

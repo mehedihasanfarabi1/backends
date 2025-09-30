@@ -37,7 +37,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
   // Initialize open menus based on current path
   useEffect(() => {
     const paths = {
-      essential_settings: ["/admin/products", "/admin/product-types", "/admin/categories", "/admin/units", "/admin/unit-sizes", "/admin/unit-conversions", "/admin/product-size-settings"],
+      essential_settings: ["/admin/products", "/admin/product-types", "/admin/categories", "/admin/bag-types", "/admin/unit-sizes", "/admin/unit-conversions", "/admin/product-size-settings"],
       products: ["/admin/products", "/admin/product-types", "/admin/categories", "/admin/units", "/admin/unit-sizes", "/admin/unit-conversions", "/admin/product-size-settings"],
       party_type: ["/admin/party-types", "/admin/party-list", "/admin/party-commissions", "/admin/party-ledger", "/admin/party-report"],
       settings: ["/admin/projects", "/admin/translations"],
@@ -111,82 +111,71 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           </li>
 
           {/* Essential Settings */}
-          <li
-            onClick={() => toggle("essential_settings")}
-            className={isSubmenuActive([
-              "/admin/products",
-              "/admin/product-types",
-              "/admin/categories",
-              "/admin/units",
-              "/admin/unit-sizes",
-              "/admin/unit-conversions",
-              "/admin/product-size-settings",
-            ]) ? "active-parent" : ""}
-          >
-            <i className="fa-solid fa-gear me-2"></i> {/* Main Icon */}
-            <span>{t("essential_settings")}</span>
-            <i className="fa-solid fa-chevron-down ms-auto"></i>
-          </li>
+          {hasPermission("settings_module") && (
+            <>
 
-          <ul className={`submenu ms-4 ${open.essential_settings ? "" : "d-none"}`}>
-            {/* Booking Type */}
-            {hasPermission("booking_module") && (
-              <>
+              <li
+                onClick={() => toggle("essential_settings")}
+                className={isSubmenuActive([
+                  "/admin/products",
+                  "/admin/product-types",
+                  "/admin/categories",
+                  "/admin/bag-types",
+                  // "/admin/unit-sizes",
+                  // "/admin/unit-conversions",
+                  // "/admin/product-size-settings",
+                ]) ? "active-parent" : ""}
+              >
+                <i className="fa-solid fa-gear me-2"></i> {/* Main Icon */}
+                <span>{t("essential_settings")}</span>
+                <i className="fa-solid fa-chevron-down ms-auto"></i>
+              </li>
+
+              <ul className={`submenu ms-4 ${open.essential_settings ? "" : "d-none"}`}>
+                {/* Booking Type */}
+                {hasPermission("booking_module") && (
+                  <>
+                    <li
+                      className={isActive("/admin/bookings") ? "active" : ""}
+                      onClick={() => linkClicked("/admin/bookings")}
+                    >
+                      <i className="fa-solid fa-layer-group me-2"></i>
+                      <span>{t("booking_type")}</span>
+                    </li>
+                  </>
+                )}
+
+
+
+                {/*Bag Type */}
                 <li
-                  className={isActive("/admin/bookings") ? "active" : ""}
-                  onClick={() => linkClicked("/admin/bookings")}
+                  className={isActive("/admin/bag-types") ? "active" : ""}
+                  onClick={() => linkClicked("/admin/bag-types")}
                 >
-                  <i className="fa-solid fa-layer-group me-2"></i>
-                  <span>{t("booking_type")}</span>
+                  <i className="fa-solid fa-ruler-combined me-2"></i>
+                  <span>{t("bag_type")}</span>
                 </li>
-              </>
-            )}
 
-            {/* Loan Type */}
-            <li
-              className={isActive("/admin/categories") ? "active" : ""}
-              onClick={() => linkClicked("/admin/categories")}
-            >
-              <i className="fa-solid fa-folder-tree me-2"></i>
-              <span>{t("loan_type")}</span>
-            </li>
-
-            {/* Product Type */}
-            <li
-              className={isActive("/admin/products") ? "active" : ""}
-              onClick={() => linkClicked("/admin/products")}
-            >
-              <i className="fa-solid fa-box-open me-2"></i>
-              <span>{t("product_type")}</span>
-            </li>
-
-            {/*Bag Type */}
-            <li
-              className={isActive("/admin/units") ? "active" : ""}
-              onClick={() => linkClicked("/admin/units")}
-            >
-              <i className="fa-solid fa-ruler-combined me-2"></i>
-              <span>{t("bag_type")}</span>
-            </li>
-
-            {/* Site Setting */}
-            <li
+                {/* Site Setting */}
+                {/* <li
               className={isActive("/admin/unit-sizes") ? "active" : ""}
               onClick={() => linkClicked("/admin/unit-sizes")}
             >
               <i className="fa-solid fa-maximize me-2"></i>
               <span>{t("site_setting")}</span>
-            </li>
+            </li> */}
 
-            {/*Basic Settings */}
-            <li
+                {/*Basic Settings */}
+                {/* <li
               className={isActive("/admin/unit-conversions") ? "active" : ""}
               onClick={() => linkClicked("/admin/unit-conversions")}
             >
               <i className="fa-solid fa-arrows-rotate me-2"></i>
               <span>{t("basic_settings")}</span>
-            </li>
-          </ul>
+            </li> */}
+              </ul>
+
+            </>)}
 
 
           {/* Party Type */}

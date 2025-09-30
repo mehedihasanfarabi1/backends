@@ -1,13 +1,12 @@
-// src/booking/List.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import { BookingAPI } from "../../../api/booking";
+import { bagTypeApi } from "../../../api/essentialSettingsApi"; // তোমার api আলাদা করে নিতে হবে
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-export default function BookingList() {
+export default function BagTypeList() {
   const nav = useNavigate();
 
   const [rows, setRows] = useState([]);
@@ -17,7 +16,7 @@ export default function BookingList() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Load current user
+  // Current User Load
   const loadCurrentUser = async () => {
     try {
       const me = await UserAPI.me();
@@ -29,11 +28,11 @@ export default function BookingList() {
     }
   };
 
-  // Load bookings
+  // BagType Data Load
   const loadData = async () => {
     setLoading(true);
     try {
-      const allRows = await BookingAPI.list();
+      const allRows = await bagTypeApi.list();
       const userId = currentUserId || (await loadCurrentUser());
       if (!userId) return setLoading(false);
 
@@ -41,19 +40,21 @@ export default function BookingList() {
       const userPermissionsArr = [];
 
       userPerms.forEach((p) => {
-        const bookingModule = p.booking_module || {};
-        Object.entries(bookingModule).forEach(([module, actions]) => {
-          Object.entries(actions).forEach(([action, allowed]) => {
-            if (allowed) userPermissionsArr.push(`${module}_${action}`);
+        const settingsModule = p.settings_module || {};
+        if (Object.values(settingsModule).some((v) => v.view || v.create || v.edit || v.delete)) {
+          Object.entries(settingsModule).forEach(([module, actions]) => {
+            Object.entries(actions).forEach(([action, allowed]) => {
+              if (allowed) userPermissionsArr.push(`${module}_${action}`);
+            });
           });
-        });
+        }
       });
 
       setPermissions(userPermissionsArr);
       setRows(allRows);
     } catch (err) {
       console.error(err);
-      Swal.fire("Error", "Failed to load bookings", "error");
+      Swal.fire("Error", "Failed to load Bag Types", "error");
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ export default function BookingList() {
 
   const handleDelete = async () => {
     if (!selectedRows.length) return;
-    if (!permissions.includes("booking_delete"))
+    if (!permissions.includes("bag_type_delete"))
       return Swal.fire("❌ Access Denied", "", "error");
 
     const confirm = await Swal.fire({
@@ -82,7 +83,7 @@ export default function BookingList() {
     if (!confirm.isConfirmed) return;
 
     try {
-      for (let id of selectedRows) await BookingAPI.remove(id);
+      for (let id of selectedRows) await bagTypeApi.delete(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
       loadData();
@@ -92,33 +93,41 @@ export default function BookingList() {
     }
   };
 
-  // filter by search
-  const filteredRows = rows.filter(
-    (r) =>
-      (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (r.desc || "").toLowerCase().includes(search.toLowerCase())
+  const filteredRows = rows.filter((r) =>
+    [
+      r.name,
+      r.session,
+      r.per_bag_rent,
+      r.per_kg_rent,
+      r.agent_bag_rent,
+      r.agent_kg_rent,
+      r.party_bag_rent,
+      r.party_kg_rent,
+      r.per_bag_loan,
+      r.empty_bag_rate,
+      r.fan_charge,
+    ]
+      .join(" ")
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (!permissions.includes("booking_view"))
-    return (
-      <div className="alert alert-danger text-center mt-3">
-        Access Denied
-      </div>
-    );
+  if (!permissions.includes("bag_type_view"))
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   return (
     <div className="container mt-3">
       <ActionBar
-        title="Bookings"
-        onCreate={() => nav("/admin/bookings/new")}
-        showCreate={permissions.includes("booking_create")}
+        title="Bag Type List"
+        onCreate={() => nav("/admin/bag-types/new")}
+        showCreate={permissions.includes("bag_type_create")}
         onDelete={handleDelete}
-        showDelete={permissions.includes("booking_delete")}
+        showDelete={permissions.includes("bag_type_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
-        exportFileName="bookings"
-        showExport={permissions.includes("booking_view")}
+        exportFileName="bag_type_list"
+        showExport={permissions.includes("bag_type_view")}
       />
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
@@ -134,13 +143,24 @@ export default function BookingList() {
         </button>
       </div>
 
-      <div className="table-responsive" style={{ fontSize: "0.75rem" }}>
+      <div className="table-responsive">
         <table className="table table-bordered table-hover table-striped mb-0">
           <thead className="table-primary">
             <tr>
               <th>#</th>
+              <th>Session</th>
               <th>Name</th>
-              <th>Description</th>
+              <th>Per Bag Rent</th>
+              <th>Per Kg Rent</th>
+              <th>Agent Bag Rent</th>
+              <th>Agent Kg Rent</th>
+              <th>Party Bag Rent</th>
+              <th>Party Kg Rent</th>
+              <th>Per Bag Loan</th>
+              <th>Empty Bag Rate</th>
+              <th>Fan Charge</th>
+              <th>Is Default</th>
+              <th>Is Active</th>
               <th>Actions</th>
               <th>
                 <input
@@ -163,36 +183,47 @@ export default function BookingList() {
               filteredRows.map((r, i) => (
                 <tr key={r.id}>
                   <td>{i + 1}</td>
-                  <td>{r.name}</td>
-                  <td>{r.desc || "-"}</td>
+                  <td>{r.session}</td>
+                  <td>{r.name || "-"}</td>
+                  <td>{r.per_bag_rent}</td>
+                  <td>{r.per_kg_rent}</td>
+                  <td>{r.agent_bag_rent}</td>
+                  <td>{r.agent_kg_rent}</td>
+                  <td>{r.party_bag_rent}</td>
+                  <td>{r.party_kg_rent}</td>
+                  <td>{r.per_bag_loan}</td>
+                  <td>{r.empty_bag_rate}</td>
+                  <td>{r.fan_charge}</td>
+                  <td>{r.is_default ? "Yes" : "No"}</td>
+                  <td>{r.is_active ? "Yes" : "No"}</td>
                   <td>
                     <FaEdit
-                      className="text-secondary me-3"
-                      size={20}
+                      className="text-primary me-3"
+                      size={18}
                       title="Edit"
-                      onClick={() => nav(`/admin/bookings/${r.id}`)}
+                      onClick={() => nav(`/admin/bag-types/${r.id}`)}
                       style={{
-                        cursor: permissions.includes("booking_edit")
+                        cursor: permissions.includes("bag_type_edit")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("booking_edit") ? 1 : 0.5,
+                        opacity: permissions.includes("bag_type_edit") ? 1 : 0.5,
                       }}
                     />
                     <FaTrash
                       className="text-danger"
-                      size={20}
+                      size={18}
                       title="Delete"
                       onClick={() => {
-                        if (permissions.includes("booking_delete")) {
+                        if (permissions.includes("bag_type_delete")) {
                           setSelectedRows([r.id]);
                           handleDelete();
                         }
                       }}
                       style={{
-                        cursor: permissions.includes("booking_delete")
+                        cursor: permissions.includes("bag_type_delete")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("booking_delete") ? 1 : 0.5,
+                        opacity: permissions.includes("bag_type_delete") ? 1 : 0.5,
                       }}
                     />
                   </td>
@@ -207,7 +238,7 @@ export default function BookingList() {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center">
+                <td colSpan="16" className="text-center">
                   No data
                 </td>
               </tr>

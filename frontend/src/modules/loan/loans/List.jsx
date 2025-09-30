@@ -1,13 +1,12 @@
-// src/booking/List.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import { BookingAPI } from "../../../api/booking";
+import { loanTypeApi } from "../../../api/loanApi";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-export default function BookingList() {
+export default function LoanTypeList() {
   const nav = useNavigate();
 
   const [rows, setRows] = useState([]);
@@ -29,11 +28,11 @@ export default function BookingList() {
     }
   };
 
-  // Load bookings
+  // Load LoanType data
   const loadData = async () => {
     setLoading(true);
     try {
-      const allRows = await BookingAPI.list();
+      const allRows = await loanTypeApi.list();
       const userId = currentUserId || (await loadCurrentUser());
       if (!userId) return setLoading(false);
 
@@ -41,19 +40,21 @@ export default function BookingList() {
       const userPermissionsArr = [];
 
       userPerms.forEach((p) => {
-        const bookingModule = p.booking_module || {};
-        Object.entries(bookingModule).forEach(([module, actions]) => {
-          Object.entries(actions).forEach(([action, allowed]) => {
-            if (allowed) userPermissionsArr.push(`${module}_${action}`);
+        const loanModule = p.loan_module || {};
+        if (Object.values(loanModule).some((v) => v.view || v.create || v.edit || v.delete)) {
+          Object.entries(loanModule).forEach(([module, actions]) => {
+            Object.entries(actions).forEach(([action, allowed]) => {
+              if (allowed) userPermissionsArr.push(`${module}_${action}`);
+            });
           });
-        });
+        }
       });
 
       setPermissions(userPermissionsArr);
       setRows(allRows);
     } catch (err) {
       console.error(err);
-      Swal.fire("Error", "Failed to load bookings", "error");
+      Swal.fire("Error", "Failed to load Loan Types", "error");
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ export default function BookingList() {
 
   const handleDelete = async () => {
     if (!selectedRows.length) return;
-    if (!permissions.includes("booking_delete"))
+    if (!permissions.includes("loan_type_delete"))
       return Swal.fire("❌ Access Denied", "", "error");
 
     const confirm = await Swal.fire({
@@ -82,7 +83,7 @@ export default function BookingList() {
     if (!confirm.isConfirmed) return;
 
     try {
-      for (let id of selectedRows) await BookingAPI.remove(id);
+      for (let id of selectedRows) await loanTypeApi.delete(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
       loadData();
@@ -92,33 +93,29 @@ export default function BookingList() {
     }
   };
 
-  // filter by search
   const filteredRows = rows.filter(
     (r) =>
       (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (r.desc || "").toLowerCase().includes(search.toLowerCase())
+      (r.interest_rate || "").toString().includes(search) ||
+      (r.interest_start_date || "").toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (!permissions.includes("booking_view"))
-    return (
-      <div className="alert alert-danger text-center mt-3">
-        Access Denied
-      </div>
-    );
+  if (!permissions.includes("loan_type_view"))
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   return (
     <div className="container mt-3">
       <ActionBar
-        title="Bookings"
-        onCreate={() => nav("/admin/bookings/new")}
-        showCreate={permissions.includes("booking_create")}
+        title="Loan Type List"
+        onCreate={() => nav("/admin/loan-types/new")}
+        showCreate={permissions.includes("loan_type_create")}
         onDelete={handleDelete}
-        showDelete={permissions.includes("booking_delete")}
+        showDelete={permissions.includes("loan_type_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
-        exportFileName="bookings"
-        showExport={permissions.includes("booking_view")}
+        exportFileName="loan_type_list"
+        showExport={permissions.includes("loan_type_view")}
       />
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
@@ -134,13 +131,16 @@ export default function BookingList() {
         </button>
       </div>
 
-      <div className="table-responsive" style={{ fontSize: "0.75rem" }}>
+      <div className="table-responsive">
         <table className="table table-bordered table-hover table-striped mb-0">
           <thead className="table-primary">
             <tr>
               <th>#</th>
               <th>Name</th>
-              <th>Description</th>
+              <th>Interest Count</th>
+              <th>Interest Rate</th>
+              <th>Start Date</th>
+              <th>End Date</th>
               <th>Actions</th>
               <th>
                 <input
@@ -163,36 +163,39 @@ export default function BookingList() {
               filteredRows.map((r, i) => (
                 <tr key={r.id}>
                   <td>{i + 1}</td>
-                  <td>{r.name}</td>
-                  <td>{r.desc || "-"}</td>
+                  <td>{r.name || "-"}</td>
+                  <td>{r.has_interest ? "Yes" : "No"}</td>
+                  <td>{r.interest_rate}</td>
+                  <td>{r.interest_start_date || "-"}</td>
+                  <td>{r.interest_end_date || "-"}</td>
                   <td>
                     <FaEdit
-                      className="text-secondary me-3"
-                      size={20}
+                      className="text-primary me-3"
+                      size={18}
                       title="Edit"
-                      onClick={() => nav(`/admin/bookings/${r.id}`)}
+                      onClick={() => nav(`/admin/loan-types/${r.id}`)}
                       style={{
-                        cursor: permissions.includes("booking_edit")
+                        cursor: permissions.includes("loan_type_edit")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("booking_edit") ? 1 : 0.5,
+                        opacity: permissions.includes("loan_type_edit") ? 1 : 0.5,
                       }}
                     />
                     <FaTrash
                       className="text-danger"
-                      size={20}
+                      size={18}
                       title="Delete"
                       onClick={() => {
-                        if (permissions.includes("booking_delete")) {
+                        if (permissions.includes("loan_type_delete")) {
                           setSelectedRows([r.id]);
                           handleDelete();
                         }
                       }}
                       style={{
-                        cursor: permissions.includes("booking_delete")
+                        cursor: permissions.includes("loan_type_delete")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("booking_delete") ? 1 : 0.5,
+                        opacity: permissions.includes("loan_type_delete") ? 1 : 0.5,
                       }}
                     />
                   </td>
@@ -207,7 +210,7 @@ export default function BookingList() {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center">
+                <td colSpan="8" className="text-center">
                   No data
                 </td>
               </tr>
