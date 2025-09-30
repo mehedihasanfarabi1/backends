@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     "booking",
     "sr",
     "pallot",
-    "loan"
+    "loan",
+    "essential_settings",
     
 ]
 
