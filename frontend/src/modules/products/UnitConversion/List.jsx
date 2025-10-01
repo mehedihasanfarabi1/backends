@@ -63,11 +63,11 @@ export default function UnitConversionList() {
         load();
         Swal.fire("Deleted!", "Selected conversion(s) removed.", "success");
       } catch (err) {
-       
+
         let message = err?.response?.data?.detail || err?.message || "Something went wrong";
 
         if (typeof message === "object") {
-          
+
           message = message.detail ? message.detail : Object.values(message).flat().join(", ");
         }
 
@@ -91,6 +91,18 @@ export default function UnitConversionList() {
     );
   }
 
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await UnitConversionAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      load();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
   if (!userPermissions.includes("unit_conversion_view")) {
     return (
       <div className="alert alert-danger mt-3 text-center">Access Denied</div>
@@ -111,6 +123,7 @@ export default function UnitConversionList() {
         showDelete={userPermissions.includes("unit_conversion_delete")}
         selectedCount={selected.length}
         data={filtered}
+        onImport={handleImport}
         exportFileName="unit_conversions"
         showExport={userPermissions.includes("unit_conversion_view")}
         showPrint={userPermissions.includes("unit_conversion_view")}

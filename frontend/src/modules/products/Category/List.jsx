@@ -27,7 +27,7 @@ export default function CategoryList() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
 
-  const {t} = useTranslation()
+  const { t } = useTranslation()
   // -------------------
   // Load current user
   // -------------------
@@ -101,15 +101,15 @@ export default function CategoryList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-         // 🔹 Child থাকলে specific warning দেখাবে
-            let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-      
-            if (typeof message === "object") {
-              // DRF ValidationError returns array
-              message = message.detail ? message.detail : Object.values(message).flat().join(", ");
-            }
-      
-          Swal.fire("⚠️ Cannot Delete", "This Category has active Products. Delete them first.", "warning");
+      // 🔹 Child থাকলে specific warning দেখাবে
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+      if (typeof message === "object") {
+        // DRF ValidationError returns array
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+
+      Swal.fire("⚠️ Cannot Delete", "This Category has active Products. Delete them first.", "warning");
     }
   };
 
@@ -121,6 +121,19 @@ export default function CategoryList() {
       (r.name.toLowerCase().includes(search.toLowerCase()) ||
         (r.description || "").toLowerCase().includes(search.toLowerCase()))
   );
+
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await CategoryAPI.bulk_import(file); 
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      loadData();
+    } catch (err) {
+      console.error("Import error:", err);
+      // Swal.fire("❌ Failed", "Please check the data validation process" || "Import failed", "error");
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (!permissions.includes("category_view"))
@@ -136,6 +149,7 @@ export default function CategoryList() {
         showDelete={permissions.includes("category_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
+        onImport={handleImport}
         exportFileName="categories"
         showExport={permissions.includes("category_view")}
       />
@@ -199,7 +213,7 @@ export default function CategoryList() {
                   {/* <td>{r.company?.name}</td>
                   <td>{r.business_type?.name || "-"}</td>
                   <td>{r.factory?.name || "-"}</td> */}
-                  <td>{r.product_type?.name || "-"}</td> 
+                  <td>{r.product_type?.name || "-"}</td>
                   <td>{r.name}</td>
                   <td>{r.description}</td>
                   <td>

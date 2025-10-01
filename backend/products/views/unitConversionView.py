@@ -6,6 +6,9 @@ from products.models.unitConversion import UnitConversion
 from products.serializers.unitConversionSerializer import UnitConversionSerializer
 from products.permissions import ModulePermission
 from users.models import UserPermissionSet
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from utils.excel_import import import_excel_to_model
 
 class UnitConversionViewSet(viewsets.ModelViewSet):
     serializer_class = UnitConversionSerializer
@@ -81,3 +84,29 @@ class UnitConversionViewSet(viewsets.ModelViewSet):
         }
         self.permission_code = action_perm_map.get(self.action)
         return super().get_permissions()
+
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+
+        file = request.FILES.get("file")
+        print("DEBUG: FILES:", request.FILES)
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+        print("DEBUG: FILES:", request.FILES)
+
+        # Field mapping: Excel column → Model field
+        field_mapping = {
+            "parent_unit": "parent_unit_id",
+            "child_unit": "child_unit_id",
+            "qty": "qty",
+          
+        }
+
+        print("FIle mapped : ",field_mapping)
+
+        result = import_excel_to_model(file, UnitConversion, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} Unit imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)   

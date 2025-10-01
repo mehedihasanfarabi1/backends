@@ -1,3 +1,34 @@
+// 👉 Configurable preferred keys for objects
+const DEFAULT_PREFERRED_KEYS = [
+    "name", "title", "label", "code", "sr_no", "number", "size_name", "unit_name", "short_name"
+];
+
+
+// 👉 Special handlers (per object type / property)
+const specialObjectHandlers = {
+    unit: (obj) => {
+        if (obj.unit_name) {
+            return `${obj.unit_name}${obj.short_name ? ` (${obj.short_name})` : ""}`;
+        }
+        return null;
+    },
+    size: (obj) => {
+        if (obj.size_name) return obj.size_name;
+        return null;
+    },
+    user: (obj) => {
+        if (obj.first_name || obj.last_name) {
+            return `${obj.first_name || ""} ${obj.last_name || ""}`.trim();
+        }
+        return null;
+    },
+    company: (obj) => {
+        if (obj.name) return obj.name;
+        return null;
+    },
+};
+
+
 // 👉 Date formatting helper
 const formatDate = (date) => {
     try {
@@ -43,17 +74,17 @@ const formatNumber = (num) => {
 };
 
 // 👉 Main universal formatter
-export const formatValue = (val) => {
+export const formatValue = (val, preferredKeys = DEFAULT_PREFERRED_KEYS) => {
     if (val === null || val === undefined) return "";
 
-    // Boolean
-    if (typeof val === "boolean" || val === 0 || val === 1 || val === "true" || val === "false") {
-        return formatBoolean(val);
-    }
-
-    // Number
+    // Number but not boolean
     if (typeof val === "number") {
         return formatNumber(val);
+    }
+
+    // Boolean
+    if (typeof val === "boolean" || val === "true" || val === "false") {
+        return formatBoolean(val);
     }
 
     // Date / ISO String
@@ -61,7 +92,6 @@ export const formatValue = (val) => {
         return formatDateTime(val);
     }
     if (typeof val === "string") {
-        // ISO date check
         if (/^\d{4}-\d{2}-\d{2}T/.test(val)) {
             return formatDateTime(val);
         }
@@ -73,25 +103,26 @@ export const formatValue = (val) => {
 
     // Array
     if (Array.isArray(val)) {
-        return val.map((v) => formatValue(v)).join(", ");
+        return val.map((v) => formatValue(v, preferredKeys)).join(", ");
     }
 
     // Object
     if (typeof val === "object") {
-        const preferredKeys = ["name", "sr_no", "title", "code", "label", "number", "id"];
+        // 1. Special handlers
+        for (let key in specialObjectHandlers) {
+            const fn = specialObjectHandlers[key];
+            const result = fn(val);
+            if (result) return result;
+        }
 
+        // 2. Preferred keys (configurable)
         for (let key of preferredKeys) {
-            if (val[key]) return formatValue(val[key]);
+            if (val[key]) return formatValue(val[key], preferredKeys);
         }
 
-        // Nested object হলে recursive
-        if (val.toString && val.toString !== Object.prototype.toString) {
-            return val.toString();
-        }
-
+        // 3. Fallback
         return JSON.stringify(val);
     }
 
-    // Default fallback
     return String(val);
 };

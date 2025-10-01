@@ -159,6 +159,18 @@ export default function PartyCommissionList() {
         return matchSearch && matchPartyType && matchParty;
     });
 
+    const handleImport = async (file) => {
+        if (!file) return;
+        try {
+            await PartyCommissionAPI.bulk_import(file); // ✅ শুধু FILE object
+            Swal.fire("✅ Imported!", "Records saved successfully", "success");
+            loadData();
+        } catch (err) {
+            console.error("Import error:", err);
+            Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+        }
+    };
+
     if (!permissions.includes("party_commission_view"))
         return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
@@ -176,6 +188,7 @@ export default function PartyCommissionList() {
                 showDelete={permissions.includes("party_commission_delete")}
                 selectedCount={selectedRows.length}
                 data={filteredRows}
+                onImport={handleImport}
                 exportFileName="party_commissions"
                 showExport={permissions.includes("party_commission_view")}
             />

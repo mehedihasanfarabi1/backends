@@ -143,7 +143,7 @@ export default function ProductList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-      
+
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
 
       if (typeof message === "object") {
@@ -170,6 +170,21 @@ export default function ProductList() {
     return matchSearch && matchProductType && matchCategory;
   });
 
+
+
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await ProductAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      loadData();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
+
   if (!permissions.includes("product_view"))
     return (
       <div className="alert alert-danger text-center mt-3">Access Denied</div>
@@ -189,6 +204,7 @@ export default function ProductList() {
         showDelete={permissions.includes("product_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
+        onImport={handleImport}
         exportFileName="products"
         showExport={permissions.includes("product_view")}
       />

@@ -8,6 +8,8 @@ from products.models.unitSize import UnitSize
 from products.serializers.unitSizeSerializer import UnitSizeSerializer
 from products.permissions import ModulePermission
 from users.models import UserPermissionSet
+from utils.excel_import import import_excel_to_model
+
 
 class UnitSizeViewSet(viewsets.ModelViewSet):
     serializer_class = UnitSizeSerializer
@@ -125,3 +127,29 @@ class UnitSizeViewSet(viewsets.ModelViewSet):
             {"detail": f"{len(created)} unit sizes created successfully.", "data": created},
             status=status.HTTP_201_CREATED
         )
+    
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+
+        file = request.FILES.get("file")
+        print("DEBUG: FILES:", request.FILES)
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+        print("DEBUG: FILES:", request.FILES)
+
+        # Field mapping: Excel column → Model field
+        field_mapping = {
+            "unit": "unit_id",
+            "size_name": "size_name",
+            "uom_weight": "uom_weight",
+          
+        }
+
+        print("FIle mapped : ",field_mapping)
+
+        result = import_excel_to_model(file, UnitSize, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} Unit imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)   

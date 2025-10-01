@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Q
 
+from utils.excel_import import import_excel_to_model
 from products.models.product import Product
 from products.serializers.productSerializer import ProductSerializer, BulkProductSerializer
 from users.models import UserPermissionSet
@@ -60,7 +61,6 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return Product.objects.none()
 
-    # ✅ Bulk Create endpoint
     # ✅ Bulk create
     @action(detail=False, methods=["post"], url_path="bulk-create")
     def bulk_create(self, request):
@@ -83,3 +83,27 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({"created": created, "errors": errors}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"detail": f"{len(created)} products created successfully.", "data": created}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        # Field mapping: Excel column → model field
+        field_mapping = {
+            "name": "name",
+            "short_name": "short_name",  # Excel column name
+            "company": "company_id",
+            "business_type": "business_type_id",
+            "factory": "factory_id",
+            "product_type": "product_type_id",
+            "category": "category_id",
+        }
+
+        result = import_excel_to_model(file, Product, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} Products imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)

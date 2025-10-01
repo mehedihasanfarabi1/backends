@@ -9,12 +9,19 @@ from users.models import UserPermissionSet
 from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 from products.permissions import ModulePermission
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+# Import
+from utils.excel_import import import_excel_to_model
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class ProductTypeViewSet(viewsets.ModelViewSet):
     serializer_class = ProductTypeSerializer
     permission_classes = [IsAuthenticated, ModulePermission]
     module_name = "product_type"
+    parser_classes = [MultiPartParser, FormParser] 
 
     def get_queryset(self):
         user = self.request.user
@@ -77,3 +84,33 @@ class ProductTypeViewSet(viewsets.ModelViewSet):
 
         print("DEBUG: No matching permissions, returning empty QS")
         return ProductType.objects.none()
+    
+
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+        """
+        Excel file upload & import ProductType
+        """
+        file = request.FILES.get("file")
+        print("DEBUG: FILES:", request.FILES)
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+        print("DEBUG: FILES:", request.FILES)
+
+        # Field mapping: Excel column → Model field
+        field_mapping = {
+            "name": "name",
+            "description": "desc",
+            "company": "company_id",          # যদি Excel এ company name বা id থাকে
+            "business_type": "business_type_id",
+            "factory": "factory_id",
+        }
+
+        print("FIle mapped : ",field_mapping)
+
+        result = import_excel_to_model(file, ProductType, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} ProductTypes imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)

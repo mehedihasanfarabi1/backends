@@ -76,11 +76,11 @@ export default function ProductSizeSettingList() {
         load();
         Swal.fire("Deleted!", "Selected items removed.", "success");
       } catch (err) {
-        
+
         let message = err?.response?.data?.detail || err?.message || "Something went wrong";
 
         if (typeof message === "object") {
-          
+
           message = message.detail ? message.detail : Object.values(message).flat().join(", ");
         }
 
@@ -106,6 +106,18 @@ export default function ProductSizeSettingList() {
     return matchesSearch && matchesCompany;
   });
 
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await ProductSizeSettingAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      load();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
   if (!userPermissions.includes("product_size_setting_view")) {
     return <div className="alert alert-danger mt-3 text-center">Access Denied</div>;
   }
@@ -124,6 +136,8 @@ export default function ProductSizeSettingList() {
         showDelete={userPermissions.includes("product_size_setting_delete")}
         selectedCount={selected.length}
         data={filtered}
+        columns={['category', 'product', 'size', 'unit', 'code', 'customize_name']}
+        onImport={handleImport}
         exportFileName="product_size_settings"
         showExport={userPermissions.includes("product_size_setting_view")}
         showPrint={userPermissions.includes("product_size_setting_view")}

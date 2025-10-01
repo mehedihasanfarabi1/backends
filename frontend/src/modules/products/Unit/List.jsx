@@ -82,35 +82,28 @@ export default function UnitList() {
         load();
         Swal.fire("Deleted!", "Selected unit(s) removed.", "success");
       } catch (err) {
-           // 🔹 Child থাকলে specific warning দেখাবে
-              let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-        
-              if (typeof message === "object") {
-                // DRF ValidationError returns array
-                message = message.detail ? message.detail : Object.values(message).flat().join(", ");
-              }
-        
-            Swal.fire("⚠️ Cannot Delete", "This Unit has active UnitSize. Delete them first.", "warning");
+        // 🔹 Child থাকলে specific warning দেখাবে
+        let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+        if (typeof message === "object") {
+          // DRF ValidationError returns array
+          message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+        }
+
+        Swal.fire("⚠️ Cannot Delete", "This Unit has active UnitSize. Delete them first.", "warning");
       }
     }
   };
 
-  const onImport = async (parsedData) => {
-    if (!userPermissions.includes("unit_create")) {
-      return Swal.fire("❌ You do not have access for this feature", "", "error");
-    }
-
+  const handleImport = async (file) => {
+    if (!file) return;
     try {
-      for (let row of parsedData) {
-        await UnitAPI.create({
-          name: row.name,
-          short_name: row.short_name || "",
-        });
-      }
-      Swal.fire("Imported successfully!", "", "success");
+      await UnitAPI.bulk_import(file); 
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
       load();
     } catch (err) {
-      Swal.fire("Import failed", err.message, "error");
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
 
@@ -151,8 +144,9 @@ export default function UnitList() {
         showDelete={userPermissions.includes("unit_delete")}
         selectedCount={selected.length}
         data={filtered}
-        onImport={onImport}
+        onImport={handleImport}
         exportFileName="units"
+        columns={["name", "short_name"]}
         showExport={userPermissions.includes("unit_view")}
         showPrint={userPermissions.includes("unit_view")}
       />

@@ -82,7 +82,7 @@ export const productRoutes = [
   }),
 
   // Translations manual
-  { path: "translations", element: <ProtectedRoute requiredPermissions={["translation_view"]}>{<ListTranslations />}</ProtectedRoute> },
-  { path: "translations/new", element: <ProtectedRoute requiredPermissions={["translation_create"]}>{<TranslationForm />}</ProtectedRoute> },
-  { path: "translations/:id/edit", element: <ProtectedRoute requiredPermissions={["translation_edit"]}>{<TranslationForm />}</ProtectedRoute> },
+  { path: "translations", element: <ListTranslations /> },
+  { path: "translations/new", element: <TranslationForm /> },
+  { path: "translations/:id/edit", element: <TranslationForm />},
 ];

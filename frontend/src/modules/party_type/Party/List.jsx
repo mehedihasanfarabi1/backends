@@ -117,6 +117,19 @@ export default function PartyList() {
                 (r.mobile || "").toLowerCase().includes(search.toLowerCase()))
     );
 
+    const handleImport = async (file) => {
+        if (!file) return;
+        try {
+            await PartyAPI.bulk_import(file); // ✅ শুধু FILE object
+            Swal.fire("✅ Imported!", "Records saved successfully", "success");
+            loadData();
+        } catch (err) {
+            console.error("Import error:", err);
+            Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+        }
+    };
+
+
     if (loading) return <div className="text-center mt-5">Loading...</div>;
     if (!permissions.includes("party_view"))
         return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
@@ -131,7 +144,32 @@ export default function PartyList() {
                 showDelete={permissions.includes("party_delete")}
                 selectedCount={selectedRows.length}
                 data={filteredRows}
+                onImport={handleImport}
                 exportFileName="parties"
+                columns={["name",
+                    "father_name",
+                    "village",
+                    "post",
+                    "thana",
+                    "zila",
+                    "mobile",
+                    "nid",
+                    "company",
+                    "party_type",
+                    "code",
+                    "booking",
+                    "session",
+                    "booking_bag",
+                    "bag_weight",
+                    "total_weight",
+                    "per_bag_rent",
+                    "total_rent",
+                    "per_kg_rent",
+                    "total_kg_rent",
+                    "rent_receive",
+                    "per_bag_commission",
+                    "interest_start_date",
+                    "interest_rate"]}
                 showExport={permissions.includes("party_view")}
             />
 

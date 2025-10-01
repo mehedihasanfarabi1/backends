@@ -6,6 +6,11 @@ from products.models.productSizeSetting import ProductSizeSetting
 from products.serializers.productSizeSettingSerializer import ProductSizeSettingSerializer
 from products.permissions import ModulePermission
 from users.models import UserPermissionSet
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from utils.excel_import import import_excel_to_model
+
 
 class ProductSizeSettingViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSizeSettingSerializer
@@ -67,3 +72,31 @@ class ProductSizeSettingViewSet(viewsets.ModelViewSet):
         }
         self.permission_code = action_perm_map.get(self.action)
         return super().get_permissions()
+
+
+    # ✅ Bulk Import Excel
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Excel column → Model field mapping
+        field_mapping = {
+            "category": "category_id",
+            "product": "product_id",
+            "unit": "unit_id",
+            "size": "size_id",
+            "customize_name": "customize_name",
+            "code": "code",
+        }
+
+        result = import_excel_to_model(file, ProductSizeSetting, field_mapping)
+
+        if result["status"] == "success":
+            return Response(
+                {"success": f"{result['count']} ProductSizeSetting imported"},
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response({"error": result["message"]}, status=status.HTTP_400_BAD_REQUEST)

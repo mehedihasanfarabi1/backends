@@ -5,6 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from party_type.permissions import PartyTypeModulePermission
 from users.models import UserPermissionSet
 from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from utils.excel_import import import_excel_to_model
+
 
 class PartyTypeViewSet(viewsets.ModelViewSet):
     queryset = PartyType.objects.all()
@@ -46,3 +50,27 @@ class PartyTypeViewSet(viewsets.ModelViewSet):
             return PartyType.objects.none()
 
         return qs.filter(company_id__in=allowed_company_ids).distinct()
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+
+        file = request.FILES.get("file")
+        print("DEBUG: FILES:", request.FILES)
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+        print("DEBUG: FILES:", request.FILES)
+
+        # Field mapping: Excel column → Model field
+        field_mapping = {
+            "name": "name",
+            "description": "description",
+            "company": "company_id",          
+        }
+
+        print("FIle mapped : ",field_mapping)
+
+        result = import_excel_to_model(file, PartyType, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} PartyType imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)

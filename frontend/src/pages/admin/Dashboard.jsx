@@ -11,12 +11,12 @@ export default function Dashboard() {
   const cards = [
     { title: t("departments"), icon: "fa-solid fa-home", link: "/admin/department" },
     { title: t("products"), icon: "fa-solid fa-award", link: "/admin/products" },
-    { title: t("party-types"), icon: "fa-solid fa-table-cells-large", link: "/admin/party-types" },
-    { title: t("companies"), icon: "fa-solid fa-city", link: "/admin/companies" },
-    { title: t("pallots"), icon: "fa-solid fa-list-check", link: "/admin/pallet" },
+    { title: t("party-type"), icon: "fa-solid fa-table-cells-large", link: "/admin/party-types" },
+    { title: t("company"), icon: "fa-solid fa-city", link: "/admin/companies" },
+    { title: t("pallet"), icon: "fa-solid fa-list-check", link: "/admin/pallet" },
     { title: t("sr"), icon: "fa-solid fa-money-bill", link: "/admin/sr" },
     { title: t("loan"), icon: "fa-solid fa-users", link: "/admin/loan-types" },
-    { title: t("bookings"), icon: "fa-solid fa-file", link: "/admin/bookings" },
+    { title: t("booking"), icon: "fa-solid fa-file", link: "/admin/bookings" },
   ];
 
 

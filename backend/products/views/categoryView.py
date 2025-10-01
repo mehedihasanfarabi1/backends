@@ -7,7 +7,7 @@ from products.models.category import Category
 from products.serializers.categorySerializer import CategorySerializer
 from users.models import UserPermissionSet
 from products.permissions import ModulePermission
-
+from utils.excel_import import import_excel_to_model
 
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
@@ -72,22 +72,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     # ✅ Bulk create endpoint
     @action(detail=False, methods=["post"], url_path="bulk-create")
     def bulk_create(self, request):
-        """
-        Expected Payload:
-        {
-            "categories": [
-                {
-                    "name": "Fruit",
-                    "description": "Raw Fruit",
-                    "company_id": 1,
-                    "business_type_id": 2,
-                    "factory_id": 3,
-                    "product_type_id": 4
-                },
-                ...
-            ]
-        }
-        """
+
         data = request.data
         categories = data.get("categories", [])
 
@@ -112,3 +97,29 @@ class CategoryViewSet(viewsets.ModelViewSet):
             {"detail": f"{len(created)} categories created successfully.", "data": created},
             status=status.HTTP_201_CREATED,
         )
+    
+
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+
+
+    def bulk_import(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        # Field mapping: Excel column → model field
+        field_mapping = {
+            "name": "name",
+            "description": "description",  # Excel column name
+            "company": "company_id",
+            "business_type": "business_type_id",
+            "factory": "factory_id",
+            "product_type": "product_type_id",
+        }
+
+        result = import_excel_to_model(file, Category, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} Categories imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)

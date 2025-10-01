@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useRef } from "react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductTypeAPI } from "../../../api/products";
@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 import "../../../styles/Table.css";
 
 import { useTranslation } from "../../../contexts/TranslationContext";
+import ImportModal from "../../../components/common/ImportModal";
 
 export default function PTList() {
   const nav = useNavigate();
@@ -187,7 +188,7 @@ export default function PTList() {
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
 
-    Swal.fire("⚠️ Cannot Delete", "This ProductType has active Categories. Delete them first.", "warning");
+      Swal.fire("⚠️ Cannot Delete", "This ProductType has active Categories. Delete them first.", "warning");
     }
   };
 
@@ -200,6 +201,22 @@ export default function PTList() {
         (r.desc || "").toLowerCase().includes(search.toLowerCase()))
   );
 
+
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await ProductTypeAPI.bulk_import(file); // ✅ শুধু FILE object
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      loadData();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
+
+
+
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (!permissions.includes("product_type_view"))
     return (
@@ -208,6 +225,7 @@ export default function PTList() {
 
   return (
     <div className="container mt-3">
+
       <ActionBar
         title="Product Types"
         onCreate={() => nav("/admin/product-types/new")}
@@ -216,6 +234,7 @@ export default function PTList() {
         showDelete={permissions.includes("product_type_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
+        onImport={handleImport} // ✅ handleImport pass করলাম
         exportFileName="product_types"
         showExport={permissions.includes("product_type_view")}
       />

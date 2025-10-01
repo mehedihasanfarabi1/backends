@@ -126,14 +126,7 @@ export default function AccountHeadList() {
         showExport={permissions.includes("account_head_view")}
       />
 
-      {/* 🔹 Total Row */}
-      <div className="alert alert-info d-flex flex-wrap justify-content-around mb-3 fw-bold">
-        <span>Debit: {totalDebit.toLocaleString()} TK</span>
-        <span>Credit: {totalCredit.toLocaleString()} TK</span>
-        <span>Balance: {totalBalance.toLocaleString()} TK</span>
-      </div>
 
-      {/* 🔹 Search */}
       <div className="d-flex gap-2 mb-3 flex-wrap">
         <input
           className="form-control"
@@ -149,6 +142,12 @@ export default function AccountHeadList() {
 
       {/* 🔹 Table */}
       <div className="table-responsive">
+        
+        <div className="alert alert-info d-flex flex-wrap justify-content-around mb-3 fw-bold">
+          <span>Debit: {totalDebit.toLocaleString()} TK</span>
+          <span>Credit: {totalCredit.toLocaleString()} TK</span>
+          <span>Total Balance: {totalBalance.toLocaleString()} TK</span>
+        </div>
         <table className="table table-bordered table-hover table-striped mb-0">
           <thead className="table-primary">
             <tr>

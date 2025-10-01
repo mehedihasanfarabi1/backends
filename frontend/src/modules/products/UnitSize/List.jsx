@@ -92,23 +92,15 @@ export default function UnitSizeList() {
     }
   };
 
-  const onImport = async (parsedData) => {
-    if (!userPermissions.includes("unit_size_create")) {
-      return Swal.fire("❌ You do not have access for this feature", "", "error");
-    }
-
+  const handleImport = async (file) => {
+    if (!file) return;
     try {
-      for (let row of parsedData) {
-        await UnitSizeAPI.create({
-          unit: row.unit,          // unit id
-          size_name: row.size_name,
-          uom_weight: row.uom_weight,
-        });
-      }
-      Swal.fire("Imported successfully!", "", "success");
+      await UnitSizeAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
       load();
     } catch (err) {
-      Swal.fire("Import failed", err.message, "error");
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
 
@@ -145,7 +137,7 @@ export default function UnitSizeList() {
         showDelete={userPermissions.includes("unit_size_delete")}
         selectedCount={selected.length}
         data={filtered}
-        onImport={onImport}
+        onImport={handleImport}
         exportFileName="unit_sizes"
         showExport={userPermissions.includes("unit_size_view")}
         showPrint={userPermissions.includes("unit_size_view")}
