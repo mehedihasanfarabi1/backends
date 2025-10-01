@@ -7,6 +7,12 @@ const crud = (resource) => ({
     create: (data) => api.post(`/accounts/${resource}/`, data).then(r => r.data),
     update: (id, data) => api.put(`/accounts/${resource}/${id}/`, data).then(r => r.data),
     delete: (id) => api.delete(`/accounts/${resource}/${id}/`).then(r => r.data),
+    bulk_import: (file) => {
+        const formData = new FormData();
+        formData.append("file", file); 
+        return api.post(`/accounts/${resource}/bulk-import/`, formData).then(r => r.data);
+    }
+
 });
 
 export const accountApi = crud("account-head");

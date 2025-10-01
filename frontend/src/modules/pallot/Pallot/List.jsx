@@ -1,7 +1,7 @@
 // src/pages/pallot/PallotList.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { PallotListAPI } from "../../../api/pallotApi";
+import { PallotAPI, PallotListAPI } from "../../../api/pallotApi";
 import Swal from "sweetalert2";
 import ActionBar from "../../../components/common/ActionBar";
 
@@ -57,6 +57,18 @@ export default function PallotList() {
   };
 
 
+      const handleImport = async (file) => {
+      if (!file) return;
+      try {
+        await PallotListAPI.bulk_import(file); 
+        Swal.fire("✅ Imported!", "Records saved successfully", "success");
+        loadData();
+      } catch (err) {
+        console.error("Import error:", err);
+        Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+      }
+    };
+
   // Search filter (pallot number / comment / sr no)
   const filteredRows = rows.filter(
     (r) =>
@@ -72,8 +84,9 @@ export default function PallotList() {
         onCreate={() => nav("/admin/pallet_list/new")}
         onDelete={handleDelete}
         data={filteredRows}
+        onImport={handleImport}
         selectedCount={selectedRows.length}
-        columns={["pallot_number", "chamber", "floor", "quantity", "date", "created_at"]} // শুধু এই columns যাবে
+        
       />
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
@@ -93,7 +106,7 @@ export default function PallotList() {
               <th>#</th>
               <th>Pallot No</th>
               <th>Pallot Type</th>
-              {/* <th>SR No</th> */}
+             
               <th>SR Quantity</th>
               <th>Date</th>
               <th>Chamber</th>
@@ -120,7 +133,6 @@ export default function PallotList() {
                   <td>{i + 1}</td>
                   <td>{r.pallot_number}</td>
                   <td>{r.pallot_type?.name}</td>
-                  {/* <td>{r.sr?.sr_no}</td> */}
                   <td>{r.sr_quantity}</td>
                   <td>{r.date}</td>
                   <td>{r.chamber?.name}</td>

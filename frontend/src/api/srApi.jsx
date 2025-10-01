@@ -10,6 +10,12 @@ const crud = (resource) => ({
     bulkCreate: (data) => api.post(`/sr/${resource}/bulk-create/`, data).then(r => r.data),
     // 🔹 Add this
     nextSRNo: () => api.get(`/sr/next_sr/`).then(r => r.data),
+    bulk_import: (file) => {
+        const formData = new FormData();
+        formData.append("file", file); // ✅ FILE object
+        return api.post(`/sr/${resource}/bulk-import/`, formData).then(r => r.data);
+    }
+
 });
 
 

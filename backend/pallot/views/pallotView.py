@@ -6,7 +6,7 @@ from pallot.models.pallotLocation import Chamber, Floor, Pocket
 from sr.models.sr import SR
 from pallot.serializers.pallotSerializers import PallotSerializer
 from pallot.permissions import PallotModulePermission
-
+from utils.excel_import import import_excel_to_model
 
 class PallotViewSet(viewsets.ModelViewSet):
     queryset = Pallot.objects.all().select_related("sr", "chamber", "floor", "pocket", "pallot_type")
@@ -47,6 +47,7 @@ class PallotViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=["post"], url_path="bulk_create")
     def bulk_create(self, request, *args, **kwargs):
+        
         data = request.data
         many = isinstance(data, list)  # list এলে many=True
         serializer = self.get_serializer(data=data, many=many)
@@ -54,3 +55,30 @@ class PallotViewSet(viewsets.ModelViewSet):
         instances = serializer.save()
         read_serializer = PallotSerializer(instances, many=many, context={"request": request})
         return Response(read_serializer.data, status=status.HTTP_201_CREATED)
+    
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        # Excel column → Model field mapping for Pallot
+        field_mapping = {
+            "pallot_type": "pallot_type_id",
+            "date": "date",
+            "pallot_number": "pallot_number",
+            # "sr": "sr_no",
+            "sr_quantity": "sr_quantity",
+            "comment": "comment",
+            "chamber": "chamber_id",
+            "floor": "floor_id",
+            "pocket": "pocket_id",
+            "quantity": "quantity",
+        }
+
+        result = import_excel_to_model(file, Pallot, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} Pallot imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)

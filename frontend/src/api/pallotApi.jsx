@@ -9,6 +9,12 @@ const crud = (resource) => ({
     remove: (id) => api.delete(`/pallot/${resource}/${id}/`).then(r => r.data),
     bulk_create: (data) => api.post(`/pallot/${resource}/bulk_create/`, data).then(r => r.data),
     get_sr_quantity: (params = {}) => api.get(`/pallot/get_sr_quantity/`, { params }).then(r => r.data),
+    bulk_import: (file) => {
+        const formData = new FormData();
+        formData.append("file", file); // ✅ FILE object
+        return api.post(`/pallot/${resource}/bulk-import/`, formData).then(r => r.data);
+    }
+
 });
 
 

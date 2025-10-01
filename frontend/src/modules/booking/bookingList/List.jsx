@@ -87,15 +87,15 @@ export default function BookingList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-        
+
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
 
       if (typeof message === "object") {
-      
+
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
 
-    Swal.fire("⚠️ Cannot Delete", "This Booking has active party. Delete them first.", "warning");
+      Swal.fire("⚠️ Cannot Delete", "This Booking has active party. Delete them first.", "warning");
     }
   };
 
@@ -105,6 +105,20 @@ export default function BookingList() {
       (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
       (r.desc || "").toLowerCase().includes(search.toLowerCase())
   );
+
+
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await BookingAPI.bulk_import(file); // ✅ শুধু FILE object
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      loadData();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
 
   if (loading) return <div className="text-center mt-5 ">Loading...</div>;
   if (!permissions.includes("booking_view"))
@@ -125,6 +139,8 @@ export default function BookingList() {
         selectedCount={selectedRows.length}
         data={filteredRows}
         exportFileName="bookings"
+        onImport={handleImport}
+        columns={["id","name","desc"]}
         showExport={permissions.includes("booking_view")}
       />
 

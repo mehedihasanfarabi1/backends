@@ -107,6 +107,20 @@ export default function SRList() {
       (r.village || "").toLowerCase().includes(search.toLowerCase())
   );
 
+    const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await SRAPI.bulk_import(file); 
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      loadData();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
+
+
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (!permissions.includes("sr_view"))
     return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
@@ -121,6 +135,7 @@ export default function SRList() {
         showDelete={permissions.includes("sr_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
+        onImport={handleImport}
         exportFileName="sr_list"
         showExport={permissions.includes("sr_view")}
       />

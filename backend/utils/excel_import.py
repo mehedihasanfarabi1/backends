@@ -7,6 +7,8 @@ from products.models import ProductType, Category, Unit, UnitSize,Product
 from party_type.models.party_type import PartyType
 from party_type.models.party import Party
 from booking.models.booking import Booking
+from pallot.models.pallotType import PallotType
+from pallot.models.pallotLocation import Chamber,Floor,Pocket
 # 🔹 কোন model কোন field দিয়ে lookup হবে
 FK_LOOKUP = {
     "company_id": (Company, "name"),
@@ -22,7 +24,11 @@ FK_LOOKUP = {
     "child_unit_id": (Unit, "name"),
     "party_type_id": (PartyType, "name"),
     "party_id": (Party, "name"),
-    "booking_id":(Booking,"name")
+    "booking_id":(Booking,"name"),
+    "pallot_type_id":(PallotType,"name"),
+    "chamber_id":(Chamber,"name"),
+    "floor_id":(Floor,"name"),
+    "pocket_id":(Pocket,"name"),
 }
 
 
