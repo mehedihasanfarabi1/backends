@@ -42,6 +42,7 @@ export default function PermissionPage() {
         const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
         const loan_module = ["loan_type", "loan"];
         const settings_module = ["bag_type"];
+        const accounts_module = ["account_head", "account"];
 
         let mainGroup = "other";
         if (companyModules.includes(p.module)) mainGroup = "company";
@@ -52,6 +53,7 @@ export default function PermissionPage() {
         else if (pallot_module.includes(p.module)) mainGroup = "pallot";
         else if (loan_module.includes(p.module)) mainGroup = "loan";
         else if (settings_module.includes(p.module)) mainGroup = "essential settings";
+        else if (accounts_module.includes(p.module)) mainGroup = "accounts";
 
         if (!groupedData[mainGroup]) groupedData[mainGroup] = {};
         if (!groupedData[mainGroup][p.module]) groupedData[mainGroup][p.module] = [];
@@ -188,6 +190,7 @@ export default function PermissionPage() {
         const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
         const loan_module = ["loan_type", "loan"];
         const settings_module = ["bag_type"];
+        const accounts_module = ["account_head", "account"];
 
         if (companyModules.includes(module)) {
           if (!payload.company_module[module])
@@ -229,6 +232,11 @@ export default function PermissionPage() {
           if (!payload.settings_module[module])
             payload.settings_module[module] = { create: false, edit: false, delete: false, view: false };
           if (action in payload.settings_module[module]) payload.settings_module[module][action] = true;
+        }
+        if (accounts_module.includes(module)) {
+          if (!payload.accounts_module[module])
+            payload.accounts_module[module] = { create: false, edit: false, delete: false, view: false };
+          if (action in payload.accounts_module[module]) payload.accounts_module[module][action] = true;
         }
 
       });

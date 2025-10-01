@@ -20,7 +20,8 @@ urlpatterns = [
     path("api/pallot/", include("pallot.urls")), # pallot routes
     path("api/loan/", include("loan.urls")), # loan routes
     path("api/essential_settings/", include("essential_settings.urls")), # essential_settings routes
-    
-    path("api/", include("language.urls")), 
+    path("api/accounts/", include("accounts.urls")), # accounts routes
+
+    path("api/", include("language.urls")),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

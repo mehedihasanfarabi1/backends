@@ -1,13 +1,12 @@
-// src/booking/List.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import { BookingAPI } from "../../../api/booking";
+import { accountApi } from "../../../api/accountsApi";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-export default function BookingList() {
+export default function AccountHeadList() {
   const nav = useNavigate();
 
   const [rows, setRows] = useState([]);
@@ -29,11 +28,11 @@ export default function BookingList() {
     }
   };
 
-  // Load bookings
+  // Load AccountHead data
   const loadData = async () => {
     setLoading(true);
     try {
-      const allRows = await BookingAPI.list();
+      const allRows = await accountApi.list();
       const userId = currentUserId || (await loadCurrentUser());
       if (!userId) return setLoading(false);
 
@@ -41,19 +40,21 @@ export default function BookingList() {
       const userPermissionsArr = [];
 
       userPerms.forEach((p) => {
-        const bookingModule = p.booking_module || {};
-        Object.entries(bookingModule).forEach(([module, actions]) => {
-          Object.entries(actions).forEach(([action, allowed]) => {
-            if (allowed) userPermissionsArr.push(`${module}_${action}`);
+        const accModule = p.accounts_module || {};
+        if (Object.values(accModule).some((v) => v.view || v.create || v.edit || v.delete)) {
+          Object.entries(accModule).forEach(([module, actions]) => {
+            Object.entries(actions).forEach(([action, allowed]) => {
+              if (allowed) userPermissionsArr.push(`${module}_${action}`);
+            });
           });
-        });
+        }
       });
 
       setPermissions(userPermissionsArr);
       setRows(allRows);
     } catch (err) {
       console.error(err);
-      Swal.fire("Error", "Failed to load bookings", "error");
+      Swal.fire("Error", "Failed to load Account Heads", "error");
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ export default function BookingList() {
 
   const handleDelete = async () => {
     if (!selectedRows.length) return;
-    if (!permissions.includes("booking_delete"))
+    if (!permissions.includes("account_head_delete"))
       return Swal.fire("❌ Access Denied", "", "error");
 
     const confirm = await Swal.fire({
@@ -82,7 +83,7 @@ export default function BookingList() {
     if (!confirm.isConfirmed) return;
 
     try {
-      for (let id of selectedRows) await BookingAPI.remove(id);
+      for (let id of selectedRows) await accountApi.delete(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
       loadData();
@@ -92,39 +93,45 @@ export default function BookingList() {
     }
   };
 
-  // filter by search
-  const filteredRows = rows.filter(
-    (r) =>
-      (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (r.desc || "").toLowerCase().includes(search.toLowerCase())
+  const filteredRows = rows.filter((r) =>
+    (r.head_name || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <div className="text-center mt-5 ">Loading...</div>;
-  if (!permissions.includes("booking_view"))
-    return (
-      <div className="alert alert-danger text-center mt-3">
-        Access Denied
-      </div>
-    );
+  // 🔹 Totals
+  const totalDebit = filteredRows.reduce((sum, r) => sum + parseFloat(r.debit || 0), 0);
+  const totalCredit = filteredRows.reduce((sum, r) => sum + parseFloat(r.credit || 0), 0);
+  const totalBalance = filteredRows.reduce((sum, r) => sum + parseFloat(r.balance || 0), 0);
+
+  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  if (!permissions.includes("account_head_view"))
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   return (
     <div className="container mt-3">
       <ActionBar
-        title="Bookings"
-        onCreate={() => nav("/admin/bookings/new")}
-        showCreate={permissions.includes("booking_create")}
+        title="Account Head List"
+        onCreate={() => nav("/admin/account-head/new")}
+        showCreate={permissions.includes("account_head_create")}
         onDelete={handleDelete}
-        showDelete={permissions.includes("booking_delete")}
+        showDelete={permissions.includes("account_head_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
-        exportFileName="bookings"
-        showExport={permissions.includes("booking_view")}
+        exportFileName="account_head_list"
+        showExport={permissions.includes("account_head_view")}
       />
 
+      {/* 🔹 Total Row */}
+      <div className="alert alert-info d-flex flex-wrap justify-content-around mb-3 fw-bold">
+        <span>Debit: {totalDebit.toLocaleString()} TK</span>
+        <span>Credit: {totalCredit.toLocaleString()} TK</span>
+        <span>Balance: {totalBalance.toLocaleString()} TK</span>
+      </div>
+
+      {/* 🔹 Search */}
       <div className="d-flex gap-2 mb-3 flex-wrap">
         <input
           className="form-control"
-          placeholder="Search..."
+          placeholder="Search by Head Name..."
           style={{ maxWidth: 250 }}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -134,13 +141,16 @@ export default function BookingList() {
         </button>
       </div>
 
-      <div className="table-responsive" style={{ fontSize: "0.75rem" }}>
+      {/* 🔹 Table */}
+      <div className="table-responsive">
         <table className="table table-bordered table-hover table-striped mb-0">
           <thead className="table-primary">
             <tr>
               <th>#</th>
-              <th>Name</th>
-              <th>Description</th>
+              <th>Head Name</th>
+              <th>Debit</th>
+              <th>Credit</th>
+              <th>Balance</th>
               <th>Actions</th>
               <th>
                 <input
@@ -163,36 +173,38 @@ export default function BookingList() {
               filteredRows.map((r, i) => (
                 <tr key={r.id}>
                   <td>{i + 1}</td>
-                  <td>{r.name}</td>
-                  <td>{r.desc || "-"}</td>
+                  <td>{r.head_name}</td>
+                  <td>{parseFloat(r.debit).toLocaleString()}</td>
+                  <td>{parseFloat(r.credit).toLocaleString()}</td>
+                  <td>{parseFloat(r.balance).toLocaleString()}</td>
                   <td>
                     <FaEdit
-                      className="text-secondary me-3"
-                      size={20}
+                      className="text-primary me-3"
+                      size={18}
                       title="Edit"
-                      onClick={() => nav(`/admin/bookings/${r.id}`)}
+                      onClick={() => nav(`/admin/account-head/${r.id}`)}
                       style={{
-                        cursor: permissions.includes("booking_edit")
+                        cursor: permissions.includes("account_head_edit")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("booking_edit") ? 1 : 0.5,
+                        opacity: permissions.includes("account_head_edit") ? 1 : 0.5,
                       }}
                     />
                     <FaTrash
                       className="text-danger"
-                      size={20}
+                      size={18}
                       title="Delete"
                       onClick={() => {
-                        if (permissions.includes("booking_delete")) {
+                        if (permissions.includes("account_head_delete")) {
                           setSelectedRows([r.id]);
                           handleDelete();
                         }
                       }}
                       style={{
-                        cursor: permissions.includes("booking_delete")
+                        cursor: permissions.includes("account_head_delete")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("booking_delete") ? 1 : 0.5,
+                        opacity: permissions.includes("account_head_delete") ? 1 : 0.5,
                       }}
                     />
                   </td>
@@ -207,7 +219,7 @@ export default function BookingList() {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center">
+                <td colSpan="7" className="text-center">
                   No data
                 </td>
               </tr>

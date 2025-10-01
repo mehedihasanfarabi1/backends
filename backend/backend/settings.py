@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "sr",
     "pallot",
     "loan",
-    "essential_settings",
+    "essential_settings","accounts",
     
 ]
 
@@ -99,7 +99,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'software_project4',       # তোমার DB নাম
         'USER': 'postgres',   # DB ইউজার
-        'PASSWORD': '5843', # পাসওয়ার্ড
+        'PASSWORD': '1234', # পাসওয়ার্ড
         'HOST': 'localhost',
         'PORT': '5432',
     }

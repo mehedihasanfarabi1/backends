@@ -38,10 +38,10 @@ export default function BusinessTypeList() {
   // const canView = permissions.includes("business_type_view");
 
   // এখন সব true ধরে নিই
-const canCreate = true;
-const canEdit = true;
-const canDelete = true;
-const canView = true;
+  const canCreate = true;
+  const canEdit = true;
+  const canDelete = true;
+  const canView = true;
   // 🟢 Load rows and companies if view permission
   const load = async () => {
     if (!canView) return;
@@ -83,7 +83,19 @@ const canView = true;
         load();
         Swal.fire("Deleted!", "Selected item(s) removed.", "success");
       } catch (err) {
-        Swal.fire("Error", err.message, "error");
+        // 🔹 Child থাকলে specific warning দেখাবে
+        let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+        if (typeof message === "object") {
+          // DRF ValidationError returns array
+          message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+        }
+
+        Swal.fire(
+          "⚠️ Cannot Delete",
+          "Child Property Need to delete first: ",
+          "warning"
+        );
       }
     }
   };

@@ -18,6 +18,7 @@ import { sr_routes } from "./srRoutes";
 import { pallet_routes } from "./pallotRoutes";
 import { loan_routes } from "./loanRoutes"; 
 import { essential_settings } from "./essentialSettingsRoute";
+import { accounts_routes } from "./accountsRoute";
 
 export const adminRoutes = [
   { index: true, element: <Dashboard /> },
@@ -42,4 +43,5 @@ export const adminRoutes = [
   ...pallet_routes,
   ...loan_routes,
   ...essential_settings,
+  ...accounts_routes
 ];

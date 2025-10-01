@@ -46,6 +46,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
       pallet: ["/admin/pallet", "/admin/pallet_location", "/admin/pallet_list"],
       loan: ["/admin/loan", "/admin/loan-types"],
       delivery: ["/admin/delivery", "/admin/add-delivery"],
+      accounts: ["/admin/accounts", "/admin/account-head"],
       bank: ["/admin/bank", "/admin/add-bank"],
       company_info: ["/admin/companies", "/admin/business-types", "/admin/factories"],
       user_permissions: ["/admin/permissions", "/admin/users", "/admin/users/roles", "/admin/users/permissions", "/admin/permission-designer"]
@@ -357,6 +358,20 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
             </li>
             <li className={isActive("/admin/delivery") ? "active" : ""} onClick={() => linkClicked("/admin/delivery")}>
               <i className="fa-solid fa-list me-2"></i> <span>{t("delivery_list")}</span>
+            </li>
+          </ul>
+
+          {/* Accounts */}
+          <li onClick={() => toggle("accounts")} className={isSubmenuActive(["/admin/accounts", "/admin/account-head"]) ? "active-parent" : ""}>
+            <i className="fa-solid fa-building-columns me-2"></i> <span>{t("accounts")}</span>
+            <i className="fa-solid fa-chevron-down ms-auto"></i>
+          </li>
+          <ul className={`submenu ms-4 ${open.accounts ? "" : "d-none"}`}>
+            {/* <li className={isActive("/admin/add-account") ? "active" : ""} onClick={() => linkClicked("/admin/add-account")}>
+              <i className="fa-solid fa-plus me-2"></i> <span>{t("add_account")}</span>
+            </li> */}
+            <li className={isActive("/admin/account-head") ? "active" : ""} onClick={() => linkClicked("/admin/account-head")}>
+              <i className="fa-solid fa-list me-2"></i> <span>{t("account_head")}</span>
             </li>
           </ul>
 

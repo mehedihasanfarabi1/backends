@@ -12,8 +12,8 @@ from users.models import UserPermissionSet
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
 
-# ----------------- Business Type -----------------
 # ----------------- Business Type -----------------
 class BusinessTypeViewSet(viewsets.ModelViewSet):
     queryset = BusinessType.objects.select_related("company").all().order_by("name")
@@ -43,3 +43,9 @@ class BusinessTypeViewSet(viewsets.ModelViewSet):
                     allowed_bt_ids.extend(BusinessType.objects.filter(company_id=company_id).values_list("id", flat=True))
 
         return qs.filter(id__in=allowed_bt_ids).distinct()
+    def perform_destroy(self, instance):
+        try:
+            instance.delete(user=self.request.user)
+        except ValidationError as e:
+            # ValidationError → 400 Bad Request
+            raise ValidationError({"detail": e.messages})

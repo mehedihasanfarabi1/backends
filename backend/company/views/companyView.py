@@ -12,7 +12,7 @@ from company.serializers.companySerializers import CompanySerializer
 from company.serializers.businessTypeSerializers import BusinessTypeSerializer
 from company.serializers.factorySerializers import FactorySerializer
 from company.permissions import CompanyModulePermission
-
+from django.core.exceptions import ValidationError
 # ----------------- Company -----------------
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
@@ -78,5 +78,9 @@ class CompanyDetailsView(APIView):
             "factories": FactorySerializer(factories, many=True).data
         })
 
-
+    def perform_destroy(self, instance):
+        try:
+            instance.delete(user=self.request.user)
+        except ValidationError as e:
+            raise ValidationError({"detail": e.messages})
 

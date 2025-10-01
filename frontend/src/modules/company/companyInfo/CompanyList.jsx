@@ -56,6 +56,7 @@ export default function CompanyList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView]);
 
+
   // 🟢 Delete selected companies
   const onDelete = async () => {
     if (!selected.length) return;
@@ -78,12 +79,27 @@ export default function CompanyList() {
         }
         setSelected([]);
         loadCompanies();
-        Swal.fire("Deleted!", "Companies removed.", "success");
+        Swal.fire("✅ Deleted!", "Companies removed successfully.", "success");
       } catch (err) {
-        Swal.fire("Error", err.message, "error");
+        // 🔹 Child থাকলে specific warning দেখাবে
+        let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+        if (typeof message === "object") {
+          // DRF ValidationError returns array
+          message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+        }
+
+        Swal.fire(
+          "⚠️ Cannot Delete",
+          "Child Property Need to delete first: " ,
+          "warning"
+        );
+
       }
     }
   };
+
+
 
   // 🟢 Toggle selection
   const toggleSelect = (id) => {

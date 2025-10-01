@@ -3,18 +3,18 @@ from rest_framework.exceptions import PermissionDenied
 from users.models import UserPermissionSet
 
 # কোন কোন module-এর কি কি permission থাকবে
-PARTY_TYPE_PERMISSIONS = {
-    "party_type": ["create", "view", "edit", "delete"],
-    "party": ["create", "view", "edit", "delete"],
+ACCOUNTS_PERMISSIONS = {
+    "account_head": ["create", "view", "edit", "delete"],
+    "account": ["create", "view", "edit", "delete"],
 }
 
 
-def get_all_party_type_permissions():
+def get_all_account_permissions():
     """
-    PartyType & Party মডিউলের সব permissions list করে return করবে
+    AccountHead & Account মডিউলের সব permissions list করে return করবে
     """
     permissions = []
-    for module, actions in PARTY_TYPE_PERMISSIONS.items():
+    for module, actions in ACCOUNTS_PERMISSIONS.items():
         for action in actions:
             permissions.append({
                 "module": module,
@@ -25,7 +25,7 @@ def get_all_party_type_permissions():
 
 
 
-class PartyTypeModulePermission(BasePermission):
+class AccountHeadModulePermission(BasePermission):
     ACTION_MAP = {
         "list": "view",
         "retrieve": "view",
@@ -59,18 +59,18 @@ class PartyTypeModulePermission(BasePermission):
 
         perms = UserPermissionSet.objects.filter(user=user)
         for p in perms:
-            party_type_module = p.party_type_module
-            if isinstance(party_type_module, str):
+            accounts_module = p.accounts_module
+            if isinstance(accounts_module, str):
                 import json
                 try:
-                    party_type_module = json.loads(party_type_module)
+                    accounts_module = json.loads(accounts_module)
                 except json.JSONDecodeError:
-                    party_type_module = {}
-            elif party_type_module is None:
-                party_type_module = {}
+                    accounts_module = {}
+            elif accounts_module is None:
+                accounts_module = {}
 
             # Ensure module_name exists
-            module_perms = party_type_module.get(module_name, {})
+            module_perms = accounts_module.get(module_name, {})
             if module_perms.get(action_perm, False):
                 return True
 

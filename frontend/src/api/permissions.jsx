@@ -6,7 +6,7 @@ import api from "./axios";
 export const PermissionAPI = {
   list: async () => {
     try {
-      const [prod, comp,party,booking,sr,pallot,loan,settings] = await Promise.all([
+      const [prod, comp,party,booking,sr,pallot,loan,settings,accounts] = await Promise.all([
 
         api.get("/company/permissions/"),
         api.get("/products/permissions/"),
@@ -16,9 +16,10 @@ export const PermissionAPI = {
         api.get("/pallot/permissions/"),
         api.get("/loan/permissions/"),
         api.get("/essential_settings/permissions/"),
+        api.get("/accounts/permissions/"),  
       ]);
       return [...prod.data, ...comp.data,...party.data,...booking.data,
-        ...sr.data,...pallot.data,...loan.data,...settings.data];
+        ...sr.data,...pallot.data,...loan.data,...settings.data,...accounts.data];
     } catch (err) {
       console.error("PermissionAPI.list error", err);
       return [];
