@@ -1,4 +1,4 @@
-import React,{ useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FactoryAPI, CompanyAPI, BusinessTypeAPI } from "../../../api/company";
 import { PermissionAPI } from "../../../api/permissions";
@@ -80,7 +80,15 @@ export default function FactoryList() {
         load();
         Swal.fire("Deleted!", "Selected factory(s) removed.", "success");
       } catch (err) {
-        Swal.fire("Error", err.message, "error");
+        
+        let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+        if (typeof message === "object") {
+          
+          message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+        }
+
+        Swal.fire("⚠️ Cannot Delete", "This Factory has active childData. Delete them first.", "warning");
       }
     }
   };
@@ -177,7 +185,7 @@ export default function FactoryList() {
               {/* <td>{r.is_active ? "✅" : "❌"}</td> */}
               <td>
                 <button className="btn btn-sm btn-outline-secondary me-2" onClick={canEdit ? () => nav(`/admin/factories/${r.id}`) : () => Swal.fire("❌ You do not have permission", "", "error")}>Edit</button>
-                <button className="btn btn-sm btn-outline-danger" onClick={canDelete ? () => {setSelected([r.id]); onDelete();} : () => Swal.fire("❌ You do not have permission", "", "error")}>Delete</button>
+                <button className="btn btn-sm btn-outline-danger" onClick={canDelete ? () => { setSelected([r.id]); onDelete(); } : () => Swal.fire("❌ You do not have permission", "", "error")}>Delete</button>
               </td>
             </tr>
           )) : (

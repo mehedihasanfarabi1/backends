@@ -1,5 +1,3 @@
-// utils/formatter.js
-
 // 👉 Date formatting helper
 const formatDate = (date) => {
     try {
@@ -35,7 +33,7 @@ const formatBoolean = (val) => {
     return "";
 };
 
-// 👉 Number formatting (with commas)
+// 👉 Number formatting 
 const formatNumber = (num) => {
     try {
         return new Intl.NumberFormat("en-IN").format(num);

@@ -63,7 +63,15 @@ export default function UnitConversionList() {
         load();
         Swal.fire("Deleted!", "Selected conversion(s) removed.", "success");
       } catch (err) {
-        Swal.fire("Error", err.message, "error");
+       
+        let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+        if (typeof message === "object") {
+          
+          message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+        }
+
+        Swal.fire("⚠️ Cannot Delete", "This UnitConversion has active Child. Delete them first.", "warning");
       }
     }
   };

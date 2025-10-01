@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PallotAPI } from "../../../api/pallotApi";
-import {UserPermissionAPI} from "../../../api/permissions";
+import { UserPermissionAPI } from "../../../api/permissions";
 import Select from "react-select"; // for select2 like search
 import Swal from "sweetalert2";
 import ActionBar from "../../../components/common/ActionBar";
@@ -49,7 +49,14 @@ export default function PallotTypeList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-      Swal.fire("Error", "Delete failed", "error");
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+      if (typeof message === "object") {
+
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+
+      Swal.fire("⚠️ Cannot Delete", "This Pallot has active child. Delete them first.", "warning");
     }
   };
 

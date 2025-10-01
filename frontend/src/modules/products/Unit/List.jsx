@@ -82,7 +82,15 @@ export default function UnitList() {
         load();
         Swal.fire("Deleted!", "Selected unit(s) removed.", "success");
       } catch (err) {
-        Swal.fire("Error", err.message, "error");
+           // 🔹 Child থাকলে specific warning দেখাবে
+              let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+        
+              if (typeof message === "object") {
+                // DRF ValidationError returns array
+                message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+              }
+        
+            Swal.fire("⚠️ Cannot Delete", "This Unit has active UnitSize. Delete them first.", "warning");
       }
     }
   };

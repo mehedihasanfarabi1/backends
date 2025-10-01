@@ -1,7 +1,7 @@
 // src/pages/pallot/PallotList.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {  PallotListAPI } from "../../../api/pallotApi";
+import { PallotListAPI } from "../../../api/pallotApi";
 import Swal from "sweetalert2";
 import ActionBar from "../../../components/common/ActionBar";
 
@@ -45,8 +45,14 @@ export default function PallotList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Delete failed", "error");
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+      if (typeof message === "object") {
+
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+
+      Swal.fire("⚠️ Cannot Delete", "This Pallot has active child. Delete them first.", "warning");
     }
   };
 

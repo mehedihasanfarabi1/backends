@@ -88,8 +88,14 @@ export default function BagTypeList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Delete failed", "error");
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+      if (typeof message === "object") {
+
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+
+      Swal.fire("⚠️ Cannot Delete", "This BagType has active child. Delete them first.", "warning");
     }
   };
 

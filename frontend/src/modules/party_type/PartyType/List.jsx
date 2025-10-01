@@ -118,8 +118,14 @@ export default function PartyTypeList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-      console.error("Delete error:", err.response?.data || err);
-      Swal.fire("Error", "Delete failed", "error");
+       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+ 
+       if (typeof message === "object") {
+       
+         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+       }
+ 
+     Swal.fire("⚠️ Cannot Delete", "This PartyType has active party. Delete them first.", "warning");
     }
   };
 

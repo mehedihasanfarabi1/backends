@@ -76,7 +76,15 @@ export default function ProductSizeSettingList() {
         load();
         Swal.fire("Deleted!", "Selected items removed.", "success");
       } catch (err) {
-        Swal.fire("Error", err.message, "error");
+        
+        let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+        if (typeof message === "object") {
+          
+          message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+        }
+
+        Swal.fire("⚠️ Cannot Delete", "This items has active childs. Delete them first.", "warning");
       }
     }
   };

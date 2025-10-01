@@ -179,8 +179,15 @@ export default function PTList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-      console.error("Delete error:", err.response?.data || err);
-      Swal.fire("Error", "Delete failed", "error");
+      // 🔹 Child থাকলে specific warning দেখাবে
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+      if (typeof message === "object") {
+        // DRF ValidationError returns array
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+
+    Swal.fire("⚠️ Cannot Delete", "This ProductType has active Categories. Delete them first.", "warning");
     }
   };
 

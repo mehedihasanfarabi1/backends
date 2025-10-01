@@ -31,7 +31,7 @@ export default function ProductList() {
   const [selectedProductType, setSelectedProductType] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   // ✅ Load current user
   const loadCurrentUser = async () => {
@@ -143,8 +143,15 @@ export default function ProductList() {
       setSelectedRows([]);
       loadData();
     } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Delete failed", "error");
+      
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+      if (typeof message === "object") {
+        // DRF ValidationError returns array
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+
+      Swal.fire("⚠️ Cannot Delete", "This Prodcucts has active Childs. Delete them first.", "warning");
     }
   };
 

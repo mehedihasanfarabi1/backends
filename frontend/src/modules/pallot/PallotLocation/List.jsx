@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; 
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ChamberAPI, FloorAPI, PocketAPI } from "../../../api/pallotApi";
@@ -55,7 +55,16 @@ export default function PallotLocationList() {
       if (type === "pocket") await PocketAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       loadData();
-    } catch { Swal.fire("Error", "Delete failed", "error"); }
+    } catch (err) {
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+
+      if (typeof message === "object") {
+
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+
+      Swal.fire("⚠️ Cannot Delete", "This element has active child. Delete them first.", "warning");
+    }
   };
 
   const handleSelectAll = (checked) => setSelectedRows(checked ? chambers.map(c => c.id) : []);
