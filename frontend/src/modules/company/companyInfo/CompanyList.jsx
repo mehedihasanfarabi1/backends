@@ -91,7 +91,7 @@ export default function CompanyList() {
 
         Swal.fire(
           "⚠️ Cannot Delete",
-          "Child Property Need to delete first: " ,
+          "Child Property Need to delete first: ",
           "warning"
         );
 
@@ -115,6 +115,19 @@ export default function CompanyList() {
       (r?.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
+
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await CompanyAPI.bulk_import(file); // ✅ শুধু FILE object
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      loadCompanies();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -123,6 +136,7 @@ export default function CompanyList() {
       </div>
     );
   }
+
 
   // 🟢 No view permission
   if (!canView) {
@@ -148,6 +162,7 @@ export default function CompanyList() {
         showDelete={canDelete}
         selectedCount={selected.length}
         data={filtered}
+        onImport={handleImport}
         exportFileName="companies"
         showExport={canView}
         showPrint={canView}
@@ -170,6 +185,12 @@ export default function CompanyList() {
       <table className="table table-striped table-bordered">
         <thead className="table-light">
           <tr className="bg-primary text-white">
+
+            <th style={{ width: 60 }}>SN</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th style={{ width: 150 }}>Actions</th>
             <th style={{ width: 50 }}>
               <input
                 type="checkbox"
@@ -180,25 +201,13 @@ export default function CompanyList() {
                 disabled={!canDelete}
               />
             </th>
-            <th style={{ width: 60 }}>SN</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th style={{ width: 150 }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filtered.length ? (
             filtered.map((r, i) => (
               <tr key={r.id}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(r.id)}
-                    onChange={() => toggleSelect(r.id)}
-                    disabled={!canDelete}
-                  />
-                </td>
+
                 <td>{i + 1}</td>
                 <td>{r.name}</td>
                 <td>{r.email}</td>
@@ -221,6 +230,14 @@ export default function CompanyList() {
                   >
                     Delete
                   </button>
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(r.id)}
+                    onChange={() => toggleSelect(r.id)}
+                    disabled={!canDelete}
+                  />
                 </td>
               </tr>
             ))

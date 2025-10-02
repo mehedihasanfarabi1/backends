@@ -7,4 +7,4 @@ from backend.AuditSerializerMixin import AuditSerializerMixin
 class CompanySerializer(AuditSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = "__all__"
+        fields =["id", "name", "phone","code","email","address","website","telephone","description","proprietor_name"]

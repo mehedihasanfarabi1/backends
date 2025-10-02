@@ -107,7 +107,7 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
       <div className={`sidebar ${collapsed ? "collapsed" : "expanded"} ${showMobile ? "show" : ""}`}>
         <ul>
           {/* Dashboard */}
-          <li className={isActive("/admin") ? "active" : ""} onClick={() => linkClicked("/admin")}>
+          <li style={{marginTop:"50px"}} className={isActive("/admin") ? "active" : ""} onClick={() => linkClicked("/admin")}>
             <i className="fa-solid fa-house me-2"></i> <span>{t("dashboard")}</span>
           </li>
 
@@ -362,18 +362,24 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
           </ul>
 
           {/* Accounts */}
-          <li onClick={() => toggle("accounts")} className={isSubmenuActive(["/admin/accounts", "/admin/account-head"]) ? "active-parent" : ""}>
-            <i className="fa-solid fa-building-columns me-2"></i> <span>{t("accounts")}</span>
-            <i className="fa-solid fa-chevron-down ms-auto"></i>
-          </li>
-          <ul className={`submenu ms-4 ${open.accounts ? "" : "d-none"}`}>
-            {/* <li className={isActive("/admin/add-account") ? "active" : ""} onClick={() => linkClicked("/admin/add-account")}>
+          {hasPermission("accounts_module") && (
+            <>
+              <li onClick={() => toggle("accounts")} className={isSubmenuActive(["/admin/accounts", "/admin/account-head"]) ? "active-parent" : ""}>
+                <i className="fa-solid fa-building-columns me-2"></i> <span>{t("accounts")}</span>
+                <i className="fa-solid fa-chevron-down ms-auto"></i>
+              </li>
+              <ul className={`submenu ms-4 ${open.accounts ? "" : "d-none"}`}>
+                {/* <li className={isActive("/admin/add-account") ? "active" : ""} onClick={() => linkClicked("/admin/add-account")}>
               <i className="fa-solid fa-plus me-2"></i> <span>{t("add_account")}</span>
             </li> */}
-            <li className={isActive("/admin/account-head") ? "active" : ""} onClick={() => linkClicked("/admin/account-head")}>
-              <i className="fa-solid fa-list me-2"></i> <span>{t("account_head")}</span>
-            </li>
-          </ul>
+                <li className={isActive("/admin/account-head") ? "active" : ""} onClick={() => linkClicked("/admin/account-head")}>
+                  <i className="fa-solid fa-list me-2"></i> <span>{t("account_head")}</span>
+                </li>
+              </ul>
+            </>
+          )
+          }
+
 
           {/* Bank */}
           <li onClick={() => toggle("bank")} className={isSubmenuActive(["/admin/bank", "/admin/add-bank"]) ? "active-parent" : ""}>

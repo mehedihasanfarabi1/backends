@@ -111,10 +111,10 @@ export default function Header({ onHamburgerClick }) {
 
 
   return (
-    <div style={{position:"fixed"}} className="header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light position-relative">
+    <div className="header fixed-top d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light">
       {/* Left: Logo & Hamburger */}
       <div className="d-flex align-items-center">
-        <div className="logo fw-bold fs-4 me-4">Legend IT</div>
+        <div className="logo fs-3 me-2">Legend IT</div>
         <div className="hamburger me-3" onClick={onHamburgerClick} role="button">
           <i className="fa-solid fa-bars fs-4"></i>
         </div>
@@ -146,7 +146,6 @@ export default function Header({ onHamburgerClick }) {
             onClick={() => { setShowNotifications(!showNotifications); setShowMessages(false); }}></i>
         </div>
 
-        {/* Language Switch */}
         {/* Language Switch */}
         {/* <div className="position-relative me-3" ref={langRef}>
           <i
@@ -185,8 +184,7 @@ export default function Header({ onHamburgerClick }) {
 
         {/* User Dropdown */}
         <div className="dropdown">
-          <img src="https://placehold.co/37x37" className="rounded-circle me-2" style={{ width: 37, height: 37 }} alt="User" />
-          <a href="#" className="dropdown-toggle text-dark text-decoration-none fw-semibold" data-bs-toggle="dropdown">Admin</a>
+          <a style={{cursor:"pointer"}} className="dropdown-toggle text-dark text-decoration-none fw-semibold" data-bs-toggle="dropdown">Admin</a>
           <ul className="dropdown-menu dropdown-menu-end">
             <li><button className="dropdown-item" onClick={() => navigate("/admin/profile")}>{t("profile")}</button></li>
             <li><button className="dropdown-item" onClick={handleLogout}>{t("logout")}</button></li>
@@ -234,16 +232,6 @@ export default function Header({ onHamburgerClick }) {
         </div>
       )}
 
-      {/* Backend Products (example) */}
-      {/* <ul style={{ marginTop: "20px" }}>
-        { products.map(p => (
-          <li key={p.id}>{p.name} - {p.description} - ${p.price}</li>
-        ))}
-      </ul> */}
-
-      {/* <style jsx>{`
-  
-      `}</style> */}
     </div>
   );
 }

@@ -13,7 +13,12 @@ from company.serializers.businessTypeSerializers import BusinessTypeSerializer
 from company.serializers.factorySerializers import FactorySerializer
 from company.permissions import CompanyModulePermission
 from django.core.exceptions import ValidationError
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from utils.excel_import import import_excel_to_model
 # ----------------- Company -----------------
+
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
@@ -36,7 +41,34 @@ class CompanyViewSet(viewsets.ModelViewSet):
                 allowed_company_ids.update(p.companies or [])
 
         return qs.filter(id__in=allowed_company_ids).distinct()
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
 
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        # Field mapping: Excel column → Model field
+        field_mapping = {
+            "name": "name",
+            "description": "description",
+            "code": "code",         
+            "email": "email",
+            "address": "address",
+            "website": "website",
+            "proprietor_name": "proprietor_name",
+            "telephone": "telephone",
+        }
+
+        print("FIle mapped : ",field_mapping)
+
+        result = import_excel_to_model(file, Company, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} Company imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)
 
 # ----------------- Company Details -----------------
 class CompanyDetailsView(APIView):

@@ -9,8 +9,10 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import './index.css'
 import "./styles/main.css";  
 import "./styles/table.css"; 
-import "./styles/languageSwitcher.css"
-import "./styles/kpicontainer.css"
+import "./styles/Admin/header.css";
+import "./styles/Admin/sidebar.css";
+import "./styles/Admin/mainContent.css";
+import "./styles/Admin/footer.css";
 import { TranslationProvider } from "./contexts/TranslationContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(

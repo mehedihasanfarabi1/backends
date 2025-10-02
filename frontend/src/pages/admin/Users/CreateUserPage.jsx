@@ -43,16 +43,16 @@ function CreateUserPage() {
   };
 
   return (
-    <div className="container my-1">
+    <div className="container my-1" style={{width:"600px"}}>
       <div className="row justify-content-center">
         {/* col-lg-8 মানে বড় screen এ 8 grid নেবে, ছোট screen এ full নেবে */}
         <div className="col-lg-12 col-md-10 col-12">
           <div className="card shadow-lg border-0 rounded-4">
-            <div className="card-body p-4 p-md-5">
-              <h3 className="card-title text-center mb-4 fw-bold text-primary">
+            <div className="card-body p-3 p-md-3">
+              <h3 className="card-title text-center mb-4  text-primary">
                 <i className="fa fa-user-plus me-2"></i> Create New User
               </h3>
-
+              <hr/>
               <form onSubmit={handleSubmit} className="row g-3">
                 <div className="col-md-6">
                   <label className="form-label fw-semibold">Full Name</label>

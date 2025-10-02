@@ -113,6 +113,18 @@ export default function BusinessTypeList() {
         (r.description || "").toLowerCase().includes(search.toLowerCase()))
   );
 
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await BusinessTypeAPI.bulk_import(file); // ✅ শুধু FILE object
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      load();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -141,6 +153,7 @@ export default function BusinessTypeList() {
         data={filtered}
         exportFileName="business_types"
         showCreate={canCreate}
+        onImport={handleImport}
         showDelete={canDelete}
         showExport={canView}
         showPrint={canView}
@@ -173,6 +186,12 @@ export default function BusinessTypeList() {
       <table className="table table-striped table-bordered">
         <thead className="table-light">
           <tr className="bg-primary text-white">
+
+            <th style={{ width: 60 }}>SN</th>
+            <th>Company</th>
+            <th>Business Type</th>
+            <th>Short Name</th>
+            <th style={{ width: 150 }}>Actions</th>
             <th style={{ width: 50 }}>
               <input
                 type="checkbox"
@@ -181,19 +200,12 @@ export default function BusinessTypeList() {
                 disabled={!canDelete}
               />
             </th>
-            <th style={{ width: 60 }}>SN</th>
-            <th>Company</th>
-            <th>Business Type</th>
-            <th>Short Name</th>
-            <th style={{ width: 150 }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filtered.length ? filtered.map((r, i) => (
             <tr key={r.id}>
-              <td>
-                <input type="checkbox" checked={selected.includes(r.id)} onChange={() => toggleSelect(r.id)} disabled={!canDelete} />
-              </td>
+
               <td>{i + 1}</td>
               <td>{r.company?.name || "-"}</td>
               <td>{r.name}</td>
@@ -201,6 +213,9 @@ export default function BusinessTypeList() {
               <td>
                 <button className="btn btn-sm btn-outline-secondary me-2" onClick={canEdit ? () => nav(`/admin/business-types/${r.id}`) : () => Swal.fire("❌ You do not have permission", "", "error")}>Edit</button>
                 <button className="btn btn-sm btn-outline-danger" onClick={canDelete ? () => { setSelected([r.id]); onDelete(); } : () => Swal.fire("❌ You do not have permission", "", "error")}>Delete</button>
+              </td>
+              <td>
+                <input type="checkbox" checked={selected.includes(r.id)} onChange={() => toggleSelect(r.id)} disabled={!canDelete} />
               </td>
             </tr>
           )) : (

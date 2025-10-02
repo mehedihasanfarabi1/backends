@@ -80,11 +80,11 @@ export default function FactoryList() {
         load();
         Swal.fire("Deleted!", "Selected factory(s) removed.", "success");
       } catch (err) {
-        
+
         let message = err?.response?.data?.detail || err?.message || "Something went wrong";
 
         if (typeof message === "object") {
-          
+
           message = message.detail ? message.detail : Object.values(message).flat().join(", ");
         }
 
@@ -107,7 +107,17 @@ export default function FactoryList() {
         (r.short_name || "").toLowerCase().includes(search.toLowerCase()) ||
         (r.address || "").toLowerCase().includes(search.toLowerCase()))
   );
-
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await FactoryAPI.bulk_import(file); // ✅ শুধু FILE object
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      load();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -136,6 +146,7 @@ export default function FactoryList() {
         data={filtered}
         exportFileName="factories"
         showCreate={canCreate}
+        onImport={handleImport}
         showDelete={canDelete}
         showExport={canView}
         showPrint={canView}
@@ -159,9 +170,7 @@ export default function FactoryList() {
       <table className="table table-striped table-bordered">
         <thead className="table-light">
           <tr className="bg-primary text-white">
-            <th style={{ width: 50 }}>
-              <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={(e) => setSelected(e.target.checked ? filtered.map((r) => r.id) : [])} disabled={!canDelete} />
-            </th>
+
             <th style={{ width: 60 }}>SN</th>
             <th>Company</th>
             <th>Business Type</th>
@@ -170,12 +179,14 @@ export default function FactoryList() {
             <th>Address</th>
             {/* <th>Active?</th> */}
             <th style={{ width: 120 }}>Actions</th>
+            <th style={{ width: 50 }}>
+              <input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={(e) => setSelected(e.target.checked ? filtered.map((r) => r.id) : [])} disabled={!canDelete} />
+            </th>
           </tr>
         </thead>
         <tbody>
           {filtered.length ? filtered.map((r, i) => (
             <tr key={r.id}>
-              <td><input type="checkbox" checked={selected.includes(r.id)} onChange={() => toggleSelect(r.id)} disabled={!canDelete} /></td>
               <td>{i + 1}</td>
               <td>{r.company?.name || "-"}</td>
               <td>{r.business_type?.name || "-"}</td>
@@ -187,6 +198,8 @@ export default function FactoryList() {
                 <button className="btn btn-sm btn-outline-secondary me-2" onClick={canEdit ? () => nav(`/admin/factories/${r.id}`) : () => Swal.fire("❌ You do not have permission", "", "error")}>Edit</button>
                 <button className="btn btn-sm btn-outline-danger" onClick={canDelete ? () => { setSelected([r.id]); onDelete(); } : () => Swal.fire("❌ You do not have permission", "", "error")}>Delete</button>
               </td>
+              <td><input type="checkbox" checked={selected.includes(r.id)} onChange={() => toggleSelect(r.id)} disabled={!canDelete} /></td>
+
             </tr>
           )) : (
             <tr><td colSpan={9} className="text-center text-muted">No data</td></tr>

@@ -166,8 +166,8 @@ export default function RolesPage() {
                         ))}
                     </ul>
                 </div>
-
-                <div className="col-md-8">
+                {/* Role Permissions */}
+                {/* <div className="col-md-8">
                     {selectedRole && (
                         <>
                             <h5>Permissions for {selectedRole.name}</h5>
@@ -197,7 +197,7 @@ export default function RolesPage() {
                             </button>
                         </>
                     )}
-                </div>
+                </div> */}
             </div>
         </div>
     );

@@ -57,7 +57,7 @@ export default function AdminLayout() {
 
   // 🔥 Refresh button handler
   const handleRefresh = () => {
-    window.location.reload(); 
+    window.location.reload();
   };
 
   // Page title dynamic kora
@@ -76,7 +76,7 @@ export default function AdminLayout() {
 
 
   return (
-    <div className="container-fluid p-0" style={{marginTop:"2px"}}>
+    <div className="container-fluid p-0" style={{ marginTop: "2px" }}>
       <Header onHamburgerClick={onHamburgerClick} />
 
       <div className="d-flex">
@@ -97,12 +97,14 @@ export default function AdminLayout() {
               <button
                 onClick={handleBack}
                 className="btn btn-sm btn-secondary me-2"
+                style={{ borderRadius: "3px" }}
               >
                 Back
               </button>
               <button
                 onClick={handleRefresh}
                 className="btn btn-sm btn-info text-white me-2"
+                style={{ borderRadius: "3px" }}
               >
                 Refresh
               </button>

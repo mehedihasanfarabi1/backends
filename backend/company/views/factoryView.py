@@ -12,7 +12,10 @@ from users.models import UserPermissionSet
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
+from utils.excel_import import import_excel_to_model
 
 # ----------------- Factory -----------------
 class FactoryViewSet(viewsets.ModelViewSet):
@@ -48,3 +51,30 @@ class FactoryViewSet(viewsets.ModelViewSet):
         if query:
             return qs.filter(query).distinct()
         return Factory.objects.none()
+
+    @action(detail=False, methods=["post"], url_path="bulk-import")
+    def bulk_import(self, request):
+
+        file = request.FILES.get("file")
+
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        # Field mapping: Excel column → Model field
+        field_mapping = {
+            "name": "name",
+            "short_name": "short_name",
+            "address": "address",
+            "company": "company_id",         
+            "business_type": "business_type_id",         
+            
+        }
+
+        print("FIle mapped : ",field_mapping)
+
+        result = import_excel_to_model(file, Factory, field_mapping)
+
+        if result["status"] == "success":
+            return Response({"success": f"{result['count']} Factory imported"}, status=201)
+        else:
+            return Response({"error": result["message"]}, status=400)

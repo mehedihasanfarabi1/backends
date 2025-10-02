@@ -1,5 +1,4 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FactoryAPI, CompanyAPI, BusinessTypeAPI } from "../../../api/company";
 import Swal from "sweetalert2";
@@ -13,36 +12,61 @@ export default function FactoryForm() {
   const [businessTypes, setBusinessTypes] = useState([]);
 
   const [form, setForm] = useState({
-    company_id: "",
-    business_type_id: "",
+    company: "",
+    business_type: "",
     name: "",
     short_name: "",
     address: "",
     is_active: true,
   });
 
+  // Load companies and edit data
   useEffect(() => {
+    // Load all companies
     CompanyAPI.list().then(setCompanies);
-    BusinessTypeAPI.list().then(setBusinessTypes);
 
     if (isEdit) {
-      FactoryAPI.get(id).then((data) =>
+      FactoryAPI.get(id).then((data) => {
+        const selectedCompany = data.company?.id || "";
         setForm({
-          company: data.company?.id || "",
+          company: selectedCompany,
           business_type: data.business_type?.id || "",
           name: data.name || "",
           short_name: data.short_name || "",
           address: data.address || "",
           is_active: data.is_active,
-        })
-      );
+        });
+
+        // Load business types for selected company in edit mode
+        if (selectedCompany) {
+          BusinessTypeAPI.list({ company_id: selectedCompany }).then(setBusinessTypes);
+        }
+      });
     }
-  }, [id]);
+  }, [id, isEdit]);
+
+  // Company change handler
+  const handleCompanyChange = (e) => {
+    const companyId = e.target.value;
+    setForm((prev) => ({
+      ...prev,
+      company: companyId,
+      business_type: "", // clear previous selection
+    }));
+
+    if (companyId) {
+      // Send company_id param
+      BusinessTypeAPI.list({ company_id: companyId }).then(setBusinessTypes);
+    } else {
+      setBusinessTypes([]);
+    }
+  };
+
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((p) => ({
-      ...p,
+    setForm((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
@@ -55,17 +79,16 @@ export default function FactoryForm() {
         short_name: form.short_name || "",
         address: form.address || "",
         is_active: form.is_active,
-        company_id: form.company || null,       // <- এখানে company_id
-        business_type_id: form.business_type || null, // <- এখানে business_type_id
+        company_id: form.company || null,
+        business_type_id: form.business_type || null,
       };
-
 
       if (isEdit) {
         await FactoryAPI.update(id, payload);
-        Swal.fire("Updated!", "Factory updated.", "success");
+        Swal.fire("Updated!", "Factory updated successfully.", "success");
       } else {
         await FactoryAPI.create(payload);
-        Swal.fire("Created!", "Factory created.", "success");
+        Swal.fire("Created!", "Factory created successfully.", "success");
       }
       nav("/admin/factories");
     } catch (err) {
@@ -74,96 +97,122 @@ export default function FactoryForm() {
   };
 
   return (
-    <div className="container mt-3">
-      <h3>{isEdit ? "Edit Factory" : "Create Factory"}</h3>
-      <form onSubmit={onSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Company</label>
-          <select
-            className="form-select"
-            name="company"
-            value={form.company}
-            onChange={onChange}
-          >
-            <option value="">-- Select Company --</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="container mt-4 d-flex justify-content-center">
+      <div
+        className="card shadow-sm p-4"
+        style={{ maxWidth: "650px", width: "100%" }}
+      >
+        <h3 className="mb-4 text-center text-primary fw-bold">
+          {isEdit ? "Edit Factory" : "Create Factory"}
+        </h3>
 
-        <div className="mb-3">
-          <label className="form-label">Business Type</label>
-          <select
-            className="form-select"
-            name="business_type"
-            value={form.business_type}
-            onChange={onChange}
-          >
-            <option value="">-- Select Business Type --</option>
-            {businessTypes.map((bt) => (
-              <option key={bt.id} value={bt.id}>
-                {bt.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <form className="row g-3" onSubmit={onSubmit}>
+          {/* Company */}
+          <div className="col-md-6">
+            <label className="form-label fw-semibold">Company *</label>
+            <select
+              className="form-select"
+              name="company"
+              value={form.company}
+              onChange={handleCompanyChange}
+              required
+            >
+              <option value="">-- Select Company --</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label">Factory Name *</label>
-          <input
-            type="text"
-            className="form-control"
-            name="name"
-            value={form.name}
-            onChange={onChange}
-            required
-          />
-        </div>
+          {/* Business Type */}
+          <div className="col-md-6">
+            <label className="form-label fw-semibold">Business Type *</label>
+            <select
+              className="form-select"
+              name="business_type"
+              value={form.business_type}
+              onChange={onChange}
+              required
+              disabled={!form.company} // Disabled until company selected
+            >
+              <option value="">-- Select Business Type --</option>
+              {businessTypes.map((bt) => (
+                <option key={bt.id} value={bt.id}>
+                  {bt.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label">Short Name</label>
-          <input
-            type="text"
-            className="form-control"
-            name="short_name"
-            value={form.short_name}
-            onChange={onChange}
-          />
-        </div>
+          {/* Factory Name */}
+          <div className="col-md-6">
+            <label className="form-label fw-semibold">Factory Name *</label>
+            <input
+              type="text"
+              className="form-control"
+              name="name"
+              value={form.name}
+              onChange={onChange}
+              required
+            />
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label">Address</label>
-          <textarea
-            className="form-control"
-            name="address"
-            value={form.address}
-            onChange={onChange}
-          />
-        </div>
+          {/* Short Name */}
+          <div className="col-md-6">
+            <label className="form-label fw-semibold">Short Name</label>
+            <input
+              type="text"
+              className="form-control"
+              name="short_name"
+              value={form.short_name}
+              onChange={onChange}
+            />
+          </div>
 
-        <div className="form-check mb-3">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            name="is_active"
-            checked={form.is_active}
-            onChange={onChange}
-          />
-          <label className="form-check-label">Active</label>
-        </div>
+          {/* Address */}
+          <div className="col-md-12">
+            <label className="form-label fw-semibold">Address</label>
+            <textarea
+              className="form-control"
+              name="address"
+              rows="2"
+              value={form.address}
+              onChange={onChange}
+            />
+          </div>
 
-        <button className="btn btn-primary me-2">{isEdit ? "Update" : "Create"}</button>
-        <button
-          className="btn btn-secondary"
-          type="button"
-          onClick={() => nav("/admin/factories")}
-        >
-          Cancel
-        </button>
-      </form>
+          {/* Active Checkbox */}
+          <div className="col-md-12 d-flex align-items-center">
+            <input
+              type="checkbox"
+              className="form-check-input me-2"
+              name="is_active"
+              checked={form.is_active}
+              onChange={onChange}
+              id="is_active"
+            />
+            <label className="form-check-label fw-semibold" htmlFor="is_active">
+              Active
+            </label>
+          </div>
+
+          {/* Buttons */}
+          <div className="col-12 text-center mt-3">
+            <button type="submit" className="btn btn-primary px-4 me-2">
+              {isEdit ? "Update" : "Create"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary px-4"
+              onClick={() => nav("/admin/factories")}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
