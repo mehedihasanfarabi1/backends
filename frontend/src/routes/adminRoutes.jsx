@@ -19,6 +19,7 @@ import { pallet_routes } from "./pallotRoutes";
 import { loan_routes } from "./loanRoutes"; 
 import { essential_settings } from "./essentialSettingsRoute";
 import { accounts_routes } from "./accountsRoute";
+import BookingList from "../modules/booking/bookingList/List";
 
 export const adminRoutes = [
   { index: true, element: <Dashboard /> },
@@ -31,6 +32,7 @@ export const adminRoutes = [
   { path: "users/roles", element: <RolesPage /> },
   { path: "users/permissions", element: <PermissionsPage /> },
   { path: "permission-designer", element: <PermissionDesigner /> },
+  { path: "bookings_essential", element: <BookingList /> },
 
 
 

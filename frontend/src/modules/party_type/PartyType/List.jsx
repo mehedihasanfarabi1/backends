@@ -1,105 +1,88 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PartyTypeAPI } from "../../../api/partyType";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
-// import "../../../styles/Table.css";
-
 import { useTranslation } from "../../../contexts/TranslationContext";
+import { useFetch } from "../../../hooks/useFetch";
 
 export default function PartyTypeList() {
   const nav = useNavigate();
   const { t } = useTranslation();
-
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [permissions, setPermissions] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
-  // --------------------
-  // Load current user
-  // --------------------
-  const loadCurrentUser = async () => {
-    try {
-      const me = await UserAPI.me();
-      setCurrentUserId(me.id);
-      return me.id;
-    } catch (err) {
-      console.error("Error fetching current user:", err.response?.data || err);
-      return null;
+  // ----------------------------
+  // Fetch current user
+  // ----------------------------
+  const { data: currentUser } = useFetch("currentUser", UserAPI.me);
+
+  // ----------------------------
+  // Fetch user permissions
+  // ----------------------------
+  const { data: userPerms } = useFetch(
+    ["userPermissions", currentUser?.id],
+    () => UserPermissionAPI.getByUser(currentUser.id),
+    { enabled: !!currentUser }
+  );
+
+  // ----------------------------
+  // Fetch party types
+  // ----------------------------
+  const { data: allRows = [], isLoading, refetch } = useFetch(
+    "partyTypes",
+    PartyTypeAPI.list,
+    { enabled: !!currentUser }
+  );
+
+  if (isLoading) return <div className="text-center mt-5">Loading...</div>;
+
+  // ----------------------------
+  // Permissions processing
+  // ----------------------------
+  const allowedCompanyIds = new Set();
+  const permissions = [];
+
+  userPerms?.forEach((p) => {
+    const partyModule = p.party_type_module || {};
+    if (Object.values(partyModule).some((v) => v.view || v.create || v.edit || v.delete)) {
+      (p.companies || []).forEach((cid) => allowedCompanyIds.add(Number(cid)));
+      Object.entries(partyModule).forEach(([module, actions]) =>
+        Object.entries(actions).forEach(([action, allowed]) => {
+          if (allowed) permissions.push(`${module}_${action}`);
+        })
+      );
     }
-  };
+  });
 
-  // --------------------
-  // Load PartyType data
-  // --------------------
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allRows = await PartyTypeAPI.list();
+  if (!permissions.includes("party_type_view"))
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
-      const userId = currentUserId || (await loadCurrentUser());
-      if (!userId) return setLoading(false);
+  // ----------------------------
+  // Filter rows by company & search
+  // ----------------------------
+  const filteredRows = allRows
+    .filter((r) => allowedCompanyIds.has(Number(r.company?.id)))
+    .filter(
+      (r) =>
+        (!selectedCompany || r.company?.id === selectedCompany) &&
+        (r.name.toLowerCase().includes(search.toLowerCase()) ||
+          (r.description || "").toLowerCase().includes(search.toLowerCase()))
+    );
 
-      const userPerms = await UserPermissionAPI.getByUser(userId);
-
-      const allowedCompanyIds = new Set();
-      const userPermissionsArr = [];
-
-      userPerms.forEach((p) => {
-        const partyModule = p.party_type_module || {};
-        if (
-          Object.values(partyModule).some(
-            (v) => v.view || v.create || v.edit || v.delete
-          )
-        ) {
-          (p.companies || []).forEach((cid) => allowedCompanyIds.add(Number(cid)));
-
-          Object.entries(partyModule).forEach(([module, actions]) => {
-            Object.entries(actions).forEach(([action, allowed]) => {
-              if (allowed) userPermissionsArr.push(`${module}_${action}`);
-            });
-          });
-        }
-      });
-
-      setPermissions(userPermissionsArr);
-
-      // Filter rows by permission & company
-      const filteredRows = allRows.filter((r) => {
-        if (!r.company || !allowedCompanyIds.has(Number(r.company.id)))
-          return false;
-
-        return true;
-      });
-
-      setRows(filteredRows);
-    } catch (err) {
-      console.error("Error loading party types:", err.response?.data || err);
-      Swal.fire("Error", "Failed to load party types", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [currentUserId]);
-
-  const toggleSelectRow = (id) => {
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelectRow = (id) =>
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
     if (!permissions.includes("party_type_delete"))
@@ -116,44 +99,29 @@ export default function PartyTypeList() {
       for (let id of selectedRows) await PartyTypeAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      loadData();
+      refetch(); // React Query refetch
     } catch (err) {
-      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
-      if (typeof message === "object") {
-
-        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
-      }
-
-      Swal.fire("⚠️ Cannot Delete", "This PartyType has active party. Delete them first.", "warning");
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "This PartyType has active party. Delete them first.",
+        "warning"
+      );
     }
   };
 
-  const filteredRows = rows.filter(
-    (r) =>
-      (!selectedCompany || r.company?.id === selectedCompany) &&
-      (r.name.toLowerCase().includes(search.toLowerCase()) ||
-        (r.description || "").toLowerCase().includes(search.toLowerCase()))
-  );
-
+  // ----------------------------
+  // Import handler
+  // ----------------------------
   const handleImport = async (file) => {
     if (!file) return;
     try {
-      await PartyTypeAPI.bulk_import(file); // ✅ শুধু FILE object
+      await PartyTypeAPI.bulk_import(file);
       Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      loadData();
+      refetch();
     } catch (err) {
-      console.error("Import error:", err);
       Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
-
-
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (!permissions.includes("party_type_view"))
-    return (
-      <div className="alert alert-danger text-center mt-3">Access Denied</div>
-    );
 
   return (
     <div className="container mt-3">
@@ -166,23 +134,10 @@ export default function PartyTypeList() {
         selectedCount={selectedRows.length}
         data={filteredRows}
         onImport={handleImport}
-        columns={["name","description","company"]}
+        columns={["name", "description", "company"]}
         exportFileName="party_types"
         showExport={permissions.includes("party_type_view")}
       />
-
-      {/* <UserCompanySelector
-        selectedUser={selectedUser}
-        setSelectedUser={setSelectedUser}
-        selectedCompany={selectedCompany}
-        setSelectedCompany={setSelectedCompany}
-        selectedBusiness={null}
-        setSelectedBusiness={null}
-        selectedFactory={null}
-        setSelectedFactory={null}
-        setBusinessTypes={null}
-        setFactories={null}
-      /> */}
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
         <input
