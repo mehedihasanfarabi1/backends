@@ -8,14 +8,14 @@ from django.db.models import Q
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from utils.excel_import import import_excel_to_model
-
+from django.views.decorators.cache import cache_page
 
 class PartyTypeViewSet(viewsets.ModelViewSet):
     queryset = PartyType.objects.all()
     serializer_class = PartyTypeSerializer
     permission_classes = [IsAuthenticated, PartyTypeModulePermission]
     module_name = "party_type"
-
+    
     def get_queryset(self):
         user = self.request.user
         qs = PartyType.objects.all()

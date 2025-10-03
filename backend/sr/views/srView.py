@@ -11,13 +11,14 @@ from sr.serializers.srSerializers import SRSerializer
 from party_type.permissions import PartyTypeModulePermission
 from users.models import UserPermissionSet
 from sr.permissions import SRModulePermission
+from django.views.decorators.cache import cache_page
 
 class SRViewSet(viewsets.ModelViewSet):
     queryset = SR.objects.all().order_by("sr_no")
     serializer_class = SRSerializer
     permission_classes = [IsAuthenticated, SRModulePermission]
     module_name = "sr"
-
+    
     @action(detail=False, methods=["post"], url_path="bulk-import")
     def bulk_import(self, request):
         file = request.FILES.get("file")

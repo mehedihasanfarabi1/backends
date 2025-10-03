@@ -99,8 +99,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'software_project4',       # তোমার DB নাম
         'USER': 'postgres',   # DB ইউজার
-        'PASSWORD': '1234', # পাসওয়ার্ড
-        # 'PASSWORD': '5843', # পাসওয়ার্ড 
+        # 'PASSWORD': '1234', # পাসওয়ার্ড
+        'PASSWORD': '5843', # পাসওয়ার্ড 
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -162,13 +162,9 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -179,7 +175,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    # গ্লোবাল পারমিশন ওপেন রাখলাম; ভিউ লেভেলে প্রটেক্ট করব
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.AllowAny",
     ),
@@ -188,4 +183,13 @@ REST_FRAMEWORK = {
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+    }
+}
+
 

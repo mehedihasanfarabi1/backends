@@ -5,14 +5,14 @@ from pallot.serializers.pallotLocationSerializers import (
     ChamberSerializer, FloorSerializer, PocketSerializer
 )
 from pallot.permissions import PallotModulePermission
-
+from django.views.decorators.cache import cache_page
 
 class ChamberViewSet(viewsets.ModelViewSet):
     queryset = Chamber.objects.all()
     serializer_class = ChamberSerializer
     permission_classes = [PallotModulePermission]
     module_name = "chamber"
-
+    
     def create(self, request, *args, **kwargs):
         company_id = request.data.get("company_id")  # get company_id
         if not company_id:
@@ -35,7 +35,7 @@ class FloorViewSet(viewsets.ModelViewSet):
     serializer_class = FloorSerializer
     permission_classes = [PallotModulePermission]
     module_name = "floor"
-
+    
     def get_queryset(self):
         chamber_id = self.request.query_params.get("chamber_id")
         qs = Floor.objects.all()
@@ -60,7 +60,7 @@ class PocketViewSet(viewsets.ModelViewSet):
     serializer_class = PocketSerializer
     permission_classes = [PallotModulePermission]
     module_name = "pocket"
-
+    
     def get_queryset(self):
         chamber_id = self.request.query_params.get("chamber_id")
         floor_id = self.request.query_params.get("floor_id")
@@ -70,7 +70,7 @@ class PocketViewSet(viewsets.ModelViewSet):
         if floor_id:
             qs = qs.filter(floor_id=floor_id)
         return qs
-
+    
     def create(self, request, *args, **kwargs):
         chamber_id = request.data.get("chamber_id")
         floor_id = request.data.get("floor_id")
@@ -86,7 +86,7 @@ class PocketViewSet(viewsets.ModelViewSet):
             created.append(pocket)
         serializer = self.get_serializer(created, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    
     # --- Add this update method ---
     def update(self, request, *args, **kwargs):
         pocket = self.get_object()

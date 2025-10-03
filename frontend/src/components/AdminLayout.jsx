@@ -113,7 +113,10 @@ export default function AdminLayout() {
             <div className="right-text">Dashboard</div>
           </div>
 
-          <Outlet />
+          <div className="body_part">
+            <Outlet />
+          </div>
+
           <div className="footer mt-3">© {new Date().getFullYear()} Legend IT Solution.</div>
         </div>
       </div>

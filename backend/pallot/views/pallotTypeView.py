@@ -5,13 +5,14 @@ from pallot.serializers.pallotTypeSerializers import PallotTypeSerializer
 from rest_framework.permissions import IsAuthenticated
 from pallot.permissions import PallotModulePermission
 from users.models import UserPermissionSet
+from django.views.decorators.cache import cache_page
 
 class PallotTypeViewSet(viewsets.ModelViewSet):
     queryset = PallotType.objects.all()
     serializer_class = PallotTypeSerializer
     permission_classes = [IsAuthenticated, PallotModulePermission]
     module_name = "pallot_type"
-
+    
     def get_queryset(self):
         user = self.request.user
         qs = PallotType.objects.all()

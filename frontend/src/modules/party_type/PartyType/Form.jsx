@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PartyTypeAPI } from "../../../api/partyType";
 import { CompanyAPI } from "../../../api/company";
 import Swal from "sweetalert2";
+import useFastData from "../../../hooks/useFetch";
 
 export default function PartyTypeForm() {
   const { id } = useParams();
@@ -14,39 +15,32 @@ export default function PartyTypeForm() {
     company_id: "",
   });
 
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // =========================
+  // Fetch companies (fast + cached)
+  // =========================
+  const { data: companies = [], isLoading: loadingCompanies } = useFastData({
+    key: "companies",
+    apiFn: CompanyAPI.list,
+  });
+
+  // =========================
+  // Fetch partyType if editing
+  // =========================
+  const { data: partyTypeData = {}, isLoading: loadingPartyType } = useFastData({
+    key: id ? ["partyType", id] : null,
+    apiFn: () => PartyTypeAPI.retrieve(id),
+    enabled: !!id,
+  });
 
   useEffect(() => {
-    const loadCompanies = async () => {
-      try {
-        const data = await CompanyAPI.list();
-        setCompanies(data);
-      } catch (err) {
-        console.error("Error loading companies:", err);
-        Swal.fire("Error", "Failed to load companies", "error");
-      }
-    };
-
-    const loadPartyType = async () => {
-      if (!id) return;
-      try {
-        const data = await PartyTypeAPI.retrieve(id);
-        setForm({
-          name: data.name,
-          description: data.description || "",
-          company_id: data.company?.id || "",
-        });
-      } catch (err) {
-        console.error("Error loading party type:", err);
-        Swal.fire("Error", "Failed to load party type", "error");
-      }
-    };
-
-    Promise.all([loadCompanies(), loadPartyType()]).finally(() =>
-      setLoading(false)
-    );
-  }, [id]);
+    if (partyTypeData && id) {
+      setForm({
+        name: partyTypeData.name || "",
+        description: partyTypeData.description || "",
+        company_id: partyTypeData.company?.id || "",
+      });
+    }
+  }, [partyTypeData, id]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -58,6 +52,8 @@ export default function PartyTypeForm() {
       if (id) await PartyTypeAPI.update(id, form);
       else await PartyTypeAPI.create(form);
       Swal.fire("Success", "Party type saved successfully!", "success");
+
+      // ✅ Optional: invalidate company/partyType cache if needed
       nav("/admin/party-types");
     } catch (err) {
       console.error(err);
@@ -65,7 +61,8 @@ export default function PartyTypeForm() {
     }
   };
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  if (loadingCompanies || loadingPartyType)
+    return <div className="text-center mt-5">Loading...</div>;
 
   return (
     <div className="container mt-4" style={{ maxWidth: 600 }}>

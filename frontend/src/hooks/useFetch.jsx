@@ -1,57 +1,31 @@
 // src/hooks/useFastData.jsx
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
- * options:
- * - apiFn: async function to fetch data (Promise)
- * - enabledQuery: true/false → React Query use করবো কিনা
+ * Custom fast data hook
+ * @param {Object} options
+ * - key: unique query key
+ * - apiFn: async fetch function
+ * - enabled: boolean → run query or not
+ * - staleTime: কতক্ষণ data fresh ধরা হবে (default: 5 min)
  */
-export default function useFetch({ apiFn, enabledQuery = false }) {
-  const [stateData, setStateData] = useState([]);
-  const [loadingState, setLoadingState] = useState(true);
-  const [errorState, setErrorState] = useState(null);
+export default function useFastData({ key, apiFn, enabled = true, staleTime = 1000 * 60 * 5 }) {
+  const queryClient = useQueryClient();
 
-  // =====================
-  // 1️⃣ State-based fetch
-  // =====================
-  const fetchStateData = async () => {
-    setLoadingState(true);
-    try {
-      const data = await apiFn();
-      setStateData(data);
-      setErrorState(null);
-    } catch (err) {
-      setErrorState(err);
-    } finally {
-      setLoadingState(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!enabledQuery) fetchStateData();
-  }, [enabledQuery, apiFn]);
-
-  // =========================
-  // 2️⃣ React Query-based fetch
-  // =========================
-  const queryResult = useQuery(
-    enabledQuery ? [apiFn.name] : [],
-    enabledQuery
-      ? async () => {
-          const data = await apiFn();
-          return data;
-        }
-      : null,
-    {
-      enabled: enabledQuery,
-    }
-  );
+  const query = useQuery({
+    queryKey: Array.isArray(key) ? key : [key],
+    queryFn: apiFn,
+    enabled,
+    staleTime, // cache থেকে instant data দেবে ৫ মিনিট পর্যন্ত
+    refetchOnWindowFocus: true, // window এলে refresh করবে
+    refetchOnReconnect: true,
+    refetchInterval: false, // চাইলে auto polling দিতে পারো
+  });
 
   return {
-    data: enabledQuery ? queryResult.data || [] : stateData,
-    loading: enabledQuery ? queryResult.isLoading : loadingState,
-    error: enabledQuery ? queryResult.error : errorState,
-    refetch: enabledQuery ? queryResult.refetch : fetchStateData,
+    ...query,
+    // extra helper → manually cache update করার জন্য
+    setCacheData: (updater) =>
+      queryClient.setQueryData(Array.isArray(key) ? key : [key], updater),
   };
 }

@@ -5,7 +5,7 @@
   min-height: 100vh;
 }
 
-.sidebar.collapsed ~ .main-content { padding-left: 90px; }
+.sidebar.collapsed ~ .main-content { padding-left: 85px; }
 
 @media (max-width: 768px) {
   .main-content { padding-left: 0;margin: 10px; }

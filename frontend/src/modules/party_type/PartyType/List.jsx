@@ -5,7 +5,7 @@ import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { useTranslation } from "../../../contexts/TranslationContext";
-import { useFetch } from "../../../hooks/useFetch";
+import useFastData from "../../../hooks/useFetch";
 
 export default function PartyTypeList() {
   const nav = useNavigate();
@@ -15,29 +15,37 @@ export default function PartyTypeList() {
   const [selectedCompany, setSelectedCompany] = useState(null);
 
   // ----------------------------
-  // Fetch current user
+  // Fetch current user (instant cached)
   // ----------------------------
-  const { data: currentUser } = useFetch("currentUser", UserAPI.me);
+  const { data: currentUser } = useFastData({
+    key: "currentUser",
+    apiFn: UserAPI.me,
+  });
 
   // ----------------------------
-  // Fetch user permissions
+  // Fetch user permissions (cache + refetch)
   // ----------------------------
-  const { data: userPerms } = useFetch(
-    ["userPermissions", currentUser?.id],
-    () => UserPermissionAPI.getByUser(currentUser.id),
-    { enabled: !!currentUser }
-  );
+  const { data: userPerms } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+  });
 
   // ----------------------------
   // Fetch party types
   // ----------------------------
-  const { data: allRows = [], isLoading, refetch } = useFetch(
-    "partyTypes",
-    PartyTypeAPI.list,
-    { enabled: !!currentUser }
-  );
+  const {
+    data: allRows = [],
+    isLoading,
+    refetch,
+  } = useFastData({
+    key: "partyTypes",
+    apiFn: PartyTypeAPI.list,
+    enabled: !!currentUser,
+  });
 
-  if (isLoading) return <div className="text-center mt-5">Loading...</div>;
+  // if (isLoading && !allRows.length)
+  //   return <div className="text-center mt-5">Loading...</div>;
 
   // ----------------------------
   // Permissions processing
@@ -57,8 +65,8 @@ export default function PartyTypeList() {
     }
   });
 
-  if (!permissions.includes("party_type_view"))
-    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
+  // if (!permissions.includes("party_type_view"))
+  //   return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   // ----------------------------
   // Filter rows by company & search
@@ -97,9 +105,11 @@ export default function PartyTypeList() {
 
     try {
       for (let id of selectedRows) await PartyTypeAPI.remove(id);
+
+      // ✅ instant UI update without waiting server
+      refetch();
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      refetch(); // React Query refetch
     } catch (err) {
       Swal.fire(
         "⚠️ Cannot Delete",

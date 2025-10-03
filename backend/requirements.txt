@@ -6,3 +6,6 @@ django-parler>=2.3
 psycopg2-binary>=2.9.9   # PostgreSQL এর জন্য
 python-decouple>=3.8       # env file ব্যবহার করলে
 Pillow>=10.0.0             # যদি image upload করো
+pandas>=2.1.0              # Excel import করার জন্য
+openpyxl>=3.1.0            # Excel import এর জন্য
+django-redis>=6.2.0        # Fast data load / caching এর জন্য

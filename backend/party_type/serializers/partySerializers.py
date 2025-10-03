@@ -34,7 +34,7 @@ class PartySerializer(AuditSerializerMixin, serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
-    booking = BookingTypeSerializer(read_only=True)  # nested party_type object
+    booking = BookingTypeSerializer(read_only=True)  # nested booking object
     booking_id = serializers.PrimaryKeyRelatedField(
         queryset=Booking.objects.all(),
         source="booking",
@@ -42,16 +42,12 @@ class PartySerializer(AuditSerializerMixin, serializers.ModelSerializer):
         allow_null=True,
         required=False
     )
-    
+  
+        
     class Meta:
         model = Party
-        fields = "__all__"
-        
-        
-    # class Meta:
-    #     model = Party
-    #     fields = ['id', 'company', 'party_type', 'code', 
-    #               'name', 'father_name', 'village', 'post', 'thana', 'zila', 
-    #               'mobile', 'nid', 'is_default', 'session', 'status', 'booking_bag', 
-    #               'bag_weight', 'total_weight', 'per_bag_rent', 'total_rent', 'per_kg_rent', 
-    #               'total_kg_rent', 'rent_receive', 'per_bag_commission', 'interest_start_date', 'interest_rate']
+        fields = ['id', 'company', "company_id","booking","booking_id",'party_type',"party_type_id", 'code', 
+                  'name', 'father_name', 'village', 'post', 'thana', 'zila', 
+                  'mobile', 'nid', 'is_default', 'session', 'status', 'booking_bag', 
+                  'bag_weight', 'total_weight', 'per_bag_rent', 'total_rent', 'per_kg_rent', 
+                  'total_kg_rent', 'rent_receive', 'per_bag_commission', 'interest_start_date', 'interest_rate']

@@ -15,12 +15,15 @@ from rest_framework import status
 from company.models import Company
 from party_type.models.party_type import PartyType
 
+
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 class PartyViewSet(viewsets.ModelViewSet):
     queryset = Party.objects.all().order_by("code")
     serializer_class = PartySerializer
     permission_classes = [IsAuthenticated, PartyTypeModulePermission]
     module_name = "party"
-
+    # @method_decorator(cache_page(60 * 5))  # cache for 5 min
     def get_queryset(self):
         user = self.request.user
         qs = Party.objects.all().order_by("code")
@@ -42,6 +45,7 @@ class PartyViewSet(viewsets.ModelViewSet):
         return Party.objects.none()
 
         # ✅ Bulk Import for Party
+    @cache_page(60 * 5)  # 5 minutes
     @action(detail=False, methods=["post"], url_path="bulk-import")
     def bulk_import(self, request):
         file = request.FILES.get("file")
@@ -90,7 +94,7 @@ class PartyViewSet(viewsets.ModelViewSet):
             return Response({"error": result["message"]}, status=status.HTTP_400_BAD_REQUEST)
 class NextPartyCodeView(APIView):
     permission_classes = [IsAuthenticated]
-
+    
     def get(self, request):
         last_code = Party.objects.aggregate(models.Max("code"))["code__max"] or 0
         next_code = last_code + 1

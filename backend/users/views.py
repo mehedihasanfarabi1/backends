@@ -137,15 +137,15 @@ class LogoutView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(["POST"])
-def logout_view(request):
-    try:
-        refresh_token = request.data.get("refresh")
-        token = RefreshToken(refresh_token)
-        token.blacklist()
-        return Response({"detail": "Logged out successfully."})
-    except Exception:
-        return Response({"detail": "Invalid token"}, status=400)
+    @api_view(["POST"])
+    def logout_view(request):
+        try:
+            refresh_token = request.data.get("refresh")
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({"detail": "Logged out successfully."})
+        except Exception:
+            return Response({"detail": "Invalid token"}, status=400)
 
 
 

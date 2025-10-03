@@ -7,13 +7,14 @@ from sr.models.sr import SR
 from pallot.serializers.pallotSerializers import PallotSerializer
 from pallot.permissions import PallotModulePermission
 from utils.excel_import import import_excel_to_model
+from django.views.decorators.cache import cache_page
 
 class PallotViewSet(viewsets.ModelViewSet):
     queryset = Pallot.objects.all().select_related("sr", "chamber", "floor", "pocket", "pallot_type")
     serializer_class = PallotSerializer
     permission_classes = [PallotModulePermission]
     module_name = "pallot"
-
+    
     @action(detail=False, methods=["get"])
     def get_sr_quantity(self, request):
         sr_no = request.query_params.get("sr_no")
