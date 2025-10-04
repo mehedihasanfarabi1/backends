@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// src/pages/party/PartyCommissionList.jsx
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PartyTypeAPI, PartyAPI, PartyCommissionAPI } from "../../../api/partyType";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
@@ -7,172 +8,160 @@ import UserCompanySelector from "../../../components/UserCompanySelector";
 import Swal from "sweetalert2";
 import "../../../styles/Table.css";
 import { useTranslation } from "../../../contexts/TranslationContext";
+import useFastData from "../../../hooks/useFetch";
 
 export default function PartyCommissionList() {
-    const nav = useNavigate();
-    const { t } = useTranslation();
+  const nav = useNavigate();
+  const { t } = useTranslation();
 
-    const [rows, setRows] = useState([]);
-    const [permissions, setPermissions] = useState([]);
-    const [currentUserId, setCurrentUserId] = useState(null);
+  const [selectedPartyType, setSelectedPartyType] = useState(null);
+  const [selectedParty, setSelectedParty] = useState(null);
 
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [selectedCompany, setSelectedCompany] = useState(null);
-    const [selectedBusiness, setSelectedBusiness] = useState(null);
-    const [selectedFactory, setSelectedFactory] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [search, setSearch] = useState("");
 
-    const [partyTypes, setPartyTypes] = useState([]);
-    const [parties, setParties] = useState([]);
-    const [selectedPartyType, setSelectedPartyType] = useState(null);
-    const [selectedParty, setSelectedParty] = useState(null);
+  // --------------------------
+  // Load current user
+  // --------------------------
+  const { data: currentUser, isLoading: loadingUser } = useFastData({
+    key: "currentUser",
+    apiFn: UserAPI.me,
+  });
 
-    const [selectedRows, setSelectedRows] = useState([]);
-    const [search, setSearch] = useState("");
+  // --------------------------
+  // Load permissions
+  // --------------------------
+  const { data: userPerms, isLoading: loadingPerms } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+  });
 
-    // ✅ Load current user
-    const loadCurrentUser = async () => {
-        try {
-            const me = await UserAPI.me();
-            setCurrentUserId(me.id);
-            return me.id;
-        } catch (err) {
-            console.error(err);
-            return null;
-        }
-    };
-
-    // ✅ Load permissions
-    const loadPermissions = async () => {
-        const userId = currentUserId || (await loadCurrentUser());
-        if (!userId) return;
-
-        try {
-            const userPerms = await UserPermissionAPI.getByUser(userId);
-            const permsArr = [];
-            userPerms.forEach((p) => {
-                const modulePerms = p.party_type_module?.party_commission || {};
-                Object.entries(modulePerms).forEach(([action, allowed]) => {
-                    if (allowed) permsArr.push(`party_commission_${action}`);
-                });
-            });
-            setPermissions(permsArr);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    // ✅ Load Party Types
-    const loadPartyTypes = async () => {
-        try {
-            const pts = await PartyTypeAPI.list();
-            setPartyTypes(pts);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    // ✅ Load Parties
-    const loadParties = async () => {
-        if (!selectedPartyType) return setParties([]);
-        try {
-            const ps = await PartyAPI.list({ party_type: selectedPartyType });
-            setParties(ps);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    // ✅ Load PartyCommissions
-    const loadData = async () => {
-        try {
-            const data = await PartyCommissionAPI.list({
-                party_type_id: selectedPartyType || undefined,
-                party_id: selectedParty || undefined,
-            });
-            setRows(data);
-        } catch (err) {
-            console.error(err);
-            Swal.fire("Error", "Failed to load party commissions", "error");
-        }
-    };
-
-    useEffect(() => {
-        loadPermissions();
-        loadPartyTypes();
-    }, [currentUserId]);
-
-    useEffect(() => {
-        loadParties();
-        setSelectedParty(null);
-    }, [selectedPartyType]);
-
-    useEffect(() => {
-        loadData();
-    }, [selectedPartyType, selectedParty, selectedCompany, selectedBusiness, selectedFactory]);
-
-    const toggleSelectRow = (id) => {
-        setSelectedRows((prev) =>
-            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-        );
-    };
-
-    const handleDelete = async () => {
-        if (!selectedRows.length) return;
-        if (!permissions.includes("party_commission_delete"))
-            return Swal.fire("❌ Access Denied", "", "error");
-
-        const confirm = await Swal.fire({
-            title: `Delete ${selectedRows.length} commission(s)?`,
-            icon: "warning",
-            showCancelButton: true,
-        });
-        if (!confirm.isConfirmed) return;
-
-        try {
-            for (let id of selectedRows) await PartyCommissionAPI.remove(id);
-            Swal.fire("Deleted!", "", "success");
-            setSelectedRows([]);
-            loadData();
-        } catch (err) {
-            let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
-            if (typeof message === "object") {
-
-                message = message.detail ? message.detail : Object.values(message).flat().join(", ");
-            }
-
-            Swal.fire("⚠️ Cannot Delete", "This PartyCommission has active child. Delete them first.", "warning");
-        }
-    };
-
-    // ✅ Filtering rows
-    const filteredRows = rows.filter((r) => {
-        const matchSearch =
-            r.product?.name.toLowerCase().includes(search.toLowerCase()) ||
-            r.category?.name?.toLowerCase().includes(search.toLowerCase());
-
-        const matchPartyType =
-            !selectedPartyType || r.party_type?.id === selectedPartyType;
-
-        const matchParty = !selectedParty || r.party?.id === selectedParty;
-
-        return matchSearch && matchPartyType && matchParty;
+  const permissions = useMemo(() => {
+    if (!userPerms) return [];
+    const permsArr = [];
+    userPerms.forEach((p) => {
+      const modulePerms = p.party_type_module?.party_commission || {};
+      Object.entries(modulePerms).forEach(([action, allowed]) => {
+        if (allowed) permsArr.push(`party_commission_${action}`);
+      });
     });
+    return permsArr;
+  }, [userPerms]);
 
-    const handleImport = async (file) => {
-        if (!file) return;
-        try {
-            await PartyCommissionAPI.bulk_import(file); // ✅ শুধু FILE object
-            Swal.fire("✅ Imported!", "Records saved successfully", "success");
-            loadData();
-        } catch (err) {
-            console.error("Import error:", err);
-            Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
-        }
-    };
+  // --------------------------
+  // Load Party Types
+  // --------------------------
+  const { data: partyTypes = [] } = useFastData({
+    key: "partyTypes",
+    apiFn: PartyTypeAPI.list,
+  });
 
-    if (!permissions.includes("party_commission_view"))
-        return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
+  // --------------------------
+  // Load Parties (depends on selectedPartyType)
+  // --------------------------
+  const { data: parties = [] } = useFastData({
+    key: ["parties", selectedPartyType],
+    apiFn: () => PartyAPI.list({ party_type: selectedPartyType }),
+    enabled: !!selectedPartyType,
+  });
+
+  // --------------------------
+  // Load PartyCommissions
+  // --------------------------
+  const {
+    data: rows = [],
+    isLoading: loadingRows,
+    refetch,
+  } = useFastData({
+    key: ["partyCommissions", selectedPartyType, selectedParty],
+    apiFn: () =>
+      PartyCommissionAPI.list({
+        party_type_id: selectedPartyType || undefined,
+        party_id: selectedParty || undefined,
+      }),
+    enabled: !!permissions.includes("party_commission_view"),
+  });
+
+  // --------------------------
+  // Row selection
+  // --------------------------
+  const toggleSelectRow = (id) =>
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+
+  // --------------------------
+  // Delete handler
+  // --------------------------
+  const handleDelete = async () => {
+    if (!selectedRows.length) return;
+    if (!permissions.includes("party_commission_delete"))
+      return Swal.fire("❌ Access Denied", "", "error");
+
+    const confirm = await Swal.fire({
+      title: `Delete ${selectedRows.length} commission(s)?`,
+      icon: "warning",
+      showCancelButton: true,
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      for (let id of selectedRows) await PartyCommissionAPI.remove(id);
+      Swal.fire("Deleted!", "", "success");
+      setSelectedRows([]);
+      refetch();
+    } catch (err) {
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+      if (typeof message === "object") {
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "This PartyCommission has active child. Delete them first.",
+        "warning"
+      );
+    }
+  };
+
+  // --------------------------
+  // Import handler
+  // --------------------------
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await PartyCommissionAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      refetch();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
+  // --------------------------
+  // Filtering rows
+  // --------------------------
+  const filteredRows = rows.filter((r) => {
+    const matchSearch =
+      r.product?.name.toLowerCase().includes(search.toLowerCase()) ||
+      r.category?.name?.toLowerCase().includes(search.toLowerCase());
+
+    const matchPartyType = !selectedPartyType || r.party_type?.id === selectedPartyType;
+    const matchParty = !selectedParty || r.party?.id === selectedParty;
+
+    return matchSearch && matchPartyType && matchParty;
+  });
+
+  if (loadingUser || loadingPerms || loadingRows)
+    return <div className="text-center mt-5">Loading...</div>;
+
+  if (!permissions.includes("party_commission_view"))
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
+
+  // --------------------------
+  // Render UI
+  // --------------------------
 
     return (
         <div className="container mt-3">

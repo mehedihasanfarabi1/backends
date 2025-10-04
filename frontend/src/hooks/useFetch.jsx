@@ -21,11 +21,14 @@ export default function useFastData({ key, apiFn, enabled = true, staleTime = 10
     refetchOnReconnect: true,
     refetchInterval: false, // চাইলে auto polling দিতে পারো
   });
+  
 
   return {
     ...query,
     // extra helper → manually cache update করার জন্য
     setCacheData: (updater) =>
       queryClient.setQueryData(Array.isArray(key) ? key : [key], updater),
+    invalidate: () =>
+    queryClient.invalidateQueries(Array.isArray(key) ? key : [key]),
   };
 }

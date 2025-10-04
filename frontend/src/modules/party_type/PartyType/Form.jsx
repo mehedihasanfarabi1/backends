@@ -3,11 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PartyTypeAPI } from "../../../api/partyType";
 import { CompanyAPI } from "../../../api/company";
 import Swal from "sweetalert2";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useFastData from "../../../hooks/useFetch";
 
 export default function PartyTypeForm() {
   const { id } = useParams();
   const nav = useNavigate();
+   const queryClient = useQueryClient();
 
   const [form, setForm] = useState({
     name: "",
@@ -42,24 +44,34 @@ export default function PartyTypeForm() {
     }
   }, [partyTypeData, id]);
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.company_id) {
-      return Swal.fire("Warning", "Select a company first", "warning");
+const onSubmit = async (e) => {
+  e.preventDefault();
+  if (!form.company_id) {
+    return Swal.fire("Warning", "Select a company first", "warning");
+  }
+
+  try {
+    if (id) {
+      await PartyTypeAPI.update(id, form);
+      Swal.fire("Success", "Party type updated successfully!", "success");
+    } else {
+      const newItem = await PartyTypeAPI.create(form);
+      Swal.fire("Success", "Party type created successfully!", "success");
+
+      // ✅ cache এ instantly push করে দাও
+      queryClient.setQueryData(["partyTypes"], (oldData = []) => [
+        ...oldData,
+        newItem,
+      ]);
     }
 
-    try {
-      if (id) await PartyTypeAPI.update(id, form);
-      else await PartyTypeAPI.create(form);
-      Swal.fire("Success", "Party type saved successfully!", "success");
+    nav("/admin/party-types");
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "Failed to save party type", "error");
+  }
+};
 
-      // ✅ Optional: invalidate company/partyType cache if needed
-      nav("/admin/party-types");
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to save party type", "error");
-    }
-  };
 
   if (loadingCompanies || loadingPartyType)
     return <div className="text-center mt-5">Loading...</div>;

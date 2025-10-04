@@ -139,6 +139,7 @@ export default function PartyCommissionCreate() {
             } else {
                 await PartyCommissionAPI.bulkCreate(payload);
             }
+            
 
             Swal.fire("Success", "Party commissions saved!", "success");
             setItems([]);

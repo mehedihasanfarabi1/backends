@@ -6,10 +6,12 @@ import { CompanyAPI } from "../../../api/company";
 import { BookingAPI } from "../../../api/booking";
 import api from "../../../api/axios"; // ✅ তোমার axios instance import
 import Swal from "sweetalert2";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function PartyForm() {
     const { id } = useParams();
     const nav = useNavigate();
+    const queryClient = useQueryClient();
 
     const [form, setForm] = useState({
         company_id: null,
@@ -107,7 +109,7 @@ export default function PartyForm() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [companyData, partyTypeData,bookingData] = await Promise.all([
+                const [companyData, partyTypeData, bookingData] = await Promise.all([
                     CompanyAPI.list(),
                     PartyTypeAPI.list(),
                     BookingAPI.list()
@@ -172,25 +174,42 @@ export default function PartyForm() {
         loadData();
     }, [id]);
 
-    const onSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (id) {
-                if (!permissions.includes("party_edit"))
-                    return Swal.fire("Access Denied", "Cannot edit", "error");
-                await PartyAPI.update(id, form);
-            } else {
-                if (!permissions.includes("party_create") && permissions.length > 0)
-                    return Swal.fire("Access Denied", "Cannot create", "error");
-                await PartyAPI.create(form);
-            }
-            Swal.fire("Success", "Saved successfully!", "success");
-            nav("/admin/party-list");
-        } catch (err) {
-            console.error(err);
-            Swal.fire("Error", "Save failed", "error");
-        }
-    };
+const onSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    if (id) {
+      if (!permissions.includes("party_edit"))
+        return Swal.fire("Access Denied", "Cannot edit", "error");
+
+      const updated = await PartyAPI.update(id, form);
+
+      // ✅ cache update (replace)
+      queryClient.setQueryData(["partyList"], (oldData = []) =>
+        oldData.map((p) => (p.id === updated.id ? updated : p))
+      );
+
+      Swal.fire("Success", "Party updated successfully!", "success");
+    } else {
+      if (!permissions.includes("party_create") && permissions.length > 0)
+        return Swal.fire("Access Denied", "Cannot create", "error");
+
+      const newItem = await PartyAPI.create(form);
+
+      // ✅ cache এ instantly add করে দাও
+      queryClient.setQueryData(["partyList"], (oldData = []) => [
+        ...oldData,
+        newItem,
+      ]);
+
+      Swal.fire("Success", "Party created successfully!", "success");
+    }
+
+    nav("/admin/party-list");
+  } catch (err) {
+    console.error(err);
+    Swal.fire("Error", "Save failed", "error");
+  }
+};
 
     const fieldStyle = {
         display: "flex",
@@ -318,7 +337,7 @@ export default function PartyForm() {
                                                         [f.name]: f.type === "number" ? parseFloat(val) || 0 : val
                                                     }));
                                                 }}
-                                                // readOnly={f.readOnly || false}
+                                            // readOnly={f.readOnly || false}
                                             />
                                         )}
                                     </div>
