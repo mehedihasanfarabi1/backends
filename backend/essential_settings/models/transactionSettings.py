@@ -38,11 +38,6 @@ class TransactionSetting(AuditMixin):
 
     key = models.CharField(max_length=32, null=True, blank=True)
 
-    class Meta:
-        db_table = "transaction_setting"
-        verbose_name = "Transaction Setting"
-        verbose_name_plural = "Transaction Settings"
-
     def __str__(self):
         return f"TransactionSetting ({self.session}) - {self.factory}"
     

@@ -1,14 +1,13 @@
+# backend/essential_settings/views/basic_settings.py
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from essential_settings.permissions import SettingsModulePermission
-from essential_settings.serializers.bagTypeSerializers import BagTypeSerializer
-from essential_settings.models.bagType import BagType
-from rest_framework.authentication import TokenAuthentication
-from django.views.decorators.cache import cache_page
+from essential_settings.serializers.basicSettingsSerializers import BasicSettingSerializer
+from essential_settings.models.basicSettings import BasicSetting
 
-class BasicSettings(viewsets.ModelViewSet):
-    
-    queryset = BagType.objects.all()
-    serializer_class = BagTypeSerializer
+
+class BasicSettingViewSet(viewsets.ModelViewSet):
+    queryset = BasicSetting.objects.all()
+    serializer_class = BasicSettingSerializer
     permission_classes = [IsAuthenticated, SettingsModulePermission]
     module_name = "basic_settings"

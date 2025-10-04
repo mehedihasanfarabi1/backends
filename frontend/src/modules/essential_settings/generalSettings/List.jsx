@@ -1,14 +1,14 @@
-// src/essentialSettings/BagTypeList.jsx
+// src/essentialSettings/GeneralSettingsList.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import { bagTypeApi } from "../../../api/essentialSettingsApi";
+import { generalSettingsApi } from "../../../api/essentialSettingsApi";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import useFastData from "../../../hooks/useFetch";
 
-export default function BagTypeList() {
+export default function GeneralSettingsList() {
   const nav = useNavigate();
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
@@ -35,11 +35,11 @@ export default function BagTypeList() {
   });
 
   // ----------------------------
-  // Fetch Bag Types instantly
+  // Fetch General Settings instantly
   // ----------------------------
   const { data: allRows = [], refetch } = useFastData({
-    key: "bagTypes",
-    apiFn: bagTypeApi.list,
+    key: "generalSettings",
+    apiFn: generalSettingsApi.list,
     enabled: !!currentUser,
     staleTime: 1,
     initialData: [],
@@ -58,7 +58,7 @@ export default function BagTypeList() {
     });
   });
 
-  if (!permissions.includes("bag_type_view"))
+  if (!permissions.includes("general_settings_view"))
     return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   // ----------------------------
@@ -66,17 +66,13 @@ export default function BagTypeList() {
   // ----------------------------
   const filteredRows = allRows.filter((r) =>
     [
-      r.name,
-      r.session,
-      r.per_bag_rent,
-      r.per_kg_rent,
-      r.agent_bag_rent,
-      r.agent_kg_rent,
-      r.party_bag_rent,
-      r.party_kg_rent,
-      r.per_bag_loan,
-      r.empty_bag_rate,
-      r.fan_charge,
+      r.title,
+      r.author,
+      r.author_email,
+      r.currency,
+      r.theme,
+      r.language,
+      r.timezone,
     ]
       .join(" ")
       .toLowerCase()
@@ -96,7 +92,7 @@ export default function BagTypeList() {
   // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
-    if (!permissions.includes("bag_type_delete"))
+    if (!permissions.includes("general_settings_delete"))
       return Swal.fire("❌ Access Denied", "", "error");
 
     const confirm = await Swal.fire({
@@ -107,46 +103,47 @@ export default function BagTypeList() {
     if (!confirm.isConfirmed) return;
 
     try {
-      for (let id of selectedRows) await bagTypeApi.delete(id);
+      for (let id of selectedRows) await generalSettingsApi.delete(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      refetch(); // instantly refresh list
+      refetch();
     } catch (err) {
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
       if (typeof message === "object") {
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
-      Swal.fire("⚠️ Cannot Delete", "This BagType has active child. Delete them first.", "warning");
+      Swal.fire("⚠️ Cannot Delete", message, "warning");
     }
   };
 
   // ----------------------------
-  // Import handler
+  // Import handler (optional)
   // ----------------------------
-  const handleImport = async (file) => {
-    if (!file) return;
-    try {
-      await bagTypeApi.bulk_import(file);
-      Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      refetch(); // instantly refresh list
-    } catch (err) {
-      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
-    }
-  };
+  // const handleImport = async (file) => {
+  //   if (!file) return;
+  //   try {
+  //     await generalSettingsApi.bulk_import(file);
+  //     Swal.fire("✅ Imported!", "Records saved successfully", "success");
+  //     refetch();
+  //   } catch (err) {
+  //     Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+  //   }
+  // };
+
 
 
   return (
     <div className="container mt-3">
       <ActionBar
-        title="Bag Type List"
-        onCreate={() => nav("/admin/bag-types/new")}
-        showCreate={permissions.includes("bag_type_create")}
+        title="General Settings List"
+        onCreate={() => nav("/admin/general-settings/new")}
+        showCreate={permissions.includes("general_settings_create")}
         onDelete={handleDelete}
-        showDelete={permissions.includes("bag_type_delete")}
+        showDelete={permissions.includes("general_settings_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
-        exportFileName="bag_type_list"
-        showExport={permissions.includes("bag_type_view")}
+        exportFileName="general_settings_list"
+        showExport={permissions.includes("general_settings_view")}
       />
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
@@ -167,26 +164,22 @@ export default function BagTypeList() {
           <thead className="table-primary">
             <tr>
               <th>#</th>
-              <th>Session</th>
-              <th>Name</th>
-              <th>Per Bag Rent</th>
-              <th>Per Kg Rent</th>
-              <th>Agent Bag Rent</th>
-              <th>Agent Kg Rent</th>
-              <th>Party Bag Rent</th>
-              <th>Party Kg Rent</th>
-              <th>Per Bag Loan</th>
-              <th>Empty Bag Rate</th>
-              <th>Fan Charge</th>
-              <th>Is Default</th>
-              <th>Is Active</th>
+              <th>Branch</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Mobile</th>
+              <th>Currency</th>
+              <th>Theme</th>
+              <th>Language</th>
+              <th>Timezone</th>
               <th>Actions</th>
               <th>
                 <input
                   type="checkbox"
                   checked={
-                    selectedRows.length === filteredRows.length &&
-                    filteredRows.length > 0
+                    selectedRows.length === filteredRows.length && filteredRows.length > 0
                   }
                   onChange={(e) =>
                     setSelectedRows(
@@ -202,30 +195,27 @@ export default function BagTypeList() {
               filteredRows.map((r, i) => (
                 <tr key={r.id}>
                   <td>{i + 1}</td>
-                  <td>{r.session}</td>
-                  <td>{r.name || "-"}</td>
-                  <td>{r.per_bag_rent}</td>
-                  <td>{r.per_kg_rent}</td>
-                  <td>{r.agent_bag_rent}</td>
-                  <td>{r.agent_kg_rent}</td>
-                  <td>{r.party_bag_rent}</td>
-                  <td>{r.party_kg_rent}</td>
-                  <td>{r.per_bag_loan}</td>
-                  <td>{r.empty_bag_rate}</td>
-                  <td>{r.fan_charge}</td>
-                  <td>{r.is_default ? "Yes" : "No"}</td>
-                  <td>{r.is_active ? "Yes" : "No"}</td>
+                  <td>{r.factory?.name}</td>
+                  <td>{r.title || "-"}</td>
+                  <td>{r.author || "-"}</td>
+                  <td>{r.author_email || "-"}</td>
+                  <td>{r.author_phone || "-"}</td>
+                  <td>{r.author_mobile || "-"}</td>
+                  <td>{r.currency || "-"}</td>
+                  <td>{r.theme || "-"}</td>
+                  <td>{r.language || "-"}</td>
+                  <td>{r.timezone || "-"}</td>
                   <td>
                     <FaEdit
                       className="text-primary me-3"
                       size={18}
                       title="Edit"
-                      onClick={() => nav(`/admin/bag-types/${r.id}`)}
+                      onClick={() => nav(`/admin/general-settings/${r.id}`)}
                       style={{
-                        cursor: permissions.includes("bag_type_edit")
+                        cursor: permissions.includes("general_settings_edit")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("bag_type_edit") ? 1 : 0.5,
+                        opacity: permissions.includes("general_settings_edit") ? 1 : 0.5,
                       }}
                     />
                     <FaTrash
@@ -233,16 +223,16 @@ export default function BagTypeList() {
                       size={18}
                       title="Delete"
                       onClick={() => {
-                        if (permissions.includes("bag_type_delete")) {
+                        if (permissions.includes("general_settings_delete")) {
                           setSelectedRows([r.id]);
                           handleDelete();
                         }
                       }}
                       style={{
-                        cursor: permissions.includes("bag_type_delete")
+                        cursor: permissions.includes("general_settings_delete")
                           ? "pointer"
                           : "not-allowed",
-                        opacity: permissions.includes("bag_type_delete") ? 1 : 0.5,
+                        opacity: permissions.includes("general_settings_delete") ? 1 : 0.5,
                       }}
                     />
                   </td>
@@ -257,7 +247,7 @@ export default function BagTypeList() {
               ))
             ) : (
               <tr>
-                <td colSpan="16" className="text-center">
+                <td colSpan="12" className="text-center">
                   No data
                 </td>
               </tr>

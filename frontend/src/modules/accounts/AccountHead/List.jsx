@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import { accountApi } from "../../../api/accountsApi";
+import { accountHeadApi } from "../../../api/accountsApi";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash } from "react-icons/fa";
@@ -32,7 +32,7 @@ export default function AccountHeadList() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const allRows = await accountApi.list();
+      const allRows = await accountHeadApi.list();
       const userId = currentUserId || (await loadCurrentUser());
       if (!userId) return setLoading(false);
 

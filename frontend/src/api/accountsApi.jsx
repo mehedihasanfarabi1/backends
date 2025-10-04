@@ -15,4 +15,4 @@ const crud = (resource) => ({
 
 });
 
-export const accountApi = crud("account-head");
+export const accountHeadApi = crud("account-head");

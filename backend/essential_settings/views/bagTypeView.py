@@ -3,8 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from essential_settings.permissions import SettingsModulePermission
 from essential_settings.serializers.bagTypeSerializers import BagTypeSerializer
 from essential_settings.models.bagType import BagType
-from rest_framework.authentication import TokenAuthentication
-from django.views.decorators.cache import cache_page
 
 class BagTypeViewSet(viewsets.ModelViewSet):
     

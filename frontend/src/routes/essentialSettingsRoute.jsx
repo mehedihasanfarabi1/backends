@@ -22,20 +22,20 @@ import BagTypeEdit from "../modules/essential_settings/bagType/Edit";
 // import ShedSettingsCreate from "../modules/essential_settings/shedSettings/Form";
 // import ShedSettingsEdit from "../modules/essential_settings/shedSettings/Edit";
 
-// // General Settings
-// import GeneralSettingsList from "../modules/essential_settings/generalSettings/List";
-// import GeneralSettingsCreate from "../modules/essential_settings/generalSettings/Form";
-// import GeneralSettingsEdit from "../modules/essential_settings/generalSettings/Edit";
+// General Settings
+import GeneralSettingsList from "../modules/essential_settings/generalSettings/List";
+import GeneralSettingsCreate from "../modules/essential_settings/generalSettings/Form";
+import GeneralSettingsEdit from "../modules/essential_settings/generalSettings/Edit";
 
 // // Basic Settings
-// import BasicSettingsList from "../modules/essential_settings/basicSettings/List";
-// import BasicSettingsCreate from "../modules/essential_settings/basicSettings/Form";
-// import BasicSettingsEdit from "../modules/essential_settings/basicSettings/Edit";
+import BasicSettingsList from "../modules/essential_settings/basicSettings/List";
+import BasicSettingsCreate from "../modules/essential_settings/basicSettings/Form";
+import BasicSettingsEdit from "../modules/essential_settings/basicSettings/Edit";
 
 // // Transaction Settings
-// import TransactionSettingsList from "../modules/essential_settings/transactionSettings/List";
-// import TransactionSettingsCreate from "../modules/essential_settings/transactionSettings/Form";
-// import TransactionSettingsEdit from "../modules/essential_settings/transactionSettings/Edit";
+import TransactionSettingsList from "../modules/essential_settings/transactionSettings/List";
+import TransactionSettingsCreate from "../modules/essential_settings/transactionSettings/Form";
+import TransactionSettingsEdit from "../modules/essential_settings/transactionSettings/Edit";
 
 export const essential_settings = [
   ...generateCrudRoutes("bag-types", {
@@ -78,33 +78,34 @@ export const essential_settings = [
   //   editPerm: "shed_setting_edit"
   // }),
 
-  // ...generateCrudRoutes("general-settings", {
-  //   List: GeneralSettingsList,
-  //   Create: GeneralSettingsCreate,
-  //   Edit: GeneralSettingsEdit,
-  // }, {
-  //   listPerm: "general_setting_view",
-  //   createPerm: "general_setting_create",
-  //   editPerm: "general_setting_edit"
-  // }),
+  ...generateCrudRoutes("general-settings", {
+    List: GeneralSettingsList,
+    Create: GeneralSettingsCreate,
+    Edit: GeneralSettingsEdit,
+  }, {
+    listPerm: "general_settings_view",
+    createPerm: "general_settings_create",
+    editPerm: "general_settings_edit"
+  }),
 
-  // ...generateCrudRoutes("basic-settings", {
-  //   List: BasicSettingsList,
-  //   Create: BasicSettingsCreate,
-  //   Edit: BasicSettingsEdit,
-  // }, {
-  //   listPerm: "basic_setting_view",
-  //   createPerm: "basic_setting_create",
-  //   editPerm: "basic_setting_edit"
-  // }),
+  ...generateCrudRoutes("basic-settings", {
+    List: BasicSettingsList,
+    Create: BasicSettingsCreate,
+    Edit: BasicSettingsEdit,
+  }, 
+  {
+    listPerm: "basic_settings_view",
+    createPerm: "basic_settings_create",
+    editPerm: "basic_settings_edit"
+  }),
 
-  // ...generateCrudRoutes("transaction-settings", {
-  //   List: TransactionSettingsList,
-  //   Create: TransactionSettingsCreate,
-  //   Edit: TransactionSettingsEdit,
-  // }, {
-  //   listPerm: "transaction_setting_view",
-  //   createPerm: "transaction_setting_create",
-  //   editPerm: "transaction_setting_edit"
-  // }),
+  ...generateCrudRoutes("transaction-settings", {
+    List: TransactionSettingsList,
+    Create: TransactionSettingsCreate,
+    Edit: TransactionSettingsEdit,
+  }, {
+    listPerm: "transaction_settings_view",
+    createPerm: "transaction_settings_create",
+    editPerm: "transaction_settings_edit"
+  }),
 ];

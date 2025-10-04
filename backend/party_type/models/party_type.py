@@ -4,7 +4,7 @@ from backend.mixins import AuditMixin
 from company.models.company import Company
 
 class PartyType(AuditMixin):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="party-type",default=None)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="party_type",default=None)
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     

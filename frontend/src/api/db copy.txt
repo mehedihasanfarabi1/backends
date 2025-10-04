@@ -1,0 +1,512 @@
+-- phpMyAdmin SQL Dump
+-- version 4.8.4
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Oct 04, 2025 at 08:30 AM
+-- Server version: 10.1.37-MariaDB
+-- PHP Version: 7.0.33
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `coldstore_rahmangroup`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `agent_contracts`
+--
+
+CREATE TABLE `agent_contracts` (
+  `id` int(11) NOT NULL,
+  `agent_id` int(11) DEFAULT NULL,
+  `booking_type_id` int(11) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `session` year(4) DEFAULT NULL,
+  `bag_quantity` int(11) DEFAULT NULL,
+  `bag_rent` double DEFAULT NULL,
+  `total_bag_rent` double DEFAULT NULL,
+  `bag_weight` double DEFAULT NULL,
+  `total_weight` double DEFAULT NULL,
+  `kg_rent` double DEFAULT NULL,
+  `total_kg_rent` double DEFAULT NULL,
+  `rent_receive` double DEFAULT NULL,
+  `rent_remain` double DEFAULT NULL,
+  `commission_rate` double DEFAULT NULL,
+  `per_kg_commission` double DEFAULT NULL,
+  `interest_start_date` date DEFAULT NULL,
+  `interest_rate` double DEFAULT NULL,
+  `is_deleted` tinyint(4) NOT NULL DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL,
+  `deleted_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `app_setting`
+--
+
+CREATE TABLE `app_setting` (
+  `id` int(11) NOT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `loan_party` varchar(32) NOT NULL DEFAULT 'Agent',
+  `loan_transaction` varchar(16) NOT NULL DEFAULT 'No',
+  `ebag_as_loan` varchar(16) NOT NULL DEFAULT 'No',
+  `carrying_as_loan` varchar(16) NOT NULL DEFAULT 'No',
+  `permissions` text,
+  `income_heads` text,
+  `expense_heads` text
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `basic_setting`
+--
+
+CREATE TABLE `basic_setting` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `session` year(4) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `interest_rate` double DEFAULT NULL,
+  `period` int(10) DEFAULT NULL,
+  `min_day` int(10) DEFAULT NULL,
+  `empty_bag_price` double DEFAULT NULL,
+  `max_loan_per_qty` double DEFAULT NULL,
+  `max_rent_per_qty` double DEFAULT NULL,
+  `max_rent_per_kg` double DEFAULT NULL,
+  `fan_charge` double DEFAULT NULL,
+  `labour_charge` double DEFAULT NULL,
+  `labour_charge_per_kg` double DEFAULT NULL,
+  `agent_commission` double DEFAULT NULL,
+  `ebag_count` enum('Yes','No') DEFAULT 'No',
+  `carrying_count` enum('Yes','No') NOT NULL DEFAULT 'No',
+  `carrying_interest_rate` double DEFAULT NULL,
+  `interest_start_date` date DEFAULT NULL,
+  `transaction_date` date DEFAULT NULL,
+  `delivery_type` varchar(16) NOT NULL DEFAULT 'bag',
+  `less_weight` double DEFAULT NULL,
+  `delivery_commission_rate` double DEFAULT NULL,
+  `value_mode` varchar(16) NOT NULL DEFAULT 'floor',
+  `monthly_interest` text,
+  `loantype_interest` text,
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `claimed_srlist`
+--
+
+CREATE TABLE `claimed_srlist` (
+  `id` int(11) NOT NULL,
+  `session` year(4) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `entry_type` varchar(20) DEFAULT NULL,
+  `srno` int(11) DEFAULT NULL,
+  `srid` int(11) DEFAULT NULL,
+  `party_code` int(11) DEFAULT NULL,
+  `status` enum('Claimed','Released') DEFAULT 'Claimed',
+  `message` text,
+  `created_at` datetime DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `modified_at` datetime DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `released_at` datetime DEFAULT NULL,
+  `released_by` int(11) DEFAULT NULL,
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `conditions`
+--
+
+CREATE TABLE `conditions` (
+  `id` int(11) NOT NULL,
+  `session` year(4) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `loan_type` varchar(50) DEFAULT NULL,
+  `txt` text,
+  `created_at` datetime DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `modified_at` datetime DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `is_deleted` tinyint(2) NOT NULL DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL,
+  `deleted_by` int(11) DEFAULT NULL,
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `loan_type`
+--
+
+CREATE TABLE `loan_type` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `session` year(4) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `head_id` int(11) DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `interest_count` varchar(16) NOT NULL DEFAULT 'Yes',
+  `interest_rate` double DEFAULT NULL,
+  `interest_start_date` date DEFAULT NULL,
+  `is_default` tinyint(2) NOT NULL DEFAULT '0',
+  `created_at` datetime DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL,
+  `is_deleted` tinyint(4) NOT NULL DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL,
+  `deleted_by` int(11) DEFAULT NULL,
+  `edit_mode` enum('enable','disable') NOT NULL DEFAULT 'enable',
+  `delete_mode` enum('enable','disable') NOT NULL DEFAULT 'enable',
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pc_setting`
+--
+
+CREATE TABLE `pc_setting` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `session` year(4) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `modified` datetime DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `is_deleted` tinyint(4) NOT NULL DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL,
+  `deleted_by` int(11) DEFAULT NULL,
+  `edit_mode` enum('enable','disable') NOT NULL DEFAULT 'enable',
+  `delete_mode` enum('enable','disable') NOT NULL DEFAULT 'enable',
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `session`
+--
+
+CREATE TABLE `session` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `value` year(4) DEFAULT NULL,
+  `opening_date` date DEFAULT NULL,
+  `closing_date` date DEFAULT NULL,
+  `status` enum('Active','Inactive') NOT NULL DEFAULT 'Active',
+  `current_status` enum('Open','Close') NOT NULL DEFAULT 'Open',
+  `created_at` datetime DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `modified_at` datetime DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `is_deleted` tinyint(2) DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL,
+  `deleted_by` int(11) DEFAULT NULL,
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `settings`
+--
+
+CREATE TABLE `settings` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `author` varchar(50) DEFAULT NULL,
+  `author_email` varchar(100) DEFAULT NULL,
+  `author_phone` varchar(15) DEFAULT NULL,
+  `author_mobile` varchar(15) DEFAULT NULL,
+  `author_address` text,
+  `title` varchar(100) DEFAULT NULL,
+  `description` text,
+  `address` text,
+  `contact` text,
+  `other_contacts` text,
+  `tag` text,
+  `loan_payment_form` enum('Single','Multiple') NOT NULL DEFAULT 'Multiple',
+  `loan_receive_form` enum('Single','Multiple') NOT NULL DEFAULT 'Single',
+  `delivery_form` enum('Single','Multiple') NOT NULL DEFAULT 'Single',
+  `sendmail` tinyint(2) NOT NULL DEFAULT '0',
+  `sendsms` tinyint(2) NOT NULL DEFAULT '0',
+  `page_size` int(10) DEFAULT NULL,
+  `currency` varchar(10) DEFAULT NULL,
+  `theme` varchar(20) DEFAULT NULL,
+  `language` varchar(10) DEFAULT NULL,
+  `timezone` varchar(30) DEFAULT NULL,
+  `favicon` varchar(32) DEFAULT NULL,
+  `logo` varchar(32) DEFAULT NULL,
+  `screen_saver` varchar(32) DEFAULT NULL,
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `shade_setting`
+--
+
+CREATE TABLE `shade_setting` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `session` year(4) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `created` datetime DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `modified` datetime DEFAULT NULL,
+  `modified_by` int(11) DEFAULT NULL,
+  `is_deleted` tinyint(4) NOT NULL DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL,
+  `deleted_by` int(11) DEFAULT NULL,
+  `edit_mode` enum('enable','disable') NOT NULL DEFAULT 'enable',
+  `delete_mode` enum('enable','disable') NOT NULL DEFAULT 'enable',
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transaction_setting`
+--
+
+CREATE TABLE `transaction_setting` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `session` year(4) DEFAULT NULL,
+  `party_transaction` varchar(16) NOT NULL DEFAULT 'Yes',
+  `advance_carrying_payment` varchar(16) DEFAULT 'Yes',
+  `advance_carrying_receive` varchar(16) DEFAULT 'Yes',
+  `advance_carrying_interest_receive` varchar(16) DEFAULT 'No',
+  `advance_ebag_amount_receive` varchar(16) DEFAULT 'Yes',
+  `advance_ebag_amount_interest_receive` varchar(16) DEFAULT 'No',
+  `advance_loan_payment` varchar(16) DEFAULT 'Yes',
+  `advance_loan_receive` varchar(16) DEFAULT 'Yes',
+  `advance_loan_interest_receive` varchar(16) DEFAULT 'Yes',
+  `sr_carrying_payment` varchar(16) DEFAULT 'Yes',
+  `sr_carrying_receive` varchar(16) DEFAULT 'Yes',
+  `sr_carrying_interest_receive` varchar(16) DEFAULT 'No',
+  `sr_ebag_amount_payment` varchar(16) DEFAULT 'Yes',
+  `sr_ebag_amount_receive` varchar(16) DEFAULT 'Yes',
+  `sr_ebag_amount_interest_receive` varchar(16) DEFAULT 'No',
+  `sr_loan_payment` varchar(16) DEFAULT 'Yes',
+  `sr_loan_receive` varchar(16) DEFAULT 'Yes',
+  `sr_loan_interest_receive` varchar(16) DEFAULT 'Yes',
+  `delivery_transaction` varchar(16) DEFAULT 'Yes',
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `agent_contracts`
+--
+ALTER TABLE `agent_contracts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `agent_id` (`agent_id`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `session` (`session`),
+  ADD KEY `interest_start_date` (`interest_start_date`),
+  ADD KEY `is_deleted` (`is_deleted`),
+  ADD KEY `deleted_by` (`deleted_by`),
+  ADD KEY `booking_type_id` (`booking_type_id`);
+
+--
+-- Indexes for table `app_setting`
+--
+ALTER TABLE `app_setting`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `loan_party` (`loan_party`),
+  ADD KEY `loan_transaction` (`loan_transaction`),
+  ADD KEY `ebag_as_loan` (`ebag_as_loan`),
+  ADD KEY `carrying_as_loan` (`carrying_as_loan`);
+
+--
+-- Indexes for table `basic_setting`
+--
+ALTER TABLE `basic_setting`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `interest_rate` (`interest_rate`,`period`,`min_day`,`_key`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `session` (`session`),
+  ADD KEY `interest_start_date` (`interest_start_date`),
+  ADD KEY `transaction_date` (`transaction_date`),
+  ADD KEY `value_mode` (`value_mode`);
+
+--
+-- Indexes for table `claimed_srlist`
+--
+ALTER TABLE `claimed_srlist`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `session` (`session`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `srno` (`srno`),
+  ADD KEY `srid` (`srid`),
+  ADD KEY `party_code` (`party_code`);
+
+--
+-- Indexes for table `conditions`
+--
+ALTER TABLE `conditions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `session` (`session`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `created_by` (`created_by`,`modified_by`,`deleted_by`),
+  ADD KEY `_type` (`_type`,`_key`);
+
+--
+-- Indexes for table `loan_type`
+--
+ALTER TABLE `loan_type`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `_key` (`_key`),
+  ADD KEY `session` (`session`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `interest_rate` (`interest_rate`),
+  ADD KEY `interest_start_date` (`interest_start_date`),
+  ADD KEY `interest_count` (`interest_count`),
+  ADD KEY `head_id` (`head_id`);
+
+--
+-- Indexes for table `pc_setting`
+--
+ALTER TABLE `pc_setting`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `session` (`session`),
+  ADD KEY `branch_id` (`branch_id`);
+
+--
+-- Indexes for table `session`
+--
+ALTER TABLE `session`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `value` (`value`),
+  ADD KEY `opening_date` (`opening_date`),
+  ADD KEY `closing_date` (`closing_date`);
+
+--
+-- Indexes for table `settings`
+--
+ALTER TABLE `settings`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `loan_payment_form` (`loan_payment_form`),
+  ADD KEY `loan_receive_form` (`loan_receive_form`),
+  ADD KEY `delivery_form` (`delivery_form`);
+
+--
+-- Indexes for table `shade_setting`
+--
+ALTER TABLE `shade_setting`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `session` (`session`),
+  ADD KEY `branch_id` (`branch_id`);
+
+--
+-- Indexes for table `transaction_setting`
+--
+ALTER TABLE `transaction_setting`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `branch_id` (`branch_id`),
+  ADD KEY `session` (`session`),
+  ADD KEY `party_transaction` (`party_transaction`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `agent_contracts`
+--
+ALTER TABLE `agent_contracts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `app_setting`
+--
+ALTER TABLE `app_setting`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `basic_setting`
+--
+ALTER TABLE `basic_setting`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `claimed_srlist`
+--
+ALTER TABLE `claimed_srlist`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `conditions`
+--
+ALTER TABLE `conditions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `loan_type`
+--
+ALTER TABLE `loan_type`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `pc_setting`
+--
+ALTER TABLE `pc_setting`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `session`
+--
+ALTER TABLE `session`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `settings`
+--
+ALTER TABLE `settings`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `shade_setting`
+--
+ALTER TABLE `shade_setting`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `transaction_setting`
+--
+ALTER TABLE `transaction_setting`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -2,7 +2,10 @@
 from django.db import models
 from backend.mixins import AuditMixin
 from company.models.factory import Factory
+import random
 
+def generate_unique_key():
+    return str(random.randint(1000, 99999999))
 
 class GeneralSetting(AuditMixin):
     factory = models.ForeignKey(
@@ -53,12 +56,18 @@ class GeneralSetting(AuditMixin):
     logo = models.CharField(max_length=32, null=True, blank=True)
     screen_saver = models.CharField(max_length=32, null=True, blank=True)
 
-    key = models.CharField(max_length=32, null=True, blank=True)
+    key = models.CharField(max_length=32, unique=True,null=True, blank=True)
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_unique_key()
+        super().save(*args, **kwargs)
 
-    class Meta:
-        db_table = "general_setting"
-        verbose_name = "General Setting"
-        verbose_name_plural = "General Settings"
-
+    @staticmethod
+    def generate_unique_key():
+        from essential_settings.models.generalSettings import GeneralSetting
+        while True:
+            key = str(random.randint(1000, 99999999))
+            if not GeneralSetting.objects.filter(key=key).exists():
+                return key
     def __str__(self):
         return f"GeneralSetting ({self.title}) - {self.factory}"

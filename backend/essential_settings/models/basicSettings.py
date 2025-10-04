@@ -45,10 +45,5 @@ class BasicSetting(AuditMixin):
 
     key = models.CharField(max_length=32, null=True, blank=True)
 
-    class Meta:
-        db_table = "basic_setting"
-        verbose_name = "Basic Setting"
-        verbose_name_plural = "Basic Settings"
-
     def __str__(self):
         return f"BasicSetting ({self.session}) - {self.factory}"
