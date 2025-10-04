@@ -1,0 +1,101 @@
+--
+-- Table structure for table `basic_setting`
+--
+
+CREATE TABLE `basic_setting` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `session` year(4) DEFAULT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `interest_rate` double DEFAULT NULL,
+  `period` int(10) DEFAULT NULL,
+  `min_day` int(10) DEFAULT NULL,
+  `empty_bag_price` double DEFAULT NULL,
+  `max_loan_per_qty` double DEFAULT NULL,
+  `max_rent_per_qty` double DEFAULT NULL,
+  `max_rent_per_kg` double DEFAULT NULL,
+  `fan_charge` double DEFAULT NULL,
+  `labour_charge` double DEFAULT NULL,
+  `labour_charge_per_kg` double DEFAULT NULL,
+  `agent_commission` double DEFAULT NULL,
+  `ebag_count` enum('Yes','No') DEFAULT 'No',
+  `carrying_count` enum('Yes','No') NOT NULL DEFAULT 'No',
+  `carrying_interest_rate` double DEFAULT NULL,
+  `interest_start_date` date DEFAULT NULL,
+  `transaction_date` date DEFAULT NULL,
+  `delivery_type` varchar(16) NOT NULL DEFAULT 'bag',
+  `less_weight` double DEFAULT NULL,
+  `delivery_commission_rate` double DEFAULT NULL,
+  `value_mode` varchar(16) NOT NULL DEFAULT 'floor',
+  `monthly_interest` text,
+  `loantype_interest` text,
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+--
+-- Table structure for table `settings`
+--
+
+CREATE TABLE `general_setting` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `author` varchar(50) DEFAULT NULL,
+  `author_email` varchar(100) DEFAULT NULL,
+  `author_phone` varchar(15) DEFAULT NULL,
+  `author_mobile` varchar(15) DEFAULT NULL,
+  `author_address` text,
+  `title` varchar(100) DEFAULT NULL,
+  `description` text,
+  `address` text,
+  `contact` text,
+  `other_contacts` text,
+  `tag` text,
+  `loan_payment_form` enum('Single','Multiple') NOT NULL DEFAULT 'Multiple',
+  `loan_receive_form` enum('Single','Multiple') NOT NULL DEFAULT 'Single',
+  `delivery_form` enum('Single','Multiple') NOT NULL DEFAULT 'Single',
+  `sendmail` tinyint(2) NOT NULL DEFAULT '0',
+  `sendsms` tinyint(2) NOT NULL DEFAULT '0',
+  `page_size` int(10) DEFAULT NULL,
+  `currency` varchar(10) DEFAULT NULL,
+  `theme` varchar(20) DEFAULT NULL,
+  `language` varchar(10) DEFAULT NULL,
+  `timezone` varchar(30) DEFAULT NULL,
+  `favicon` varchar(32) DEFAULT NULL,
+  `logo` varchar(32) DEFAULT NULL,
+  `screen_saver` varchar(32) DEFAULT NULL,
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+--
+-- Table structure for table `transaction_setting`
+--
+
+CREATE TABLE `transaction_setting` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `branch_id` int(11) DEFAULT NULL,
+  `session` year(4) DEFAULT NULL,
+  `party_transaction` varchar(16) NOT NULL DEFAULT 'Yes',
+  `advance_carrying_payment` varchar(16) DEFAULT 'Yes',
+  `advance_carrying_receive` varchar(16) DEFAULT 'Yes',
+  `advance_carrying_interest_receive` varchar(16) DEFAULT 'No',
+  `advance_ebag_amount_receive` varchar(16) DEFAULT 'Yes',
+  `advance_ebag_amount_interest_receive` varchar(16) DEFAULT 'No',
+  `advance_loan_payment` varchar(16) DEFAULT 'Yes',
+  `advance_loan_receive` varchar(16) DEFAULT 'Yes',
+  `advance_loan_interest_receive` varchar(16) DEFAULT 'Yes',
+  `sr_carrying_payment` varchar(16) DEFAULT 'Yes',
+  `sr_carrying_receive` varchar(16) DEFAULT 'Yes',
+  `sr_carrying_interest_receive` varchar(16) DEFAULT 'No',
+  `sr_ebag_amount_payment` varchar(16) DEFAULT 'Yes',
+  `sr_ebag_amount_receive` varchar(16) DEFAULT 'Yes',
+  `sr_ebag_amount_interest_receive` varchar(16) DEFAULT 'No',
+  `sr_loan_payment` varchar(16) DEFAULT 'Yes',
+  `sr_loan_receive` varchar(16) DEFAULT 'Yes',
+  `sr_loan_interest_receive` varchar(16) DEFAULT 'Yes',
+  `delivery_transaction` varchar(16) DEFAULT 'Yes',
+  `_key` varchar(32) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+

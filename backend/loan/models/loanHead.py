@@ -1,7 +1,7 @@
 from django.db import models
 from backend.mixins import AuditMixin
 from company.models import Company
-from .party_type import PartyType
+from party_type.models.party_type import PartyType
 
 class Party(AuditMixin):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="parties",default=None)
@@ -17,7 +17,7 @@ class Party(AuditMixin):
     nid = models.CharField(max_length=50, blank=True, null=True)
 
     is_default = models.BooleanField(default=False)
-    session = models.CharField(max_length=100, blank=True, null=True)
+    session = models.CharField(blank=True, null=True)
     status = models.BooleanField(default=True)
 
     booking_bag = models.PositiveIntegerField(default=0)
