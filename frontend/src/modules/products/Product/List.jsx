@@ -7,11 +7,14 @@ import UserCompanySelector from "../../../components/UserCompanySelector";
 import Swal from "sweetalert2";
 import "../../../styles/Table.css";
 import { useTranslation } from "../../../contexts/TranslationContext";
+import useFastData from "../../../hooks/useFetch";
+
+
 export default function ProductList() {
   const nav = useNavigate();
 
-  const [rows, setRows] = useState([]);
-  const [permissions, setPermissions] = useState([]);
+  // const [rows, setRows] = useState([]);
+  // const [permissions, setPermissions] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const [selectedUser, setSelectedUser] = useState(null);
@@ -25,99 +28,70 @@ export default function ProductList() {
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
 
-  const [productTypes, setProductTypes] = useState([]);
-  const [categories, setCategories] = useState([]);
+  // const [productTypes, setProductTypes] = useState([]);
+  // const [categories, setCategories] = useState([]);
 
   const [selectedProductType, setSelectedProductType] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const { t } = useTranslation();
 
-  // ✅ Load current user
-  const loadCurrentUser = async () => {
-    try {
-      const me = await UserAPI.me();
-      setCurrentUserId(me.id);
-      return me.id;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  };
+    // ----------------------------
+  // Current user
+  // ----------------------------
+  const { data: currentUser } = useFastData({ key: "currentUser", apiFn: UserAPI.me });
 
-  // ✅ Load permissions
-  const loadPermissions = async () => {
-    const userId = currentUserId || (await loadCurrentUser());
-    if (!userId) return;
+  // ----------------------------
+  // Permissions
+  // ----------------------------
+  const { data: userPerms } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+  });
 
-    try {
-      const userPerms = await UserPermissionAPI.getByUser(userId);
-      const permsArr = [];
-      userPerms.forEach((p) => {
-        const productModule = p.product_module?.product || {};
-        Object.entries(productModule).forEach(([action, allowed]) => {
-          if (allowed) permsArr.push(`product_${action}`);
-        });
-      });
-      setPermissions(permsArr);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const permissions = [];
+  userPerms?.forEach((p) => {
+    const productModule = p.product_module?.product || {};
+    Object.entries(productModule).forEach(([action, allowed]) => {
+      if (allowed) permissions.push(`product_${action}`);
+    });
+  });
 
-  // ✅ Load products
-  const loadData = async () => {
-    try {
-      const data = await ProductAPI.list({
+  // ----------------------------
+  // Load products
+  // ----------------------------
+  const { data: rows = [], refetch: refetchProducts } = useFastData({
+    key: ["products", selectedCompany, selectedBusiness, selectedFactory],
+    apiFn: () =>
+      ProductAPI.list({
         company: selectedCompany || undefined,
         business_type: selectedBusiness || undefined,
         factory: selectedFactory || undefined,
-      });
-      setRows(data);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to load products", "error");
-    }
-  };
+      }),
+    initialData: [],
+  });
 
-  // ✅ Load product types
-  const loadProductTypes = async () => {
-    if (!selectedCompany) return setProductTypes([]);
-    try {
-      const pts = await ProductTypeAPI.list({ company: selectedCompany });
-      setProductTypes(pts);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // ----------------------------
+  // Product types
+  // ----------------------------
+  const { data: productTypes = [] } = useFastData({
+    key: ["productTypes", selectedCompany],
+    apiFn: () => ProductTypeAPI.list({ company: selectedCompany }),
+    enabled: !!selectedCompany,
+    initialData: [],
+  });
 
-  // ✅ Load categories based on selected product type
-  const loadCategories = async () => {
-    if (!selectedProductType) return setCategories([]);
-    try {
-      const cats = await CategoryAPI.list({ product_type: selectedProductType });
-      setCategories(cats);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // ----------------------------
+  // Categories
+  // ----------------------------
+  const { data: categories = [] } = useFastData({
+    key: ["categories", selectedProductType],
+    apiFn: () => CategoryAPI.list({ product_type: selectedProductType }),
+    enabled: !!selectedProductType,
+    initialData: [],
+  });
 
-  useEffect(() => {
-    loadPermissions();
-  }, [currentUserId]);
-
-  useEffect(() => {
-    loadData();
-    loadProductTypes();
-    setSelectedProductType(null);
-    setSelectedCategory(null);
-    setCategories([]);
-  }, [currentUserId, selectedCompany, selectedBusiness, selectedFactory]);
-
-  useEffect(() => {
-    loadCategories();
-    setSelectedCategory(null);
-  }, [selectedProductType]);
 
   const toggleSelectRow = (id) => {
     setSelectedRows((prev) =>

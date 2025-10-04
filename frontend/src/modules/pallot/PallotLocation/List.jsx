@@ -1,25 +1,25 @@
-import React, { useState, useEffect } from "react";
+// src/pages/pallot/PallotLocationList.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { ChamberAPI, FloorAPI, PocketAPI } from "../../../api/pallotApi";
 import PocketEditModal from "./Pocket/PocketEditModals";
+import useFastData from "../../../hooks/useFetch";
 
-
-// --- Main List Component ---
 export default function PallotLocationList() {
   const nav = useNavigate();
-  const [chambers, setChambers] = useState([]);
   const [expandedChambers, setExpandedChambers] = useState({});
   const [expandedFloors, setExpandedFloors] = useState({});
   const [selectedRows, setSelectedRows] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [editingPocketId, setEditingPocketId] = useState(null); // for modal
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
+  const [loading,setLoading] = useState(null)
+  // ----------------------------
+  // Fetch chambers + floors + pockets
+  // ----------------------------
+  const { data: chambers = [], refetch, isLoading } = useFastData({
+    key: "pallotLocations",
+    apiFn: async () => {
       const chamberList = await ChamberAPI.list();
-
       const chambersWithFloors = await Promise.all(
         chamberList.map(async (chamber) => {
           const floors = await FloorAPI.list({ chamber_id: chamber.id });
@@ -32,43 +32,45 @@ export default function PallotLocationList() {
           return { ...chamber, floors: floorsWithPockets };
         })
       );
-
-      setChambers(chambersWithFloors);
-    } catch (err) {
-      Swal.fire("Error", "Failed to load data", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { loadData(); }, []);
+      return chambersWithFloors;
+    },
+    staleTime: 1,
+    initialData: [],
+  });
 
   const toggleChamber = (id) => setExpandedChambers(prev => ({ ...prev, [id]: !prev[id] }));
   const toggleFloor = (id) => setExpandedFloors(prev => ({ ...prev, [id]: !prev[id] }));
 
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async (type, id) => {
     const confirm = await Swal.fire({ title: `Delete this ${type}?`, icon: "warning", showCancelButton: true });
     if (!confirm.isConfirmed) return;
+
     try {
       if (type === "chamber") await ChamberAPI.remove(id);
       if (type === "floor") await FloorAPI.remove(id);
       if (type === "pocket") await PocketAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
-      loadData();
+      refetch(); // instant refresh
     } catch (err) {
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
       if (typeof message === "object") {
-
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
-
       Swal.fire("⚠️ Cannot Delete", "This element has active child. Delete them first.", "warning");
     }
   };
 
+  // ----------------------------
+  // Row selection
+  // ----------------------------
   const handleSelectAll = (checked) => setSelectedRows(checked ? chambers.map(c => c.id) : []);
-  const handleSelectRow = (id) => setSelectedRows(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const handleSelectRow = (id) =>
+    setSelectedRows(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  if (isLoading) return <div className="text-center mt-5">Loading...</div>;
 
   return (
     <div className="container mt-3">

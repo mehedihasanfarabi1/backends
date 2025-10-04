@@ -1,41 +1,90 @@
 // src/pages/pallot/PallotTypeList.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PallotAPI } from "../../../api/pallotApi";
-import { UserPermissionAPI } from "../../../api/permissions";
-import Select from "react-select"; // for select2 like search
+import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
+import Select from "react-select"; // for search/select
 import Swal from "sweetalert2";
 import ActionBar from "../../../components/common/ActionBar";
+import useFastData from "../../../hooks/useFetch";
 
 export default function PallotTypeList() {
   const nav = useNavigate();
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
-  const [permissions, setPermissions] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Load Data
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allRows = await PallotAPI.list({ company_id: selectedCompany?.value });
-      setRows(allRows);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to load Pallot Types", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ----------------------------
+  // Fetch current user
+  // ----------------------------
+  const { data: currentUser } = useFastData({
+    key: "currentUser",
+    apiFn: UserAPI.me,
+    staleTime: 5 * 60 * 1000,
+    initialData: {},
+  });
 
-  useEffect(() => {
-    loadData();
-  }, [selectedCompany]);
+  // ----------------------------
+  // Fetch user permissions
+  // ----------------------------
+  const { data: userPerms = [] } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
+    initialData: [],
+  });
 
+  // ----------------------------
+  // Fetch Pallot Types
+  // ----------------------------
+  const { data: rows = [], refetch } = useFastData({
+    key: ["pallotTypes", selectedCompany?.value],
+    apiFn: () => PallotAPI.list({ company_id: selectedCompany?.value }),
+    enabled: !!currentUser,
+    staleTime: 1,
+    initialData: [],
+  });
+
+  // ----------------------------
+  // Process permissions
+  // ----------------------------
+  const permissions = [];
+  userPerms.forEach((p) => {
+    const pallotModule = p.pallot_module || {};
+    Object.entries(pallotModule).forEach(([module, actions]) => {
+      Object.entries(actions).forEach(([action, allowed]) => {
+        if (allowed) permissions.push(`${module}_${action}`);
+      });
+    });
+  });
+
+  if (!permissions.includes("pallot_type_view"))
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
+
+  // ----------------------------
+  // Filter rows by search
+  // ----------------------------
+  const filteredRows = rows.filter((r) =>
+    r.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelectRow = (id) =>
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
+    if (!permissions.includes("pallot_type_delete"))
+      return Swal.fire("❌ Access Denied", "", "error");
+
     const confirm = await Swal.fire({
       title: `Delete ${selectedRows.length} selected?`,
       icon: "warning",
@@ -47,22 +96,19 @@ export default function PallotTypeList() {
       for (let id of selectedRows) await PallotAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      loadData();
+      refetch(); // instantly refresh list
     } catch (err) {
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
       if (typeof message === "object") {
-
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
-
-      Swal.fire("⚠️ Cannot Delete", "This Pallot has active child. Delete them first.", "warning");
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "This Pallot has active child. Delete them first.",
+        "warning"
+      );
     }
   };
-
-  const filteredRows = rows.filter(
-    (r) => r.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="container mt-3">

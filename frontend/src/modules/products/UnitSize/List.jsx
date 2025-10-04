@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { UnitSizeAPI } from "../../../api/products";
 import { PermissionAPI } from "../../../api/permissions";
 import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
+import useFastData from "../../../hooks/useFetch";
 import "../../../styles/Table.css";
 
 export default function UnitSizeList() {
-  const [sizes, setSizes] = useState([]);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState([]);
   const [userPermissions, setUserPermissions] = useState([]);
 
-  // ✅ Company Selector States
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -21,33 +20,45 @@ export default function UnitSizeList() {
   const [businessTypes, setBusinessTypes] = useState([]);
   const [factories, setFactories] = useState([]);
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const nav = useNavigate();
 
-  const load = async () => {
-    try {
-      // 🔹 Send company / business / factory as query params
+  // ✅ Fetch data
+  const { data: response = {}, refetch } = useFastData({
+    key: ["unitSizes", selectedCompany, selectedBusiness, selectedFactory, page, pageSize],
+    apiFn: async () => {
       const params = {
-        company: selectedCompany,
-        business_type: selectedBusiness,
-        factory: selectedFactory,
+        company: selectedCompany || undefined,
+        business_type: selectedBusiness || undefined,
+        factory: selectedFactory || undefined,
+        page,
+        page_size: pageSize,
       };
+      return UnitSizeAPI.list(params);
+    },
+    initialData: {},
+  });
 
-      console.log("🔎 Fetching unit sizes with params:", params);
+  // ✅ Always ensure array
+  const unitSizesData = Array.isArray(response.results)
+    ? response.results
+    : Array.isArray(response)
+    ? response
+    : [];
 
-      const data = await UnitSizeAPI.list(params);
-      setSizes(data);
+  const total = response.count || unitSizesData.length || 0;
+  const totalPages = Math.ceil(total / pageSize);
 
+  // ✅ Load permissions
+  useEffect(() => {
+    const loadPerms = async () => {
       const perms = await PermissionAPI.list();
       setUserPermissions(perms.map((p) => p.code));
-    } catch (err) {
-      console.error("Error loading unit sizes:", err);
-      Swal.fire("Error", "Failed to load data", "error");
-    }
-  };
-
-  useEffect(() => {
-    load();
-  }, [selectedCompany, selectedBusiness, selectedFactory]);
+    };
+    loadPerms();
+  }, []);
 
   const toggleSelect = (id) => {
     setSelected((prev) =>
@@ -57,10 +68,8 @@ export default function UnitSizeList() {
 
   const onDelete = async () => {
     if (!selected.length) return;
-
-    if (!userPermissions.includes("unit_size_delete")) {
+    if (!userPermissions.includes("unit_size_delete"))
       return Swal.fire("❌ You do not have access for this feature", "", "error");
-    }
 
     const result = await Swal.fire({
       title: `Delete ${selected.length} unit size(s)?`,
@@ -76,18 +85,18 @@ export default function UnitSizeList() {
           await UnitSizeAPI.remove(id);
         }
         setSelected([]);
-        load();
+        refetch();
         Swal.fire("Deleted!", "Selected unit size(s) removed.", "success");
       } catch (err) {
-        // 🔹 Child থাকলে specific warning দেখাবে
         let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
         if (typeof message === "object") {
-          // DRF ValidationError returns array
           message = message.detail ? message.detail : Object.values(message).flat().join(", ");
         }
-
-        Swal.fire("⚠️ Cannot Delete", "This UnitSize has active UnitSizeSetting. Delete them first.", "warning");
+        Swal.fire(
+          "⚠️ Cannot Delete",
+          "This UnitSize has active UnitSizeSetting. Delete them first.",
+          "warning"
+        );
       }
     }
   };
@@ -97,31 +106,24 @@ export default function UnitSizeList() {
     try {
       await UnitSizeAPI.bulk_import(file);
       Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      load();
+      refetch();
     } catch (err) {
-      console.error("Import error:", err);
       Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
 
-  // 🔹 Filter by search + company/business/factory
-  const filtered = sizes.filter((s) => {
-    const matchesSearch =
+  // 🔹 Search filter
+  const filteredSizes = unitSizesData.filter((s) => {
+    return (
       s.size_name?.toLowerCase().includes(search.toLowerCase()) ||
       (s.unit?.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (s.unit?.short_name || "").toLowerCase().includes(search.toLowerCase());
-
-    const matchesCompany =
-      (!selectedCompany || s.unit?.company?.id === selectedCompany) &&
-      (!selectedBusiness || s.unit?.business_type?.id === selectedBusiness) &&
-      (!selectedFactory || s.unit?.factory?.id === selectedFactory);
-
-    return matchesSearch && matchesCompany;
+      (s.unit?.short_name || "").toLowerCase().includes(search.toLowerCase())
+    );
   });
 
-  if (!userPermissions.includes("unit_size_view")) {
-    return <div className="alert alert-danger mt-3 text-center">Access Denied</div>;
-  }
+  // if (!userPermissions.includes("unit_size_view")) {
+  //   return <div className="alert alert-danger mt-3 text-center">Access Denied</div>;
+  // }
 
   return (
     <div className="container mt-3">
@@ -136,14 +138,13 @@ export default function UnitSizeList() {
         onDelete={onDelete}
         showDelete={userPermissions.includes("unit_size_delete")}
         selectedCount={selected.length}
-        data={filtered}
+        data={filteredSizes}
         onImport={handleImport}
         exportFileName="unit_sizes"
         showExport={userPermissions.includes("unit_size_view")}
         showPrint={userPermissions.includes("unit_size_view")}
       />
 
-      {/* ✅ Company Selector */}
       <div className="mb-3">
         <UserCompanySelector
           selectedUser={selectedUser}
@@ -159,7 +160,6 @@ export default function UnitSizeList() {
         />
       </div>
 
-      {/* ✅ Search */}
       <div className="d-flex gap-2 mb-3">
         <input
           type="text"
@@ -174,7 +174,6 @@ export default function UnitSizeList() {
         </button>
       </div>
 
-      {/* ✅ Table */}
       <div className="table-responsive">
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
@@ -182,9 +181,9 @@ export default function UnitSizeList() {
               <th style={{ width: 50 }}>
                 <input
                   type="checkbox"
-                  checked={selected.length === filtered.length && filtered.length > 0}
+                  checked={selected.length === filteredSizes.length && filteredSizes.length > 0}
                   onChange={(e) =>
-                    setSelected(e.target.checked ? filtered.map((s) => s.id) : [])
+                    setSelected(e.target.checked ? filteredSizes.map((s) => s.id) : [])
                   }
                 />
               </th>
@@ -196,8 +195,8 @@ export default function UnitSizeList() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length ? (
-              filtered.map((s, i) => (
+            {filteredSizes.length ? (
+              filteredSizes.map((s, i) => (
                 <tr key={s.id}>
                   <td>
                     <input
@@ -206,7 +205,7 @@ export default function UnitSizeList() {
                       onChange={() => toggleSelect(s.id)}
                     />
                   </td>
-                  <td>{i + 1}</td>
+                  <td>{(page - 1) * pageSize + i + 1}</td>
                   <td>{s.unit?.name || "-"}</td>
                   <td>{s.size_name}</td>
                   <td>{s.uom_weight}</td>
@@ -228,7 +227,6 @@ export default function UnitSizeList() {
                         Edit
                       </button>
                     )}
-
                     {userPermissions.includes("unit_size_delete") ? (
                       <button
                         className="btn btn-sm btn-outline-danger"
@@ -262,6 +260,33 @@ export default function UnitSizeList() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="d-flex justify-content-end mt-3">
+          <nav>
+            <ul className="pagination">
+              <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                <button className="page-link" onClick={() => setPage(page - 1)}>
+                  Prev
+                </button>
+              </li>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <li key={i} className={`page-item ${page === i + 1 ? "active" : ""}`}>
+                  <button className="page-link" onClick={() => setPage(i + 1)}>
+                    {i + 1}
+                  </button>
+                </li>
+              ))}
+              <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
+                <button className="page-link" onClick={() => setPage(page + 1)}>
+                  Next
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      )}
     </div>
   );
 }

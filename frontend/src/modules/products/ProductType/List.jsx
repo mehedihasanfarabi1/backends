@@ -1,167 +1,96 @@
-
-import React, { useRef } from "react";
-import { useEffect, useState } from "react";
+// src/pages/products/PTList.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import { ProductTypeAPI } from "../../../api/products";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
-import Swal from "sweetalert2";
-import "../../../styles/Table.css";
-
+import UserCompanySelector from "../../../components/UserCompanySelector";
+import useFastData from "../../../hooks/useFetch";
 import { useTranslation } from "../../../contexts/TranslationContext";
-import ImportModal from "../../../components/common/ImportModal";
 
 export default function PTList() {
   const nav = useNavigate();
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
-  const [permissions, setPermissions] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [search, setSearch] = useState("");
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [selectedFactory, setSelectedFactory] = useState(null);
   const [businessTypes, setBusinessTypes] = useState([]);
   const [factories, setFactories] = useState([]);
-  const [search, setSearch] = useState("");
-  const [selectedRows, setSelectedRows] = useState([]);
 
+  // ----------------------------
+  // Fetch all product types
+  // ----------------------------
+  const { data: allRows = [], refetch, isLoading } = useFastData({
+    key: "product_types",
+    apiFn: ProductTypeAPI.list,
+    initialData: [],
+  });
 
-  const { t } = useTranslation();
+  // ----------------------------
+  // Fetch current user
+  // ----------------------------
+  const { data: currentUser } = useFastData({
+    key: "currentUser",
+    apiFn: UserAPI.me,
+  });
 
-  // --------------------
-  // Load current user
-  // --------------------
-  const loadCurrentUser = async () => {
-    try {
-      const me = await UserAPI.me();
-      // console.log("[Debug] Current User:", me);
-      setCurrentUserId(me.id);
-      return me.id;
-    } catch (err) {
-      console.error("Error fetching current user:", err.response?.data || err);
-      return null;
+  // ----------------------------
+  // Fetch user permissions
+  // ----------------------------
+  const { data: userPerms } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+  });
+
+  // ----------------------------
+  // Process permissions
+  // ----------------------------
+  const permissions = [];
+  const allowedCompanyIds = new Set();
+
+  userPerms?.forEach((p) => {
+    const productModule = p.product_module || {};
+    if (Object.values(productModule).some((v) => v.view || v.create || v.edit || v.delete)) {
+      (p.companies || []).forEach((cid) => allowedCompanyIds.add(Number(cid)));
     }
-  };
-
-  // --------------------
-  // Load all data
-  // --------------------
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allRows = await ProductTypeAPI.list();
-      // console.log("[Debug] All Rows from API:", allRows);
-
-      const userId = currentUserId || (await loadCurrentUser());
-      if (!userId) return setLoading(false);
-
-      const userPerms = await UserPermissionAPI.getByUser(userId);
-      // console.log("[Debug] User Permissions Raw:", userPerms);
-
-      const allowedCompanyIds = new Set();
-      const allowedBusiness = {};
-      const allowedFactories = {};
-      const userPermissionsArr = [];
-
-      userPerms.forEach((p) => {
-        const productModule = p.product_module || {};
-        if (
-          Object.values(productModule).some(
-            (v) => v.view || v.create || v.edit || v.delete
-          )
-        ) {
-          // Companies
-          (p.companies || []).forEach((cid) => {
-            allowedCompanyIds.add(Number(cid));
-          });
-
-          // Business Types
-          Object.entries(p.business_types || {}).forEach(([cid, bts]) => {
-            allowedBusiness[Number(cid)] = bts.map(Number);
-          });
-
-          // Factories
-          Object.entries(p.factories || {}).forEach(([cid, farr]) => {
-            allowedFactories[Number(cid)] = farr.map((f) => ({
-              factory_id: Number(f.factory_id),
-              business_type_id: f.business_type_id
-                ? Number(f.business_type_id)
-                : null,
-            }));
-          });
-
-          // Product Module Actions
-          Object.entries(productModule).forEach(([module, actions]) => {
-            Object.entries(actions).forEach(([action, allowed]) => {
-              if (allowed) userPermissionsArr.push(`${module}_${action}`);
-            });
-          });
-        }
+    Object.entries(productModule).forEach(([module, actions]) => {
+      Object.entries(actions).forEach(([action, allowed]) => {
+        if (allowed) permissions.push(`${module}_${action}`);
       });
+    });
+  });
 
-      setPermissions(userPermissionsArr);
+  // ----------------------------
+  // Filter rows by company & search
+  // ----------------------------
+  const filteredRows = allRows
+    .filter((r) => allowedCompanyIds.has(Number(r.company?.id)))
+    .filter(
+      (r) =>
+        (!selectedCompany || r.company?.id === selectedCompany) &&
+        (!selectedBusiness || r.business_type?.id === selectedBusiness) &&
+        (!selectedFactory || r.factory?.id === selectedFactory) &&
+        (r.name.toLowerCase().includes(search.toLowerCase()) ||
+          (r.desc || "").toLowerCase().includes(search.toLowerCase()))
+    );
 
-      // console.log("[Debug] Allowed Companies:", Array.from(allowedCompanyIds));
-      // console.log("[Debug] Allowed Business:", allowedBusiness);
-      // console.log("[Debug] Allowed Factories:", allowedFactories);
-      // console.log("[Debug] Collected Module Perms:", userPermissionsArr);
-
-      // Filter rows by permission
-      const filteredRows = allRows.filter((r) => {
-        if (!r.company || !allowedCompanyIds.has(Number(r.company.id)))
-          return false;
-
-        if (r.business_type) {
-          const allowedBTs = allowedBusiness[Number(r.company.id)] || [];
-          if (
-            allowedBTs.length &&
-            !allowedBTs.includes(Number(r.business_type.id))
-          )
-            return false;
-        }
-
-        if (r.factory) {
-          const allowedF = allowedFactories[Number(r.company.id)] || [];
-          const fMatch = allowedF.some(
-            (f) =>
-              f.factory_id === Number(r.factory.id) &&
-              (!f.business_type_id ||
-                f.business_type_id === Number(r.business_type?.id))
-          );
-          if (allowedF.length && !fMatch) return false;
-        }
-
-        return true;
-      });
-
-      // console.log(
-      //   "[Debug] Filtered Rows IDs (after check):",
-      //   filteredRows.map((r) => r.id)
-      // );
-
-      setRows(filteredRows);
-    } catch (err) {
-      console.error("Error in loadData:", err.response?.data || err);
-      Swal.fire("Error", "Failed to load product types", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [currentUserId]);
-
-  const toggleSelectRow = (id) => {
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelectRow = (id) =>
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
     if (!permissions.includes("product_type_delete"))
@@ -178,63 +107,53 @@ export default function PTList() {
       for (let id of selectedRows) await ProductTypeAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      loadData();
+      refetch();
     } catch (err) {
-      // 🔹 Child থাকলে specific warning দেখাবে
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
       if (typeof message === "object") {
-        // DRF ValidationError returns array
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
-
-      Swal.fire("⚠️ Cannot Delete", "This ProductType has active Categories. Delete them first.", "warning");
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "This ProductType has active Categories. Delete them first.",
+        "warning"
+      );
     }
   };
 
-  const filteredRows = rows.filter(
-    (r) =>
-      (!selectedCompany || r.company?.id === selectedCompany) &&
-      (!selectedBusiness || r.business_type?.id === selectedBusiness) &&
-      (!selectedFactory || r.factory?.id === selectedFactory) &&
-      (r.name.toLowerCase().includes(search.toLowerCase()) ||
-        (r.desc || "").toLowerCase().includes(search.toLowerCase()))
-  );
-
-
+  // ----------------------------
+  // Import handler
+  // ----------------------------
   const handleImport = async (file) => {
     if (!file) return;
     try {
-      await ProductTypeAPI.bulk_import(file); // ✅ শুধু FILE object
+      await ProductTypeAPI.bulk_import(file);
       Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      loadData();
+      refetch();
     } catch (err) {
       console.error("Import error:", err);
       Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
 
-
-
-
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  // ----------------------------
+  // Render
+  // ----------------------------
+  if (isLoading) return <div className="text-center mt-5">Loading...</div>;
   if (!permissions.includes("product_type_view"))
-    return (
-      <div className="alert alert-danger text-center mt-3">Access Denied</div>
-    );
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   return (
     <div className="container mt-3">
-
       <ActionBar
-        title="Product Types"
+        title={t("Product Types")}
         onCreate={() => nav("/admin/product-types/new")}
         showCreate={permissions.includes("product_type_create")}
         onDelete={handleDelete}
         showDelete={permissions.includes("product_type_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
-        onImport={handleImport} // ✅ handleImport pass করলাম
+        onImport={handleImport}
         exportFileName="product_types"
         showExport={permissions.includes("product_type_view")}
       />
@@ -269,20 +188,16 @@ export default function PTList() {
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
-
-              <th>{t("serial")}</th>
-              {/* <th>Company</th>
-              <th>Business Type</th>
-              <th>Factory</th> */}
-              <th>{t("product_type")}</th>
-              <th>{t("description")}</th>
-              <th>{t("actions")}</th>
+              <th>{t("SL")}</th>
+              <th>{t("Company")}</th>
+              <th>{t("Product Type")}</th>
+              <th>{t("Description")}</th>
+              <th>{t("Actions")}</th>
               <th>
                 <input
                   type="checkbox"
                   checked={
-                    selectedRows.length === filteredRows.length &&
-                    filteredRows.length > 0
+                    selectedRows.length === filteredRows.length && filteredRows.length > 0
                   }
                   onChange={(e) =>
                     setSelectedRows(
@@ -297,14 +212,10 @@ export default function PTList() {
             {filteredRows.length ? (
               filteredRows.map((r, i) => (
                 <tr key={r.id}>
-
                   <td>{i + 1}</td>
-                  {/* <td>{r.company?.name}</td>
-                  <td>{r.business_type?.name || "-"}</td>
-                  <td>{r.factory?.name || "-"}</td> */}
+                  <td>{r.company?.name || "-"}</td>
                   <td>{r.name}</td>
-                  <td>{r.desc}</td>
-
+                  <td>{r.desc || "-"}</td>
                   <td>
                     <button
                       className="btn btn-sm btn-outline-secondary me-1"
@@ -335,7 +246,7 @@ export default function PTList() {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="text-center">
+                <td colSpan="6" className="text-center">
                   No data
                 </td>
               </tr>

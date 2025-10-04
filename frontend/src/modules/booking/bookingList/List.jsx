@@ -1,74 +1,90 @@
 // src/booking/List.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
 import { BookingAPI } from "../../../api/booking";
+import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import useFastData from "../../../hooks/useFetch";
 
 export default function BookingList() {
   const nav = useNavigate();
-
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [permissions, setPermissions] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Load current user
-  const loadCurrentUser = async () => {
-    try {
-      const me = await UserAPI.me();
-      setCurrentUserId(me.id);
-      return me.id;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  };
+  // ----------------------------
+  // Fetch current user instantly
+  // ----------------------------
+  const { data: currentUser } = useFastData({
+    key: "currentUser",
+    apiFn: UserAPI.me,
+    staleTime: 5 * 60 * 1000, // 5 মিনিট cache
+    initialData: {},          // instant UI render
+  });
 
-  // Load bookings
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allRows = await BookingAPI.list();
-      const userId = currentUserId || (await loadCurrentUser());
-      if (!userId) return setLoading(false);
+  // ----------------------------
+  // Fetch user permissions instantly
+  // ----------------------------
+  const { data: userPerms = [] } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
+    initialData: [],
+  });
 
-      const userPerms = await UserPermissionAPI.getByUser(userId);
-      const userPermissionsArr = [];
+  // ----------------------------
+  // Fetch bookings instantly
+  // ----------------------------
+  const { data: allRows = [], refetch } = useFastData({
+    key: "bookings",
+    apiFn: BookingAPI.list,
+    enabled: !!currentUser,
+    staleTime: 1,          // practically instant refresh
+    initialData: [],       // instant UI
+  });
 
-      userPerms.forEach((p) => {
-        const bookingModule = p.booking_module || {};
-        Object.entries(bookingModule).forEach(([module, actions]) => {
-          Object.entries(actions).forEach(([action, allowed]) => {
-            if (allowed) userPermissionsArr.push(`${module}_${action}`);
-          });
-        });
+  // ----------------------------
+  // Process permissions
+  // ----------------------------
+  const permissions = [];
+  userPerms.forEach((p) => {
+    const bookingModule = p.booking_module || {};
+    Object.entries(bookingModule).forEach(([module, actions]) => {
+      Object.entries(actions).forEach(([action, allowed]) => {
+        if (allowed) permissions.push(`${module}_${action}`);
       });
+    });
+  });
 
-      setPermissions(userPermissionsArr);
-      setRows(allRows);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to load bookings", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!permissions.includes("booking_view"))
+    return (
+      <div className="alert alert-danger text-center mt-3">
+        Access Denied
+      </div>
+    );
 
-  useEffect(() => {
-    loadData();
-  }, [currentUserId]);
+  // ----------------------------
+  // Filter rows by search
+  // ----------------------------
+  const filteredRows = allRows.filter(
+    (r) =>
+      (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (r.desc || "").toLowerCase().includes(search.toLowerCase())
+  );
 
-  const toggleSelectRow = (id) => {
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelectRow = (id) =>
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
     if (!permissions.includes("booking_delete"))
@@ -85,62 +101,43 @@ export default function BookingList() {
       for (let id of selectedRows) await BookingAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      loadData();
+      refetch(); // instantly refresh list
     } catch (err) {
-
-      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
-      if (typeof message === "object") {
-
-        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
-      }
-
-      Swal.fire("⚠️ Cannot Delete", "This Booking has active party. Delete them first.", "warning");
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "This Booking has active party. Delete them first.",
+        "warning"
+      );
     }
   };
 
-  // filter by search
-  const filteredRows = rows.filter(
-    (r) =>
-      (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (r.desc || "").toLowerCase().includes(search.toLowerCase())
-  );
-
-
+  // ----------------------------
+  // Import handler
+  // ----------------------------
   const handleImport = async (file) => {
     if (!file) return;
     try {
-      await BookingAPI.bulk_import(file); // ✅ শুধু FILE object
+      await BookingAPI.bulk_import(file);
       Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      loadData();
+      refetch(); // instantly refresh list
     } catch (err) {
-      console.error("Import error:", err);
       Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
-
-
-  if (loading) return <div className="text-center mt-5 ">Loading...</div>;
-  if (!permissions.includes("booking_view"))
-    return (
-      <div className="alert alert-danger text-center mt-3">
-        Access Denied
-      </div>
-    );
 
   return (
     <div className="container mt-3">
       <ActionBar
         title="Bookings"
-        onCreate={() => nav("/admin/bookings/new")}
+        onCreate={() => nav("/booking/new")}
         showCreate={permissions.includes("booking_create")}
         onDelete={handleDelete}
         showDelete={permissions.includes("booking_delete")}
         selectedCount={selectedRows.length}
         data={filteredRows}
-        exportFileName="bookings"
         onImport={handleImport}
-        columns={["id","name","desc"]}
+        columns={["name", "description"]}
+        exportFileName="bookings"
         showExport={permissions.includes("booking_view")}
       />
 
@@ -157,8 +154,8 @@ export default function BookingList() {
         </button>
       </div>
 
-      <div className="table-responsive" style={{ fontSize: "0.75rem" }}>
-        <table className="table table-bordered table-hover table-striped mb-0">
+      <div className="table-responsive">
+        <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
               <th>#</th>
@@ -189,35 +186,23 @@ export default function BookingList() {
                   <td>{r.name}</td>
                   <td>{r.desc || "-"}</td>
                   <td>
-                    <FaEdit
-                      className="text-secondary me-3"
-                      size={20}
-                      title="Edit"
-                      onClick={() => nav(`/admin/bookings/${r.id}`)}
-                      style={{
-                        cursor: permissions.includes("booking_edit")
-                          ? "pointer"
-                          : "not-allowed",
-                        opacity: permissions.includes("booking_edit") ? 1 : 0.5,
-                      }}
-                    />
-                    <FaTrash
-                      className="text-danger"
-                      size={20}
-                      title="Delete"
+                    <button
+                      className="btn btn-sm btn-outline-secondary me-1"
+                      onClick={() => nav(`/booking/edit/${r.id}`)}
+                      disabled={!permissions.includes("booking_edit")}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
                       onClick={() => {
-                        if (permissions.includes("booking_delete")) {
-                          setSelectedRows([r.id]);
-                          handleDelete();
-                        }
+                        setSelectedRows([r.id]);
+                        handleDelete();
                       }}
-                      style={{
-                        cursor: permissions.includes("booking_delete")
-                          ? "pointer"
-                          : "not-allowed",
-                        opacity: permissions.includes("booking_delete") ? 1 : 0.5,
-                      }}
-                    />
+                      disabled={!permissions.includes("booking_delete")}
+                    >
+                      Delete
+                    </button>
                   </td>
                   <td>
                     <input

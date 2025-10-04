@@ -2,12 +2,16 @@ from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import PermissionDenied
 from users.models import UserPermissionSet
 
-
 SETTINGS_PERMISSIONS = {
-    "bag_type": ["create", "view", "edit", "delete"],
-    
+  "bag_type": ["create", "view", "edit", "delete"],
+  "loan_type": ["create", "view", "edit", "delete"],
+  "conditions": ["create", "view", "edit", "delete"],
+  "pc_settings": ["create", "view", "edit", "delete"],
+  "shed_settings": ["create", "view", "edit", "delete"],
+  "general_settings": ["create", "view", "edit", "delete"],
+  "basic_settings": ["create", "view", "edit", "delete"],
+  "transaction_settings": ["create", "view", "edit", "delete"]
 }
-
 
 def get_all_settings_permissions():
 

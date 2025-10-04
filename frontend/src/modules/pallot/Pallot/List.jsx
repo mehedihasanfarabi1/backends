@@ -1,37 +1,31 @@
 // src/pages/pallot/PallotList.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PallotAPI, PallotListAPI } from "../../../api/pallotApi";
 import Swal from "sweetalert2";
+import { PallotListAPI } from "../../../api/pallotApi";
 import ActionBar from "../../../components/common/ActionBar";
+import useFastData from "../../../hooks/useFetch";
 
 export default function PallotList() {
   const nav = useNavigate();
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Load Data
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allRows = await PallotListAPI.list();
-      setRows(allRows);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to load Pallots", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ----------------------------
+  // Fetch pallot list
+  // ----------------------------
+  const { data: rows = [], refetch, isLoading } = useFastData({
+    key: "pallots",
+    apiFn: PallotListAPI.list,
+    initialData: [],
+  });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
+
     const confirm = await Swal.fire({
       title: `Delete ${selectedRows.length} selected?`,
       icon: "warning",
@@ -43,39 +37,48 @@ export default function PallotList() {
       for (let id of selectedRows) await PallotListAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      loadData();
+      refetch(); // instant refresh
     } catch (err) {
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
       if (typeof message === "object") {
-
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
-
       Swal.fire("⚠️ Cannot Delete", "This Pallot has active child. Delete them first.", "warning");
     }
   };
 
+  // ----------------------------
+  // Import handler
+  // ----------------------------
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await PallotListAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      refetch();
+    } catch (err) {
+      console.error("Import error:", err);
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
 
-      const handleImport = async (file) => {
-      if (!file) return;
-      try {
-        await PallotListAPI.bulk_import(file); 
-        Swal.fire("✅ Imported!", "Records saved successfully", "success");
-        loadData();
-      } catch (err) {
-        console.error("Import error:", err);
-        Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
-      }
-    };
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelectRow = (id) =>
+    setSelectedRows(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
-  // Search filter (pallot number / comment / sr no)
+  // ----------------------------
+  // Filter rows by search
+  // ----------------------------
   const filteredRows = rows.filter(
     (r) =>
       r.pallot_number.toString().includes(search) ||
       (r.comment || "").toLowerCase().includes(search.toLowerCase()) ||
       (r.sr?.sr_no?.toString() || "").includes(search)
   );
+
+  if (isLoading) return <div className="text-center mt-5">Loading...</div>;
 
   return (
     <div className="container mt-3">
@@ -86,7 +89,7 @@ export default function PallotList() {
         data={filteredRows}
         onImport={handleImport}
         selectedCount={selectedRows.length}
-        
+
       />
 
       <div className="d-flex gap-2 mb-3 flex-wrap">
@@ -106,7 +109,7 @@ export default function PallotList() {
               <th>#</th>
               <th>Pallot No</th>
               <th>Pallot Type</th>
-             
+
               <th>SR Quantity</th>
               <th>Date</th>
               <th>Chamber</th>

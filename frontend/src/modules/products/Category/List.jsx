@@ -1,88 +1,105 @@
 // src/pages/admin/category/CategoryList.jsx
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CategoryAPI, ProductTypeAPI } from "../../../api/products";
+import Swal from "sweetalert2";
+import { CategoryAPI } from "../../../api/products";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
 import ActionBar from "../../../components/common/ActionBar";
 import UserCompanySelector from "../../../components/UserCompanySelector";
-import Swal from "sweetalert2";
-import "../../../styles/Table.css";
+import Pagination from "../../../components/common/Pagination";
+import useFastData from "../../../hooks/useFetch";
 import { useTranslation } from "../../../contexts/TranslationContext";
+
 export default function CategoryList() {
   const nav = useNavigate();
+  const { t } = useTranslation();
 
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const [permissions, setPermissions] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [search, setSearch] = useState("");
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [selectedFactory, setSelectedFactory] = useState(null);
   const [businessTypes, setBusinessTypes] = useState([]);
   const [factories, setFactories] = useState([]);
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const { t } = useTranslation()
-  // -------------------
-  // Load current user
-  // -------------------
-  const loadCurrentUser = async () => {
-    try {
-      const me = await UserAPI.me();
-      setCurrentUserId(me.id);
-      return me.id;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  };
+  const rowsPerPage = 10;
 
-  // -------------------
-  // Load categories
-  // -------------------
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allCategories = await CategoryAPI.list();
+  // ----------------------------
+  // Fetch all categories
+  // ----------------------------
+  const { data: allRows = [], refetch, isLoading } = useFastData({
+    key: "categories",
+    apiFn: CategoryAPI.list,
+    initialData: [],
+  });
 
-      const userId = currentUserId || (await loadCurrentUser());
-      if (!userId) return setLoading(false);
+  // ----------------------------
+  // Fetch current user
+  // ----------------------------
+  const { data: currentUser } = useFastData({
+    key: "currentUser",
+    apiFn: UserAPI.me,
+  });
 
-      const userPerms = await UserPermissionAPI.getByUser(userId);
-      const userPermissionsArr = [];
+  // ----------------------------
+  // Fetch user permissions
+  // ----------------------------
+  const { data: userPerms } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+  });
 
-      userPerms.forEach((p) => {
-        const categoryModule = p.product_module?.category || {};
-        Object.entries(categoryModule).forEach(([action, allowed]) => {
-          if (allowed) userPermissionsArr.push(`category_${action}`);
-        });
-      });
+  // ----------------------------
+  // Process permissions
+  // ----------------------------
+  const permissions = [];
+  const allowedCompanyIds = new Set();
 
-      setPermissions(userPermissionsArr);
-      setRows(allCategories);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to load categories", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  userPerms?.forEach((p) => {
+    const categoryModule = p.product_module?.category || {};
+    Object.entries(categoryModule).forEach(([action, allowed]) => {
+      if (allowed) permissions.push(`category_${action}`);
+    });
+    (p.companies || []).forEach((cid) => allowedCompanyIds.add(Number(cid)));
+  });
 
-  useEffect(() => {
-    loadData();
-  }, [currentUserId]);
+  // ----------------------------
+  // Filter rows by company & search
+  // ----------------------------
+  const filteredRows = allRows
+    .filter((r) => allowedCompanyIds.has(Number(r.company?.id)))
+    .filter(
+      (r) =>
+        (!selectedCompany || r.company?.id === selectedCompany) &&
+        (!selectedBusiness || r.business_type?.id === selectedBusiness) &&
+        (!selectedFactory || r.factory?.id === selectedFactory) &&
+        (r.name.toLowerCase().includes(search.toLowerCase()) ||
+          (r.description || "").toLowerCase().includes(search.toLowerCase()))
+    );
 
-  const toggleSelectRow = (id) => {
+  // ----------------------------
+  // Pagination logic
+  // ----------------------------
+  const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+  const paginatedRows = filteredRows.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelectRow = (id) =>
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
     if (!permissions.includes("category_delete"))
@@ -99,50 +116,43 @@ export default function CategoryList() {
       for (let id of selectedRows) await CategoryAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      loadData();
+      refetch();
     } catch (err) {
-      // 🔹 Child থাকলে specific warning দেখাবে
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
       if (typeof message === "object") {
-        // DRF ValidationError returns array
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
-
-      Swal.fire("⚠️ Cannot Delete", "This Category has active Products. Delete them first.", "warning");
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "This Category has active Products. Delete them first.",
+        "warning"
+      );
     }
   };
 
-  const filteredRows = rows.filter(
-    (r) =>
-      (!selectedCompany || r.company?.id === selectedCompany) &&
-      (!selectedBusiness || r.business_type?.id === selectedBusiness) &&
-      (!selectedFactory || r.factory?.id === selectedFactory) &&
-      (r.name.toLowerCase().includes(search.toLowerCase()) ||
-        (r.description || "").toLowerCase().includes(search.toLowerCase()))
-  );
-
+  // ----------------------------
+  // Import handler
+  // ----------------------------
   const handleImport = async (file) => {
     if (!file) return;
     try {
-      await CategoryAPI.bulk_import(file); 
+      await CategoryAPI.bulk_import(file);
       Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      loadData();
+      refetch();
     } catch (err) {
       console.error("Import error:", err);
-      // Swal.fire("❌ Failed", "Please check the data validation process" || "Import failed", "error");
       Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  if (isLoading) return <div className="text-center mt-5">Loading...</div>;
   if (!permissions.includes("category_view"))
     return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   return (
     <div className="container mt-3">
       <ActionBar
-        title="Categories"
+        title={t("Categories")}
         onCreate={permissions.includes("category_create") ? () => nav("/admin/categories/new") : undefined}
         showCreate={permissions.includes("category_create")}
         onDelete={handleDelete}
@@ -173,7 +183,10 @@ export default function CategoryList() {
           placeholder="Search..."
           style={{ maxWidth: 250 }}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1);
+          }}
         />
         <button className="btn btn-secondary" onClick={() => setSearch("")}>
           Clear
@@ -184,38 +197,34 @@ export default function CategoryList() {
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
-
-              <th>{t("serial")}</th>
-              {/* <th>Company</th>
-              <th>Business_Type</th>
-              <th>Factory</th> */}
-              <th>{t("product_type")}</th>
-              <th>{t("category_name")}</th>
-              <th>{t("description")}</th>
-              <th>{t("actions")}</th>
+              <th>{t("SL")}</th>
+              <th>{t("Company")}</th>
+              <th>{t("Product Type")}</th>
+              <th>{t("Category Name")}</th>
+              <th>{t("Description")}</th>
+              <th>{t("Actions")}</th>
               <th>
                 <input
                   type="checkbox"
-                  checked={selectedRows.length === filteredRows.length && filteredRows.length > 0}
+                  checked={selectedRows.length === paginatedRows.length && paginatedRows.length > 0}
                   onChange={(e) =>
-                    setSelectedRows(e.target.checked ? filteredRows.map((r) => r.id) : [])
+                    setSelectedRows(
+                      e.target.checked ? paginatedRows.map((r) => r.id) : []
+                    )
                   }
                 />
               </th>
             </tr>
           </thead>
           <tbody>
-            {filteredRows.length ? (
-              filteredRows.map((r, i) => (
+            {paginatedRows.length ? (
+              paginatedRows.map((r, i) => (
                 <tr key={r.id}>
-
-                  <td>{i + 1}</td>
-                  {/* <td>{r.company?.name}</td>
-                  <td>{r.business_type?.name || "-"}</td>
-                  <td>{r.factory?.name || "-"}</td> */}
+                  <td>{(currentPage - 1) * rowsPerPage + i + 1}</td>
+                  <td>{r.company?.name || "-"}</td>
                   <td>{r.product_type?.name || "-"}</td>
                   <td>{r.name}</td>
-                  <td>{r.description}</td>
+                  <td>{r.description || "-"}</td>
                   <td>
                     <button
                       className="btn btn-sm btn-outline-secondary me-1"
@@ -246,7 +255,7 @@ export default function CategoryList() {
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="text-center">
+                <td colSpan={7} className="text-center">
                   No data
                 </td>
               </tr>
@@ -254,6 +263,12 @@ export default function CategoryList() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(p) => setCurrentPage(p)}
+      />
     </div>
   );
 }

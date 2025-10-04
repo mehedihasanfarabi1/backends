@@ -31,14 +31,14 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
   // Open menu auto-detect
   useEffect(() => {
     const menuPaths = {
-      essential_settings: ["/admin/bag-types", "/admin/bookings_essential"],
+      essential_settings: ["/admin/bag-types", "/admin/loan-types", "/admin/conditions", "/admin/pc-settings", "/admin/shed-settings", "/admin/general-settings", "/admin/basic-settings", "/admin/transaction-settings",],
       products: ["/admin/products", "/admin/product-types", "/admin/categories", "/admin/units", "/admin/unit-sizes", "/admin/unit-conversions", "/admin/product-size-settings"],
       party_type: ["/admin/party-types", "/admin/party-list", "/admin/party-commissions", "/admin/party-ledger", "/admin/party-report"],
       settings: ["/admin/projects", "/admin/translations"],
       booking: ["/admin/bookings", "/admin/bookings/new"],
       sr: ["/admin/sr", "/admin/add-sr"],
       pallet: ["/admin/pallet", "/admin/pallet_location", "/admin/pallet_list"],
-      loan: ["/admin/loan", "/admin/loan-types"],
+      loan: ["/admin/sloan", "/admin/sloan"],
       delivery: ["/admin/delivery", "/admin/add-delivery"],
       accounts: ["/admin/accounts", "/admin/account-head"],
       bank: ["/admin/bank", "/admin/add-bank"],
@@ -71,8 +71,14 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
     { label: "dashboard", icon: "fa-house", path: "/admin" },
     {
       label: "essential_settings", icon: "fa-gear", key: "essential_settings", permission: "settings_module", sub: [
-        { label: "booking_type", icon: "fa-layer-group", path: "/admin/bookings_essential", permission: "booking_module" },
         { label: "bag_type", icon: "fa-ruler-combined", path: "/admin/bag-types" },
+        { label: "loan_type", icon: "fa-list", path: "/admin/loan-types" },
+        { label: "Conditions", icon: "fa-circle-check", path: "/admin/conditions" },
+        { label: "PC Settings", icon: "fa-computer", path: "/admin/pc-settings" },
+        { label: "Shed Settings", icon: "fa-warehouse", path: "/admin/shed-settings" },
+        { label: "General Settings", icon: "fa-sliders", path: "/admin/general-settings" },
+        { label: "Basic Settings", icon: "fa-cogs", path: "/admin/basic-settings" },
+        { label: "Transaction Settings", icon: "fa-exchange-alt", path: "/admin/transaction-settings" },
       ]
     },
     {
@@ -104,31 +110,36 @@ export default function Sidebar({ collapsed, showMobile, closeMobile }) {
     },
     { label: "booking", icon: "fa-calendar-check", key: "booking", permission: "booking_module", sub: [{ label: "add_booking", icon: "fa-plus", path: "/admin/bookings" }] },
     { label: "sr", icon: "fa-user-tie", key: "sr", permission: "sr_module", sub: [{ label: "sr_list", icon: "fa-list", path: "/admin/sr" }] },
-    { label: "pallet", icon: "fa-location-dot", key: "pallet", permission: "pallot_module", sub: [
+    {
+      label: "pallet", icon: "fa-location-dot", key: "pallet", permission: "pallot_module", sub: [
         { label: "pallet_list", icon: "fa-list", path: "/admin/pallet" },
         { label: "pallet_location", icon: "fa-location-dot", path: "/admin/pallet_location" },
         { label: "pallet", icon: "fa-calendar-check", path: "/admin/pallet_list" },
       ]
     },
-    { label: "loan", icon: "fa-hand-holding-dollar", key: "loan", permission: "loan_module", sub: [{ label: "loan_list", icon: "fa-list", path: "/admin/loan-types" }] },
-    { label: "delivery", icon: "fa-truck", key: "delivery", sub: [
+    { label: "loan", icon: "fa-hand-holding-dollar", key: "loan", permission: "loan_module", sub: [{ label: "loan_list", icon: "fa-list", path: "/admin/loan" }] },
+    {
+      label: "delivery", icon: "fa-truck", key: "delivery", sub: [
         { label: "add_delivery", icon: "fa-plus", path: "/admin/add-delivery" },
         { label: "delivery_list", icon: "fa-list", path: "/admin/delivery" },
       ]
     },
     { label: "accounts", icon: "fa-building-columns", key: "accounts", permission: "accounts_module", sub: [{ label: "account_head", icon: "fa-list", path: "/admin/account-head" }] },
-    { label: "bank", icon: "fa-building-columns", key: "bank", sub: [
+    {
+      label: "bank", icon: "fa-building-columns", key: "bank", sub: [
         { label: "add_bank", icon: "fa-plus", path: "/admin/add-bank" },
         { label: "bank_list", icon: "fa-list", path: "/admin/bank" },
       ]
     },
-    { label: "company_info", icon: "fa-building", key: "company_info", permission: "company_module", sub: [
+    {
+      label: "company_info", icon: "fa-building", key: "company_info", permission: "company_module", sub: [
         { label: "company", icon: "fa-city", path: "/admin/companies" },
         { label: "business_type", icon: "fa-briefcase", path: "/admin/business-types" },
         { label: "factory", icon: "fa-industry", path: "/admin/factories" },
       ]
     },
-    { label: "users_permissions", icon: "fa-user", key: "user_permissions", permission: "company_module", sub: [
+    {
+      label: "users_permissions", icon: "fa-user", key: "user_permissions", permission: "company_module", sub: [
         { label: "users_permissions", icon: "fa-file", path: "/admin/permissions" },
         { label: "users", icon: "fa-users", path: "/admin/users" },
         { label: "roles", icon: "fa-slack", path: "/admin/users/roles" },

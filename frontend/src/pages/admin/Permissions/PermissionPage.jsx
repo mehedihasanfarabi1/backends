@@ -41,7 +41,7 @@ export default function PermissionPage() {
         const sr_module = ["sr"];
         const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
         const loan_module = ["loan_type", "loan"];
-        const settings_module = ["bag_type"];
+        const settings_module = ["bag_type","loan_type","conditions","pc_settings","shed_settings","general_settings","basic_settings","transaction_settings"];
         const accounts_module = ["account_head", "account"];
 
         let mainGroup = "other";
@@ -189,7 +189,7 @@ export default function PermissionPage() {
         const sr_module = ["sr"];
         const pallot_module = ["pallot_type", "pallot", "chamber", "floor", "pocket"];
         const loan_module = ["loan_type", "loan"];
-        const settings_module = ["bag_type"];
+        const settings_module = ["bag_type","loan_type","conditions","pc_settings","shed_settings","general_settings","basic_settings","transaction_settings"];
         const accounts_module = ["account_head", "account"];
 
         if (companyModules.includes(module)) {

@@ -9,17 +9,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
  * - enabled: boolean → run query or not
  * - staleTime: কতক্ষণ data fresh ধরা হবে (default: 5 min)
  */
-export default function useFastData({ key, apiFn, enabled = true, staleTime = 1000 * 60 * 5 }) {
+export default function useFastData({ key, apiFn, enabled = true, staleTime = 1 }) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: Array.isArray(key) ? key : [key],
     queryFn: apiFn,
     enabled,
-    staleTime, // cache থেকে instant data দেবে ৫ মিনিট পর্যন্ত
-    refetchOnWindowFocus: true, // window এলে refresh করবে
+    staleTime, 
+    refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchInterval: false, // চাইলে auto polling দিতে পারো
+    refetchInterval: false, 
   });
   
 

@@ -16,3 +16,9 @@ const crud = (resource) => ({
 });
 
 export const bagTypeApi = crud("bag-types");
+export const conditionsApi = crud("conditions");
+export const pcSettingsApi = crud("pc-settings");
+export const shedSettingsApi = crud("shed-settings");
+export const generalSettingsApi = crud("general-settings");
+export const basicSettingsApi = crud("basic-settings");
+export const transactionSettingsApi = crud("transaction-settings");

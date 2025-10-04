@@ -1,48 +1,59 @@
-import React, { useEffect, useState } from "react";
+// src/modules/products/UnitConversion/List.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UnitConversionAPI } from "../../../api/products";
 import { PermissionAPI } from "../../../api/permissions";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
+import useFastData from "../../../hooks/useFetch";
 import "../../../styles/Table.css";
 
 export default function UnitConversionList() {
-  const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState([]);
-  const [userPermissions, setUserPermissions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const nav = useNavigate();
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const data = await UnitConversionAPI.list();
-      setRows(data);
+  // ----------------------------
+  // Fetch conversions with FastData
+  // ----------------------------
+  const { data: response = {}, refetch, isLoading } = useFastData({
+    key: ["unitConversions"],
+    apiFn: UnitConversionAPI.list,
+    initialData: {},
+  });
 
-      const perms = await PermissionAPI.list();
-      setUserPermissions(perms.map((p) => p.code));
-    } catch (err) {
-      console.error("Error loading conversions:", err);
-      Swal.fire("Error", "Failed to load data", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ensure array
+  const conversions = Array.isArray(response.results)
+    ? response.results
+    : Array.isArray(response)
+    ? response
+    : [];
 
-  useEffect(() => {
-    load();
-  }, []);
+  // ----------------------------
+  // Fetch user permissions
+  // ----------------------------
+  const { data: userPerms = [] } = useFastData({
+    key: ["userPermissions"],
+    apiFn: PermissionAPI.list,
+    initialData: [],
+  });
 
-  const toggleSelect = (id) => {
+  const permissions = userPerms.map((p) => p.code);
+
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelect = (id) =>
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
-  const onDelete = async () => {
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
+  const handleDelete = async () => {
     if (!selected.length) return;
-    if (!userPermissions.includes("unit_conversion_delete")) {
+    if (!permissions.includes("unit_conversion_delete")) {
       return Swal.fire("❌ You do not have access for this feature", "", "error");
     }
 
@@ -56,33 +67,44 @@ export default function UnitConversionList() {
 
     if (result.isConfirmed) {
       try {
-        for (let id of selected) {
-          await UnitConversionAPI.remove(id);
-        }
+        for (let id of selected) await UnitConversionAPI.remove(id);
         setSelected([]);
-        load();
+        refetch();
         Swal.fire("Deleted!", "Selected conversion(s) removed.", "success");
       } catch (err) {
-
         let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
         if (typeof message === "object") {
-
           message = message.detail ? message.detail : Object.values(message).flat().join(", ");
         }
-
         Swal.fire("⚠️ Cannot Delete", "This UnitConversion has active Child. Delete them first.", "warning");
       }
     }
   };
 
-  const filtered = rows.filter(
+  // ----------------------------
+  // Import handler
+  // ----------------------------
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await UnitConversionAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      refetch();
+    } catch (err) {
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
+  // ----------------------------
+  // Filtered conversions
+  // ----------------------------
+  const filtered = conversions.filter(
     (r) =>
-      r.parent_unit?.unit_name?.toLowerCase().includes(search.toLowerCase()) ||
-      r.child_unit?.unit_name?.toLowerCase().includes(search.toLowerCase())
+      (r.parent_unit?.unit_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (r.child_unit?.unit_name || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="text-center mt-5">
         <div className="spinner-border text-primary" role="status"></div>
@@ -91,22 +113,8 @@ export default function UnitConversionList() {
     );
   }
 
-  const handleImport = async (file) => {
-    if (!file) return;
-    try {
-      await UnitConversionAPI.bulk_import(file);
-      Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      load();
-    } catch (err) {
-      console.error("Import error:", err);
-      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
-    }
-  };
-
-  if (!userPermissions.includes("unit_conversion_view")) {
-    return (
-      <div className="alert alert-danger mt-3 text-center">Access Denied</div>
-    );
+  if (!permissions.includes("unit_conversion_view")) {
+    return <div className="alert alert-danger mt-3 text-center">Access Denied</div>;
   }
 
   return (
@@ -114,22 +122,21 @@ export default function UnitConversionList() {
       <ActionBar
         title="Unit Conversions"
         onCreate={
-          userPermissions.includes("unit_conversion_create")
+          permissions.includes("unit_conversion_create")
             ? () => nav("/admin/unit-conversions/new")
             : undefined
         }
-        showCreate={userPermissions.includes("unit_conversion_create")}
-        onDelete={onDelete}
-        showDelete={userPermissions.includes("unit_conversion_delete")}
+        showCreate={permissions.includes("unit_conversion_create")}
+        onDelete={handleDelete}
+        showDelete={permissions.includes("unit_conversion_delete")}
         selectedCount={selected.length}
         data={filtered}
         onImport={handleImport}
         exportFileName="unit_conversions"
-        showExport={userPermissions.includes("unit_conversion_view")}
-        showPrint={userPermissions.includes("unit_conversion_view")}
+        showExport={permissions.includes("unit_conversion_view")}
+        showPrint={permissions.includes("unit_conversion_view")}
       />
 
-      {/* Search */}
       <div className="d-flex gap-2 mb-3">
         <input
           type="text"
@@ -144,7 +151,6 @@ export default function UnitConversionList() {
         </button>
       </div>
 
-      {/* Table */}
       <div className="table-responsive">
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
@@ -189,7 +195,7 @@ export default function UnitConversionList() {
                       : "-"}
                   </td>
                   <td className="custom-actions">
-                    {userPermissions.includes("unit_conversion_edit") ? (
+                    {permissions.includes("unit_conversion_edit") ? (
                       <button
                         className="btn btn-sm btn-outline-secondary"
                         onClick={() => nav(`/admin/unit-conversions/${i.id}`)}
@@ -210,12 +216,12 @@ export default function UnitConversionList() {
                         Edit
                       </button>
                     )}
-                    {userPermissions.includes("unit_conversion_delete") ? (
+                    {permissions.includes("unit_conversion_delete") ? (
                       <button
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => {
                           setSelected([i.id]);
-                          onDelete();
+                          handleDelete();
                         }}
                       >
                         Delete

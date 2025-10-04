@@ -1,75 +1,88 @@
-import React, { useState, useEffect } from "react";
+// src/sr/SRList.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAPI, UserPermissionAPI } from "../../../api/permissions";
-import { SRAPI } from "../../../api/srApi";   // ✅ SR API
+import { SRAPI } from "../../../api/srApi";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import useFastData from "../../../hooks/useFetch";
 
 export default function SRList() {
   const nav = useNavigate();
-
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [permissions, setPermissions] = useState([]);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [search, setSearch] = useState("");
 
-  // Load current user
-  const loadCurrentUser = async () => {
-    try {
-      const me = await UserAPI.me();
-      setCurrentUserId(me.id);
-      return me.id;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  };
+  // ----------------------------
+  // Fetch current user instantly
+  // ----------------------------
+  const { data: currentUser } = useFastData({
+    key: "currentUser",
+    apiFn: UserAPI.me,
+    staleTime: 5 * 60 * 1000,
+    initialData: {},
+  });
 
-  // Load SR data
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const allRows = await SRAPI.list();
-      const userId = currentUserId || (await loadCurrentUser());
-      if (!userId) return setLoading(false);
+  // ----------------------------
+  // Fetch user permissions instantly
+  // ----------------------------
+  const { data: userPerms = [] } = useFastData({
+    key: ["userPermissions", currentUser?.id],
+    apiFn: () => UserPermissionAPI.getByUser(currentUser.id),
+    enabled: !!currentUser,
+    staleTime: 5 * 60 * 1000,
+    initialData: [],
+  });
 
-      const userPerms = await UserPermissionAPI.getByUser(userId);
-      const userPermissionsArr = [];
+  // ----------------------------
+  // Fetch SRs instantly
+  // ----------------------------
+  const { data: allRows = [], refetch } = useFastData({
+    key: "srList",
+    apiFn: SRAPI.list,
+    enabled: !!currentUser,
+    staleTime: 1,
+    initialData: [],
+  });
 
-      userPerms.forEach((p) => {
-        const srModule = p.sr_module || {};
-        if (Object.values(srModule).some((v) => v.view || v.create || v.edit || v.delete)) {
-          Object.entries(srModule).forEach(([module, actions]) => {
-            Object.entries(actions).forEach(([action, allowed]) => {
-              if (allowed) userPermissionsArr.push(`${module}_${action}`);
-            });
-          });
-        }
+  // ----------------------------
+  // Process permissions
+  // ----------------------------
+  const permissions = [];
+  userPerms.forEach((p) => {
+    const srModule = p.sr_module || {};
+    Object.entries(srModule).forEach(([module, actions]) => {
+      Object.entries(actions).forEach(([action, allowed]) => {
+        if (allowed) permissions.push(`${module}_${action}`);
       });
+    });
+  });
 
-      setPermissions(userPermissionsArr);
-      setRows(allRows);
-    } catch (err) {
-      console.error(err);
-      Swal.fire("Error", "Failed to load SRs", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!permissions.includes("sr_view"))
+    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
-  useEffect(() => {
-    loadData();
-  }, [currentUserId]);
+  // ----------------------------
+  // Filter rows by search
+  // ----------------------------
+  const filteredRows = allRows.filter(
+    (r) =>
+      r.customer_name.toLowerCase().includes(search.toLowerCase()) ||
+      (r.father_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (r.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
+      (r.village || "").toLowerCase().includes(search.toLowerCase())
+  );
 
-  const toggleSelectRow = (id) => {
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelectRow = (id) =>
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const handleDelete = async () => {
     if (!selectedRows.length) return;
     if (!permissions.includes("sr_delete"))
@@ -86,44 +99,33 @@ export default function SRList() {
       for (let id of selectedRows) await SRAPI.remove(id);
       Swal.fire("Deleted!", "", "success");
       setSelectedRows([]);
-      loadData();
+      refetch(); // instantly refresh list
     } catch (err) {
       let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
       if (typeof message === "object") {
-
         message = message.detail ? message.detail : Object.values(message).flat().join(", ");
       }
-
-      Swal.fire("⚠️ Cannot Delete", "This SR has active party/categories. Delete them first.", "warning");
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "This SR has active parties/categories. Delete them first.",
+        "warning"
+      );
     }
   };
 
-  const filteredRows = rows.filter(
-    (r) =>
-      r.customer_name.toLowerCase().includes(search.toLowerCase()) ||
-      (r.father_name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (r.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
-      (r.village || "").toLowerCase().includes(search.toLowerCase())
-  );
-
-    const handleImport = async (file) => {
+  // ----------------------------
+  // Import handler
+  // ----------------------------
+  const handleImport = async (file) => {
     if (!file) return;
     try {
-      await SRAPI.bulk_import(file); 
+      await SRAPI.bulk_import(file);
       Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      loadData();
+      refetch(); // instantly refresh list
     } catch (err) {
-      console.error("Import error:", err);
       Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
-
-
-
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
-  if (!permissions.includes("sr_view"))
-    return <div className="alert alert-danger text-center mt-3">Access Denied</div>;
 
   return (
     <div className="container mt-3">

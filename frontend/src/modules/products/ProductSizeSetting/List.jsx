@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from "react";
+// src/modules/products/ProductSizeSetting/List.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ProductSizeSettingAPI } from "../../../api/products";
 import { PermissionAPI } from "../../../api/permissions";
 import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
 import Swal from "sweetalert2";
+import useFastData from "../../../hooks/useFetch";
 import "../../../styles/Table.css";
 
 export default function ProductSizeSettingList() {
-  const [items, setItems] = useState([]);
+  const nav = useNavigate();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState([]);
-  const [userPermissions, setUserPermissions] = useState([]);
-
+  
   // ✅ Company Selector States
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
@@ -21,43 +22,53 @@ export default function ProductSizeSettingList() {
   const [businessTypes, setBusinessTypes] = useState([]);
   const [factories, setFactories] = useState([]);
 
-  const nav = useNavigate();
-
-  const load = async () => {
-    try {
-      const params = {
+  // ----------------------------
+  // Fetch Product Size Settings
+  // ----------------------------
+  const { data: response = {}, refetch, isLoading } = useFastData({
+    key: [
+      "productSizeSettings",
+      selectedCompany,
+      selectedBusiness,
+      selectedFactory,
+    ],
+    apiFn: () =>
+      ProductSizeSettingAPI.list({
         company: selectedCompany,
         business_type: selectedBusiness,
         factory: selectedFactory,
-      };
+      }),
+    initialData: [],
+  });
 
-      const data = await ProductSizeSettingAPI.list(params);
-      setItems(data);
+  const items = Array.isArray(response.results) ? response.results : Array.isArray(response) ? response : [];
 
-      const perms = await PermissionAPI.list();
-      setUserPermissions(perms.map((p) => p.code));
-    } catch (err) {
-      console.error("Error loading product size settings:", err);
-      Swal.fire("Error", "Failed to load data", "error");
-    }
-  };
+  // ----------------------------
+  // Fetch User Permissions
+  // ----------------------------
+  const { data: userPerms = [] } = useFastData({
+    key: "userPermissions",
+    apiFn: PermissionAPI.list,
+    initialData: [],
+  });
 
-  useEffect(() => {
-    load();
-  }, [selectedCompany, selectedBusiness, selectedFactory]);
+  const permissions = userPerms.map((p) => p.code);
 
-  const toggleSelect = (id) => {
+  // ----------------------------
+  // Row selection
+  // ----------------------------
+  const toggleSelect = (id) =>
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-  };
 
+  // ----------------------------
+  // Delete handler
+  // ----------------------------
   const onDelete = async () => {
     if (!selected.length) return;
-
-    if (!userPermissions.includes("product_size_setting_delete")) {
-      return Swal.fire("❌ You do not have access for this feature", "", "error");
-    }
+    if (!permissions.includes("product_size_setting_delete"))
+      return Swal.fire("❌ No access", "", "error");
 
     const result = await Swal.fire({
       title: `Delete ${selected.length} item(s)?`,
@@ -67,29 +78,45 @@ export default function ProductSizeSettingList() {
       confirmButtonText: "Yes, delete",
     });
 
-    if (result.isConfirmed) {
-      try {
-        for (let id of selected) {
-          await ProductSizeSettingAPI.remove(id);
-        }
-        setSelected([]);
-        load();
-        Swal.fire("Deleted!", "Selected items removed.", "success");
-      } catch (err) {
+    if (!result.isConfirmed) return;
 
-        let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
-        if (typeof message === "object") {
-
-          message = message.detail ? message.detail : Object.values(message).flat().join(", ");
-        }
-
-        Swal.fire("⚠️ Cannot Delete", "This items has active childs. Delete them first.", "warning");
+    try {
+      for (let id of selected) {
+        await ProductSizeSettingAPI.remove(id);
       }
+      setSelected([]);
+      refetch();
+      Swal.fire("Deleted!", "Selected items removed.", "success");
+    } catch (err) {
+      let message = err?.response?.data?.detail || err?.message || "Something went wrong";
+      if (typeof message === "object") {
+        message = message.detail ? message.detail : Object.values(message).flat().join(", ");
+      }
+      Swal.fire(
+        "⚠️ Cannot Delete",
+        "These items have active childs. Delete them first.",
+        "warning"
+      );
     }
   };
 
-  // 🔹 Filter by search + company/business/factory
+  // ----------------------------
+  // Import handler
+  // ----------------------------
+  const handleImport = async (file) => {
+    if (!file) return;
+    try {
+      await ProductSizeSettingAPI.bulk_import(file);
+      Swal.fire("✅ Imported!", "Records saved successfully", "success");
+      refetch();
+    } catch (err) {
+      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
+    }
+  };
+
+  // ----------------------------
+  // Filtered items
+  // ----------------------------
   const filtered = items.filter((i) => {
     const matchesSearch =
       i.product?.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -98,63 +125,51 @@ export default function ProductSizeSettingList() {
       i.size?.size_name?.toLowerCase().includes(search.toLowerCase()) ||
       i.customize_name?.toLowerCase().includes(search.toLowerCase());
 
-    const matchesCompany =
-      (!selectedCompany || i.company?.id === selectedCompany) &&
-      (!selectedBusiness || i.business_type?.id === selectedBusiness) &&
-      (!selectedFactory || i.factory?.id === selectedFactory);
-
-    return matchesSearch && matchesCompany;
+    return matchesSearch;
   });
 
-  const handleImport = async (file) => {
-    if (!file) return;
-    try {
-      await ProductSizeSettingAPI.bulk_import(file);
-      Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      load();
-    } catch (err) {
-      console.error("Import error:", err);
-      Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
-    }
-  };
+  if (isLoading)
+    return (
+      <div className="text-center mt-5">
+        <div className="spinner-border text-primary" role="status"></div>
+        <div className="mt-2">Loading data...</div>
+      </div>
+    );
 
-  if (!userPermissions.includes("product_size_setting_view")) {
+  if (!permissions.includes("product_size_setting_view"))
     return <div className="alert alert-danger mt-3 text-center">Access Denied</div>;
-  }
 
   return (
     <div className="container mt-3">
       <ActionBar
         title="Product Size Settings"
         onCreate={
-          userPermissions.includes("product_size_setting_create")
+          permissions.includes("product_size_setting_create")
             ? () => nav("/admin/product-size-settings/new")
             : undefined
         }
-        showCreate={userPermissions.includes("product_size_setting_create")}
+        showCreate={permissions.includes("product_size_setting_create")}
         onDelete={onDelete}
-        showDelete={userPermissions.includes("product_size_setting_delete")}
+        showDelete={permissions.includes("product_size_setting_delete")}
         selectedCount={selected.length}
         data={filtered}
-        columns={['category', 'product', 'size', 'unit', 'code', 'customize_name']}
+        columns={["category", "product", "size", "unit", "customize_name"]}
         onImport={handleImport}
         exportFileName="product_size_settings"
-        showExport={userPermissions.includes("product_size_setting_view")}
-        showPrint={userPermissions.includes("product_size_setting_view")}
+        showExport={permissions.includes("product_size_setting_view")}
+        showPrint={permissions.includes("product_size_setting_view")}
       />
 
-      {/* ✅ Company Selector */}
-      <div className="mb-3">
-        <UserCompanySelector
-          selectedUser={selectedUser} setSelectedUser={setSelectedUser}
-          selectedCompany={selectedCompany} setSelectedCompany={setSelectedCompany}
-          selectedBusiness={selectedBusiness} setSelectedBusiness={setSelectedBusiness}
-          selectedFactory={selectedFactory} setSelectedFactory={setSelectedFactory}
-          setBusinessTypes={setBusinessTypes} setFactories={setFactories}
-        />
-      </div>
+      {/* Company Selector */}
+      <UserCompanySelector
+        selectedUser={selectedUser} setSelectedUser={setSelectedUser}
+        selectedCompany={selectedCompany} setSelectedCompany={setSelectedCompany}
+        selectedBusiness={selectedBusiness} setSelectedBusiness={setSelectedBusiness}
+        selectedFactory={selectedFactory} setSelectedFactory={setSelectedFactory}
+        setBusinessTypes={setBusinessTypes} setFactories={setFactories}
+      />
 
-      {/* ✅ Search */}
+      {/* Search */}
       <div className="d-flex gap-2 mb-3">
         <input
           type="text"
@@ -169,16 +184,12 @@ export default function ProductSizeSettingList() {
         </button>
       </div>
 
-      {/* ✅ Table */}
+      {/* Table */}
       <div className="table-responsive">
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
-
               <th style={{ width: 60 }}>#</th>
-              {/* <th>Company</th>
-              <th>Business Type</th>
-              <th>Factory</th> */}
               <th>Category</th>
               <th>Product</th>
               <th>Unit</th>
@@ -200,18 +211,14 @@ export default function ProductSizeSettingList() {
             {filtered.length ? (
               filtered.map((i, idx) => (
                 <tr key={i.id}>
-
                   <td>{idx + 1}</td>
-                  {/* <td>{i.company?.name || "-"}</td>
-                  <td>{i.business_type?.name || "-"}</td>
-                  <td>{i.factory?.name || "-"}</td> */}
                   <td>{i.category?.name || "-"}</td>
                   <td>{i.product?.name || "-"}</td>
                   <td>{i.unit?.name} ({i.unit?.short_name})</td>
                   <td>{i.size?.size_name || "-"}</td>
                   <td>{i.customize_name || "-"}</td>
                   <td className="custom-actions">
-                    {userPermissions.includes("product_size_setting_edit") ? (
+                    {permissions.includes("product_size_setting_edit") ? (
                       <button
                         className="btn btn-sm btn-outline-secondary"
                         onClick={() => nav(`/admin/product-size-settings/${i.id}`)}
@@ -226,7 +233,7 @@ export default function ProductSizeSettingList() {
                         Edit
                       </button>
                     )}
-                    {userPermissions.includes("product_size_setting_delete") ? (
+                    {permissions.includes("product_size_setting_delete") ? (
                       <button
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => {
@@ -256,7 +263,7 @@ export default function ProductSizeSettingList() {
               ))
             ) : (
               <tr>
-                <td colSpan={11} className="text-center">
+                <td colSpan={8} className="text-center">
                   No product size settings found
                 </td>
               </tr>

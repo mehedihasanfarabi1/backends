@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import { UnitAPI } from "../../../api/products";
 import { PermissionAPI } from "../../../api/permissions";
 import UserCompanySelector from "../../../components/UserCompanySelector";
 import ActionBar from "../../../components/common/ActionBar";
-import Swal from "sweetalert2";
+import useFastData from "../../../hooks/useFetch";
 import "../../../styles/Table.css";
 
 export default function UnitList() {
-  const [units, setUnits] = useState([]);
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState([]);
-  const [userPermissions, setUserPermissions] = useState([]);
-  // const [loading, setLoading] = useState(true);
+  const nav = useNavigate();
 
-  // ✅ Company Selector states
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [search, setSearch] = useState("");
+
+  // Company selector
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
@@ -22,51 +22,40 @@ export default function UnitList() {
   const [businessTypes, setBusinessTypes] = useState([]);
   const [factories, setFactories] = useState([]);
 
-  const nav = useNavigate();
+  // ----------------------------
+  // Permissions
+  // ----------------------------
+  const { data: perms = [] } = useFastData({
+    key: ["unitPermissions"],
+    apiFn: () => PermissionAPI.list().then((res) => res.map((p) => p.code)),
+  });
 
-  const load = async () => {
-    // setLoading(true);
-    try {
-      const params = {
-        company: selectedCompany,
-        business_type: selectedBusiness,
-        factory: selectedFactory,
-      };
+  // ----------------------------
+  // Units
+  // ----------------------------
+  const { data: units = [], refetch: refetchUnits } = useFastData({
+    key: ["units", selectedCompany, selectedBusiness, selectedFactory],
+    apiFn: () =>
+      UnitAPI.list({
+        company: selectedCompany || undefined,
+        business_type: selectedBusiness || undefined,
+        factory: selectedFactory || undefined,
+      }),
+    initialData: [],
+  });
 
-      // console.log("🔎 Fetching units with params:", params);
+  // ----------------------------
+  // Delete
+  // ----------------------------
+  const handleDelete = async () => {
+    if (!selectedRows.length) return;
 
-      const data = await UnitAPI.list(params);
-      setUnits(data);
-
-      const perms = await PermissionAPI.list();
-      setUserPermissions(perms.map((p) => p.code));
-    } catch (err) {
-      console.error("Error loading units:", err);
-      Swal.fire("Error", "Failed to load data", "error");
-    } finally {
-      // setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    load();
-  }, [selectedCompany, selectedBusiness, selectedFactory]);
-
-  const toggleSelect = (id) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  const onDelete = async () => {
-    if (!selected.length) return;
-
-    if (!userPermissions.includes("unit_delete")) {
+    if (!perms.includes("unit_delete")) {
       return Swal.fire("❌ You do not have access for this feature", "", "error");
     }
 
     const result = await Swal.fire({
-      title: `Delete ${selected.length} unit(s)?`,
+      title: `Delete ${selectedRows.length} unit(s)?`,
       text: "This action cannot be undone!",
       icon: "warning",
       showCancelButton: true,
@@ -75,54 +64,50 @@ export default function UnitList() {
 
     if (result.isConfirmed) {
       try {
-        for (let id of selected) {
-          await UnitAPI.remove(id);
-        }
-        setSelected([]);
-        load();
+        for (let id of selectedRows) await UnitAPI.remove(id);
+        setSelectedRows([]);
+        refetchUnits();
         Swal.fire("Deleted!", "Selected unit(s) removed.", "success");
       } catch (err) {
-        // 🔹 Child থাকলে specific warning দেখাবে
         let message = err?.response?.data?.detail || err?.message || "Something went wrong";
-
         if (typeof message === "object") {
-          // DRF ValidationError returns array
           message = message.detail ? message.detail : Object.values(message).flat().join(", ");
         }
-
         Swal.fire("⚠️ Cannot Delete", "This Unit has active UnitSize. Delete them first.", "warning");
       }
     }
   };
 
+  // ----------------------------
+  // Import
+  // ----------------------------
   const handleImport = async (file) => {
     if (!file) return;
     try {
-      await UnitAPI.bulk_import(file); 
+      await UnitAPI.bulk_import(file);
       Swal.fire("✅ Imported!", "Records saved successfully", "success");
-      load();
+      refetchUnits();
     } catch (err) {
       console.error("Import error:", err);
       Swal.fire("❌ Failed", err.response?.data?.error || "Import failed", "error");
     }
   };
 
-  const filtered = units.filter(
+  // ----------------------------
+  // Filtering
+  // ----------------------------
+  const filteredUnits = units.filter(
     (u) =>
       u.name?.toLowerCase().includes(search.toLowerCase()) ||
       (u.short_name || "").toLowerCase().includes(search.toLowerCase())
   );
 
-  // if (loading) {
-  //   return (
-  //     <div className="text-center mt-5">
-  //       <div className="spinner-border text-primary" role="status"></div>
-  //       <div className="mt-2">Loading data...</div>
-  //     </div>
-  //   );
-  // }
+  const toggleSelectRow = (id) =>
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
 
-  if (!userPermissions.includes("unit_view")) {
+  if (!perms.includes("unit_view")) {
     return (
       <div className="alert alert-danger mt-3 text-center">
         ❌ Access Denied
@@ -134,141 +119,118 @@ export default function UnitList() {
     <div className="container mt-3">
       <ActionBar
         title="Units"
-        onCreate={
-          userPermissions.includes("unit_create")
-            ? () => nav("/admin/units/new")
-            : undefined
-        }
-        showCreate={userPermissions.includes("unit_create")}
-        onDelete={onDelete}
-        showDelete={userPermissions.includes("unit_delete")}
-        selectedCount={selected.length}
-        data={filtered}
+        onCreate={perms.includes("unit_create") ? () => nav("/admin/units/new") : undefined}
+        showCreate={perms.includes("unit_create")}
+        onDelete={handleDelete}
+        showDelete={perms.includes("unit_delete")}
+        selectedCount={selectedRows.length}
+        data={filteredUnits}
         onImport={handleImport}
         exportFileName="units"
-        columns={["name", "short_name"]}
-        showExport={userPermissions.includes("unit_view")}
-        showPrint={userPermissions.includes("unit_view")}
+        showExport={perms.includes("unit_view")}
       />
 
-      {/* ✅ Company Selector on top */}
-      <div className="mb-3">
-        <UserCompanySelector
-          selectedUser={selectedUser}
-          setSelectedUser={setSelectedUser}
-          selectedCompany={selectedCompany}
-          setSelectedCompany={setSelectedCompany}
-          selectedBusiness={selectedBusiness}
-          setSelectedBusiness={setSelectedBusiness}
-          selectedFactory={selectedFactory}
-          setSelectedFactory={setSelectedFactory}
-          setBusinessTypes={setBusinessTypes}
-          setFactories={setFactories}
-          initialCompanyId={selectedCompany}        // ✅ preselect
-          initialBusinessId={selectedBusiness}      // ✅ preselect
-          initialFactoryId={selectedFactory}        // ✅ preselect
-        />
+      <UserCompanySelector
+        selectedUser={selectedUser}
+        setSelectedUser={setSelectedUser}
+        selectedCompany={selectedCompany}
+        setSelectedCompany={(v) => {
+          setSelectedCompany(v);
+          setSelectedBusiness(null);
+          setSelectedFactory(null);
+        }}
+        selectedBusiness={selectedBusiness}
+        setSelectedBusiness={(v) => {
+          setSelectedBusiness(v);
+          setSelectedFactory(null);
+        }}
+        selectedFactory={selectedFactory}
+        setSelectedFactory={setSelectedFactory}
+        setBusinessTypes={setBusinessTypes}
+        setFactories={setFactories}
+      />
+
+      {/* Search */}
+      <div className="row g-2 mb-3 align-items-end">
+        <div className="col-md-6 col-sm-12">
+          <input
+            className="form-control"
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        {/* <div className="col-md-3 col-sm-4">
+          <button
+            className="btn btn-secondary w-100"
+            onClick={() => setSearch("")}
+          >
+            Clear
+          </button>
+        </div> */}
       </div>
 
-      {/* ✅ Search */}
-      <div className="d-flex gap-2 mb-3">
-        <input
-          type="text"
-          className="form-control"
-          placeholder="Search units..."
-          style={{ maxWidth: 250 }}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button className="btn btn-danger" onClick={() => setSearch("")}>
-          Clear
-        </button>
-      </div>
-
-      {/* ✅ Table */}
+      {/* Table */}
       <div className="table-responsive">
         <table className="table table-bordered table-striped">
           <thead className="table-primary">
             <tr>
-              <th style={{ width: 50 }}>
+              <th>Serial</th>
+              <th>Name</th>
+              <th>Short Name</th>
+              <th>Actions</th>
+              <th>
                 <input
                   type="checkbox"
-                  checked={
-                    selected.length === filtered.length && filtered.length > 0
-                  }
+                  checked={selectedRows.length === filteredUnits.length && filteredUnits.length > 0}
                   onChange={(e) =>
-                    setSelected(
-                      e.target.checked ? filtered.map((u) => u.id) : []
+                    setSelectedRows(
+                      e.target.checked ? filteredUnits.map((r) => r.id) : []
                     )
                   }
                 />
               </th>
-              <th style={{ width: 60 }}>#</th>
-              <th>Unit Name</th>
-              <th>Short Name</th>
-              <th style={{ width: 180 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length ? (
-              filtered.map((u, i) => (
+            {filteredUnits.length ? (
+              filteredUnits.map((u, i) => (
                 <tr key={u.id}>
+                  <td>{i + 1}</td>
+                  <td>{u.name}</td>
+                  <td>{u.short_name}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-outline-secondary me-1"
+                      onClick={() => nav(`/admin/units/${u.id}`)}
+                      disabled={!perms.includes("unit_edit")}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => {
+                        setSelectedRows([u.id]);
+                        handleDelete();
+                      }}
+                      disabled={!perms.includes("unit_delete")}
+                    >
+                      Delete
+                    </button>
+                  </td>
                   <td>
                     <input
                       type="checkbox"
-                      checked={selected.includes(u.id)}
-                      onChange={() => toggleSelect(u.id)}
+                      checked={selectedRows.includes(u.id)}
+                      onChange={() => toggleSelectRow(u.id)}
                     />
-                  </td>
-                  <td>{i + 1}</td>
-                  <td>{u.name}</td>
-                  <td>{u.short_name || "-"}</td>
-                  <td className="custom-actions">
-                    {userPermissions.includes("unit_edit") ? (
-                      <button
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={() => nav(`/admin/units/${u.id}`)}
-                      >
-                        Edit
-                      </button>
-                    ) : (
-                      <button
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={() =>
-                          Swal.fire("❌ You do not have access", "", "error")
-                        }
-                      >
-                        Edit
-                      </button>
-                    )}
-
-                    {userPermissions.includes("unit_delete") ? (
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() => {
-                          setSelected([u.id]);
-                          onDelete();
-                        }}
-                      >
-                        Delete
-                      </button>
-                    ) : (
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={() =>
-                          Swal.fire("❌ You do not have access", "", "error")
-                        }
-                      >
-                        Delete
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td colSpan={5} className="text-center">
-                  No units found
+                  No data
                 </td>
               </tr>
             )}
