@@ -332,7 +332,9 @@ export default function PartyCommissionList() {
                         )}
                     </tbody>
                 </table>
+                
             </div>
         </div>
+        
     );
 }

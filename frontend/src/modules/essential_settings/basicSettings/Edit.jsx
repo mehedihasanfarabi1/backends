@@ -257,10 +257,10 @@ export default function BasicSettingEditForm() {
               {renderInput("Carrying Interest Rate", "carrying_interest_rate", "number")}
               {renderInput("Interest Start Date", "interest_start_date", "date")}
               {renderInput("Transaction Date", "transaction_date", "date")}
-              {renderInput("Delivery Type", "delivery_type")}
+              {renderInput("Delivery Type", "delivery_type","select",{ options: [{value:"bag", label:"Bag"}, {value:"kg", label:"KG"}] })}
               {renderInput("Less Weight", "less_weight", "number")}
               {renderInput("Delivery Commission Rate", "delivery_commission_rate", "number")}
-              {renderInput("Value Mode", "value_mode")}
+              {renderInput("Value Mode", "value_mode","select",{ options: [{value:"floor", label:"Floor"}, {value:"round", label:"Round"},{value:"ceil",label:"Ceil"}] })}
               {renderInput("Monthly Interest", "monthly_interest", "textarea")}
               {renderInput("Loan Type Interest", "loantype_interest", "textarea")}
             </div>

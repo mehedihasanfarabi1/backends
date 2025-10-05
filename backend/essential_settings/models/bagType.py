@@ -21,7 +21,7 @@ class BagType(AuditMixin, models.Model):
     per_bag_loan = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     empty_bag_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     fan_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
+    
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     def __str__(self):

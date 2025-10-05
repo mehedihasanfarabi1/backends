@@ -32,7 +32,6 @@ export default function TransactionSettingCreateForm() {
     sr_loan_receive: "Yes",
     sr_loan_interest_receive: "Yes",
     delivery_transaction: "Yes",
-    key: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -162,7 +161,6 @@ export default function TransactionSettingCreateForm() {
               {renderInput("SR Loan Interest Receive", "sr_loan_interest_receive", "select", { options: [{value:"Yes", label:"Yes"}, {value:"No", label:"No"}] })}
               {renderInput("Delivery Transaction", "delivery_transaction", "select", { options: [{value:"Yes", label:"Yes"}, {value:"No", label:"No"}] })}
 
-              {renderInput("Key", "key")}
             </div>
             <div className="text-center mt-3">
               <button type="submit" className="btn btn-success btn-sm px-3">Save</button>

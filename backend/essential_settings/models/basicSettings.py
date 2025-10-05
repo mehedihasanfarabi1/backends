@@ -2,7 +2,8 @@
 from django.db import models
 from backend.mixins import AuditMixin
 from company.models.factory import Factory
-
+import uuid
+import datetime
 
 class BasicSetting(AuditMixin):
     factory = models.ForeignKey(
@@ -35,15 +36,41 @@ class BasicSetting(AuditMixin):
     interest_start_date = models.DateField(null=True, blank=True)
     transaction_date = models.DateField(null=True, blank=True)
 
-    delivery_type = models.CharField(max_length=16, default="bag")
+    delivery_type = models.CharField(
+    max_length=16,
+    choices=[("bag", "Bag"), ("kg", "Kg")],
+    default="bag"
+    )
     less_weight = models.FloatField(null=True, blank=True)
     delivery_commission_rate = models.FloatField(null=True, blank=True)
-    value_mode = models.CharField(max_length=16, default="floor")
+    value_mode = models.CharField(
+    max_length=16,
+    choices=[("floor", "Floor"), ("round", "Round"), ("ceil", "Ceil")],
+    default="floor"
+    )
 
     monthly_interest = models.TextField(null=True, blank=True)
     loantype_interest = models.TextField(null=True, blank=True)
 
     key = models.CharField(max_length=32, null=True, blank=True)
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_unique_key()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_unique_key():
+
+        from essential_settings.models.basicSettings import BasicSetting
+        while True:
+            
+            uuid_part = str(uuid.uuid4().int % 10**6).zfill(6)
+            
+            sec_part = str(datetime.datetime.now().second).zfill(2)
+            key = uuid_part + sec_part 
+
+            if not BasicSetting.objects.filter(key=key).exists():
+                return key
 
     def __str__(self):
         return f"BasicSetting ({self.session}) - {self.factory}"

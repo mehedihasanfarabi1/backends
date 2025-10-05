@@ -1,5 +1,7 @@
 # backend/essential_settings/models/general_settings.py
 from django.db import models
+import uuid
+import datetime
 from backend.mixins import AuditMixin
 from company.models.factory import Factory
 import random
@@ -57,6 +59,7 @@ class GeneralSetting(AuditMixin):
     screen_saver = models.CharField(max_length=32, null=True, blank=True)
 
     key = models.CharField(max_length=32, unique=True,null=True, blank=True)
+    
     def save(self, *args, **kwargs):
         if not self.key:
             self.key = self.generate_unique_key()
@@ -64,10 +67,17 @@ class GeneralSetting(AuditMixin):
 
     @staticmethod
     def generate_unique_key():
+
         from essential_settings.models.generalSettings import GeneralSetting
         while True:
-            key = str(random.randint(1000, 99999999))
+            
+            uuid_part = str(uuid.uuid4().int % 10**6).zfill(6)
+            
+            sec_part = str(datetime.datetime.now().second).zfill(2)
+            key = uuid_part + sec_part 
+
             if not GeneralSetting.objects.filter(key=key).exists():
                 return key
+
     def __str__(self):
         return f"GeneralSetting ({self.title}) - {self.factory}"
