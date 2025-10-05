@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
        'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'software_project4',       # তোমার DB নাম
+        'NAME': 'software_project5',       # তোমার DB নাম
         'USER': 'postgres',   # DB ইউজার
         # 'PASSWORD': '1234', # পাসওয়ার্ড
         'PASSWORD': '5843', # পাসওয়ার্ড 
